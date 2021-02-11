@@ -1,0 +1,1 @@
+# Screenshotmatcher-2.0
