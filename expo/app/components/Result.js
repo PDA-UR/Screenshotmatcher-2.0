@@ -23,22 +23,23 @@ export default class Result extends React.Component {
   }
 
   async download(){
-
+    console.log(Date.now(), ": Saving file to album...")
     this.setState({ isSaving: true })
 
     await Api.saveFile(this.props.resultUri)
 
     this.setState({ isSaving: false })
-
+    console.log(Date.now(), ": Saved file to album successfully.")
     ToastAndroid.showWithGravity('Saved to album "ScreenshotMatcher"', ToastAndroid.LONG, ToastAndroid.CENTER);
   }
 
   async openGallery(){
+    console.log(Date.now(), ": Opened gallery")
     Linking.openURL("content://media/internal/images/media");
   }
 
   async share(){
-
+    console.log(Date.now(), ": Pressed 'share'")
     this.setState({ isSharing: true })
 
     // check if sharing is available

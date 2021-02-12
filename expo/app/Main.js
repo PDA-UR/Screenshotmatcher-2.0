@@ -72,11 +72,13 @@ class Main extends React.Component {
 
   // start pairing process (showing barcode reader)
   startPairing(){
+    console.log(Date.now(), ": Started pairing process")
     this.setState({ isPairing: true })
   }
 
   // barcode scanner callback, setting api base url
   handleBarCodeScanned({ type, data }){
+    console.log(Date.now(), ": Barcode scanned")
     //alert(`Bar code with type ${type} and data ${data} has been scanned!`);
     this.setState({ isPairing: false });
     Api.setUrl(data).then(() => { this.updateStatus() })
@@ -97,24 +99,33 @@ class Main extends React.Component {
       alert('Camera not found')
       return
     }
-
+    console.log(Date.now(), ": Capture Button pressed.");
     this.setState({ isPhotoLoading: true, loadingMsg: 'Taking Picture...' });
     
     // take picture
-    const picture = await this.camera.takePictureAsync({ quality: 0 })
+    console.log(Date.now(), ": Taking picture...");
+    const picture = await this.camera.takePictureAsync({ quality: 0, skipProcessing: true })
+    if(picture) console.log(Date.now(), ": Taking picture finished.");
 
     // scale down result to a width of 512px
+    console.log(Date.now(), ": Starting downscaling...")
     const manipResult = await ImageManipulator.manipulateAsync(
       picture.uri,
       [{ resize: { width: 512 } }],
     );
+    if(manipResult) console.log(Date.now(), ": Downscaling finished");
     
     this.setState({ loadingMsg: 'Matching...' });
 
     // post picture to the server
+    console.log(Date.now(), ": Posting image to server...");
     const matchResult = await Api.postImage(manipResult)
     
-    if(matchResult) console.log( matchResult.hasResult ? 'Match successful' : 'Match failed' )
+    if(matchResult){
+      if(matchResult.hasResult) console.log(Date.now(), ": Match successful");
+      else console.log(Date.now(), ": Match failed");
+    }
+    // if(matchResult) console.log( matchResult.hasResult ? 'Match successful' : 'Match failed' )
     // console.log('match result', matchResult)
 
     if(!matchResult){
@@ -145,10 +156,16 @@ class Main extends React.Component {
 
       this.setState({ currentUid: matchResult.uid, loadingMsg: 'Downloading...' });
 
+      console.log(Date.now(), ": Downloading image from server...")
+      
       // download result image from server
       const downloadedImg = await Api.downloadFile(matchResult.uid, matchResult.filename)
+      console.log(Date.now(), ": Downloading image finished.")
+
       
       this.setState({ resultUri: downloadedImg, hasResult: true, isPhotoLoading: false, loadingMsg: '' });
+      console.log(Date.now(), ": Result image shown to user.")
+
     }
     
   }
@@ -159,7 +176,9 @@ class Main extends React.Component {
       return;
     }
     // download screenshot from server
+    console.log(Date.now(), ": Downloading full screenshot...")
     const downloadedImg = await Api.downloadFile(this.state.currentUid, this.state.screenshotFile)
+    console.log(Date.now(), ": Downloading full screenshot finished.")
     this.setState({ resultUri: downloadedImg, hasScreenshot: true });
     this.toggleModal();
   };

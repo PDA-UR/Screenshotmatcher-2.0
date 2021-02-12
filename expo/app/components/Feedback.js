@@ -36,7 +36,7 @@ export default class Feedback extends React.Component {
 
     if(fbResult){
       this.setState({isSubmitting: false, feedbackSent: true});
-      console.log('Feedback sent!')
+      console.log(Date.now(),': Feedback sent!')
       this.toggleModal()
     }
     else{
