@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "ScreenshotMatcher",
+    "slug": "screenshotmatcher",
+    "privacy": "public",
+    "sdkVersion": "36.0.0",
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/brand/profile.png",
+    "splash": {
+      "image": "./assets/brand/default.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#2C3252"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "de.ur.mi.screenshotmatcher.client"
+    },
+    "androidStatusBarColor": "#000",
+    "androidStatusBar": {
+      "translucent": "false",
+      "barStyle": "light-content"
+    }
+  }
+}
