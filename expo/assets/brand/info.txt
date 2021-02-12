@@ -1,0 +1,18 @@
+
+Hope you enjoy your new logo, here are the people that
+made your beautiful logo happen :)
+font name: Coda-Regular
+font link: https://fonts.google.com/specimen/Coda
+font author: Vernon Adams
+font author site: http://sansoxygen.com/
+Slogan Font: Renner-Thin.otf
+
+icon designer: Rodolfo Alvarez
+icon designer link: /dg.rodolfoalvarez
+        
+
+fontColor: {"hex":"#FFFFFF"}
+bgColor: {"hex":"#2C3252"}
+iconColor: {"hex":"#FFFFFF"}
+sloganColor: {"hex":"#FFFFFF"}
+      
