@@ -27,6 +27,7 @@ class Config():
   ICON_PATH = 'gui/icon.png'
   HOST = common.utils.getCurrentIPAddress()
   PORT = 49049
+  PORT_DISCOVERY = 49050
   SERVICE_URL = 'http://{}:{}'.format(HOST, PORT)
   ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
