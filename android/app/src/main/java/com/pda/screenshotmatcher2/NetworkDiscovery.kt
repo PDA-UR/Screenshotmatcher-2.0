@@ -9,7 +9,7 @@ import java.net.DatagramSocket
 import java.net.InetAddress
 import java.net.InetSocketAddress
 
-fun discoverServerOnNetwork(context: Context, port: Int = 50501, message: String = "screenshot matcher client LF server") : String {
+fun discoverServerOnNetwork(context: Context, port: Int = 49050, message: String = "screenshot matcher client LF server") : String {
     val s = DatagramSocket().also {
         it.broadcast = true
         it.reuseAddress = true
