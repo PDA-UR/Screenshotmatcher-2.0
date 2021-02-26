@@ -1,4 +1,4 @@
-package com.pda.dns_discovery
+package com.pda.screenshotmatcher2
 
 import android.content.Context
 import android.net.wifi.WifiManager
@@ -8,6 +8,8 @@ import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
 import java.net.InetSocketAddress
+
+const val PROTOCOL = "http://"
 
 fun discoverServerOnNetwork(context: Context, port: Int = 49050, message: String = "screenshot matcher client LF server") : String {
     val s = DatagramSocket().also {
@@ -26,8 +28,8 @@ fun discoverServerOnNetwork(context: Context, port: Int = 49050, message: String
     s.receive(packetR)
     s.close()
     // expected answer from server: "192.168.0.45:99887"
-    val serverIPandPort = String(packetR.data, 0, packetR.length)
-    return serverIPandPort
+    val serverURL = PROTOCOL + String(packetR.data, 0, packetR.length)
+    return serverURL
 }
 
 @Throws(IOException::class)
