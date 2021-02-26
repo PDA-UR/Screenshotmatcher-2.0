@@ -90,7 +90,6 @@ class Server():
     logging.info('sending feedback {}'.format(uid))
 
     urllib3.disable_warnings()
-    requests.post("https://feedback.hartmann-it.de/feedback", data=payload, files=file_payload, verify=False )
 
     return "ok"
 
@@ -140,7 +139,6 @@ class Server():
     }
 
     urllib3.disable_warnings()
-    requests.post("https://feedback.hartmann-it.de/log", data=payload, verify=False )
 
     response = {'uid': uid}
 
