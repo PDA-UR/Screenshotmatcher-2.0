@@ -18,7 +18,6 @@ from common.utils import allowed_file
 
 class Server():
   def __init__(self):
-
     logging.basicConfig(filename='./match.log',level=logging.DEBUG)
 
     if Config.IS_DIST:
@@ -94,13 +93,13 @@ class Server():
     return "ok"
 
   def match_route(self):
-
+    print("POST received on /match/")
     # Check if there is an image in the request
-    if 'image_file.jpg' not in request.files:
+    if 'file' not in request.files:
       return 'No file part'
 
     # Get uploaded file
-    uploaded_file = request.files['image_file.jpg']
+    uploaded_file = request.files['file']
 
     # Check if file has data
     if not uploaded_file or uploaded_file.filename == '':
