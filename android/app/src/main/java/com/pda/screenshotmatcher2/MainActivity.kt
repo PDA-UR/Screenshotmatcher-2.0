@@ -2,9 +2,13 @@ package com.pda.screenshotmatcher2
 
 import android.Manifest
 import android.app.Activity
+import android.app.DownloadManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.os.Build
@@ -12,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import net.gotev.uploadservice.UploadServiceConfig
 import java.io.File
@@ -37,7 +42,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun funcTest(){
-        Log.v("TEST", "button pressed")
+        Log.v("TIMING", "button pressed")
         var serverUrl : String = ""
         Thread{
             serverUrl = discoverServerOnNetwork(this, 49050, "")
@@ -49,6 +54,7 @@ class MainActivity : AppCompatActivity() {
     private fun onServerURLget(serverURL : String){
         Thread {
             val greyImg = savePhotoToDisk(null, TEST_FILE_PATH, 512)
+            Log.v("TIMING", "File converted")
             onFileConverted(greyImg, serverURL)
         }.start()
     }
@@ -56,9 +62,11 @@ class MainActivity : AppCompatActivity() {
     private fun onFileConverted(file : File, serverURL: String){
         val httpClient = HTTPClient(serverURL, this, this)
         Thread{
+            Log.v("TIMING", "Sending file to server.")
             httpClient.sendFileToServer(file.absolutePath)
         }.start()
     }
+
 
     companion object {
         const val notificationChannelID = "Screenshotmatcher Channel"
