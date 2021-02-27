@@ -28,7 +28,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         verifyPermissions(this)
-
         createNotificationChannel()
         UploadServiceConfig.initialize(
                 context = this.application,
@@ -36,7 +35,7 @@ class MainActivity : AppCompatActivity() {
                 debug = BuildConfig.DEBUG
         )
 
-        mkdirForApp()
+        APP_DIRECTORY = getExternalFilesDir(null) as File
 
         findViewById<Button>(R.id.button).setOnClickListener {
             funcTest()

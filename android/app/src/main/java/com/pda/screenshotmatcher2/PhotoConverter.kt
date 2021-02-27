@@ -20,7 +20,7 @@ fun savePhotoToDisk(image: Image?, filepath: String?, targetSize: Int): File{
     var greybmp : Bitmap = toGrayscale(bitmap)
     greybmp = greybmp.scale(width = (greybmp.width*factor).toInt(), height = (greybmp.height*factor).toInt())
     val filename = System.currentTimeMillis().toString()+".jpg"
-    val file = File(Environment.getExternalStorageDirectory().toString()+"/Screenshotmatcher2/", filename)  // TODO: replace with resource variable for app directory
+    val file = File(APP_DIRECTORY, filename)  // TODO: replace with resource variable for app directory
     try {
         val out = FileOutputStream(file)
         greybmp.compress(Bitmap.CompressFormat.JPEG, 100, out)
