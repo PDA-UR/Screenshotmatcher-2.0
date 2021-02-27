@@ -25,6 +25,7 @@ class MainActivity : AppCompatActivity() {
     val TEST_FILE_PATH = "/storage/emulated/0/Download/test.jpg"
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         verifyPermissions(this)
@@ -37,9 +38,17 @@ class MainActivity : AppCompatActivity() {
 
         APP_DIRECTORY = getExternalFilesDir(null) as File
 
+        findViewById<Button>(R.id.camera_button).setOnClickListener {
+            startCameraActivity()
+        }
         findViewById<Button>(R.id.button).setOnClickListener {
             funcTest()
         }
+    }
+
+    private fun startCameraActivity() {
+        val intent = Intent(this, CameraActivity::class.java).apply {}
+        startActivity(intent)
     }
 
     private fun funcTest(){
