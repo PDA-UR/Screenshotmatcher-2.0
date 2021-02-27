@@ -36,6 +36,8 @@ class MainActivity : AppCompatActivity() {
                 debug = BuildConfig.DEBUG
         )
 
+        mkdirForApp()
+
         findViewById<Button>(R.id.button).setOnClickListener {
             funcTest()
         }

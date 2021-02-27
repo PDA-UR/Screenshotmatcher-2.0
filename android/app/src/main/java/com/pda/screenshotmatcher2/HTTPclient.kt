@@ -16,6 +16,7 @@ import net.gotev.uploadservice.network.ServerResponse
 import net.gotev.uploadservice.observer.request.RequestObserverDelegate
 import net.gotev.uploadservice.protocols.multipart.MultipartUploadRequest
 import org.json.JSONObject
+import java.io.File
 
 
 //uses https://github.com/gotev/android-upload-service
@@ -27,6 +28,7 @@ class HTTPClient(
     private val TAG = "HTTP"
     private val MATCHING_DESTINATION = "/match"
     private val LOG_DESTINATION = "/log"
+    private val APP_DIRECTORY = "/storage/emulated/0/Scrrenshotmatcher2"    // TODO: replace with variable from a resources file
 
     private var downloadID : Long = 0
 
@@ -99,7 +101,9 @@ class HTTPClient(
         request.setTitle("Screenshot")
         request.setDescription("downloading")
         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "camdemo/result");
+
+        mkdirForApp()
+        request.setDestinationInExternalPublicDir(APP_DIRECTORY, "/"+response["filename"].toString().substringAfterLast('/'));
 
         downloadID = downloadmanager.enqueue(request)
         context.registerReceiver(onDownloadComplete, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)) // TODO>: call this in the onCreate() function of the fragment, that displays the result
