@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Activity
 import android.content.pm.PackageManager
 import androidx.core.app.ActivityCompat
+import java.io.File
 
 private val PERMISSIONS = arrayOf<String>(
     Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -22,4 +23,9 @@ fun verifyPermissions(activity: Activity?) {
             1
         )
     }
+}
+
+fun mkdirForApp(){
+    val dir = File("/storage/emulated/0/Screenshotmatcher2")
+    if(!dir.isDirectory) dir.mkdir()
 }
