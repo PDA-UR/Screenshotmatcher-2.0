@@ -100,7 +100,7 @@ class HTTPClient(
         request.setTitle("Screenshot")
         request.setDescription("downloading")
         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-        request.setDestinationInExternalPublicDir(APP_DIRECTORY.toString(), "/"+response["filename"].toString().substringAfterLast('/'));
+        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_PICTURES, "/"+response["filename"].toString().substringAfterLast('/'))
 
         downloadID = downloadmanager.enqueue(request)
         context.registerReceiver(onDownloadComplete, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)) // TODO>: call this in the onCreate() function of the fragment, that displays the result

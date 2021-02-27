@@ -93,7 +93,6 @@ class Server():
     return "ok"
 
   def match_route(self):
-    print("POST received on /match/")
     # Check if there is an image in the request
     if 'file' not in request.files:
       return 'No file part'
@@ -124,7 +123,9 @@ class Server():
     # Start matcher
     start_time = time.perf_counter()
     matcher = Matcher(uid, filename)
+    t = time.time()
     match_result = matcher.match(algorithm=Config.CURRENT_ALGORITHM)
+    print("Matching took {} ms".format(time.time()-t))
     end_time = time.perf_counter()
 
     # Send data to server for logging
