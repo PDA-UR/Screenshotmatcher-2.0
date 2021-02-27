@@ -3,8 +3,11 @@ package com.pda.screenshotmatcher2
 import android.Manifest
 import android.app.Activity
 import android.content.pm.PackageManager
+import android.util.Log
 import androidx.core.app.ActivityCompat
 import java.io.File
+
+lateinit var APP_DIRECTORY : File
 
 private val PERMISSIONS = arrayOf<String>(
     Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -23,9 +26,4 @@ fun verifyPermissions(activity: Activity?) {
             1
         )
     }
-}
-
-fun mkdirForApp(){
-    val dir = File("/storage/emulated/0/Screenshotmatcher2")
-    if(!dir.isDirectory) dir.mkdir()
 }
