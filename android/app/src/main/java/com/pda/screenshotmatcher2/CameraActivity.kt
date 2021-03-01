@@ -10,7 +10,6 @@ import android.media.Image
 import android.media.ImageReader
 import android.os.Bundle
 import android.os.Handler
-import android.os.HandlerThread
 import android.util.Log
 import android.util.Size
 import android.util.SparseIntArray
@@ -47,11 +46,6 @@ class CameraActivity : Activity() {
     //size of preview
     private var mPreviewSize: Size? = null
 
-    private var mCaptureButton: Button? = null
-
-    //Thread for background tasks
-    private var mBackgroundThread: HandlerThread? = null
-
     //Handler for background tasks
     private var mBackgroundHandler: Handler? = null
 
@@ -76,6 +70,7 @@ class CameraActivity : Activity() {
     //Other UI Views
     private var mSelectDeviceButton: Button? = null
     private var mSelectDeviceList: ListView? = null
+    private var mCaptureButton: Button? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -121,7 +116,7 @@ class CameraActivity : Activity() {
             }
 
         mCaptureButton?.setOnClickListener(View.OnClickListener {
-            campureImageWithCaptureRequest()
+            captureImageWithCaptureRequest()
             //captureImageWithPreviewExtraction()
         })
 
@@ -147,7 +142,7 @@ class CameraActivity : Activity() {
     }
 
     //Capture an image by using a Capture Request
-    private fun campureImageWithCaptureRequest() {
+    private fun captureImageWithCaptureRequest() {
         val outputSurfaces: MutableList<Surface> = LinkedList()
         outputSurfaces.add(mImageReader!!.getSurface())
 
@@ -158,14 +153,14 @@ class CameraActivity : Activity() {
             CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
         )
 
-        val ORIENTATIONS = SparseIntArray()
-        ORIENTATIONS.append(Surface.ROTATION_0, 90)
-        ORIENTATIONS.append(Surface.ROTATION_90, 0)
-        ORIENTATIONS.append(Surface.ROTATION_180, 270)
-        ORIENTATIONS.append(Surface.ROTATION_270, 180)
+        val orientations = SparseIntArray()
+        orientations.append(Surface.ROTATION_0, 90)
+        orientations.append(Surface.ROTATION_90, 0)
+        orientations.append(Surface.ROTATION_180, 270)
+        orientations.append(Surface.ROTATION_270, 180)
         val rotation = windowManager.defaultDisplay.rotation
 
-        mCaptureRequestBuilder!!.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation))
+        mCaptureRequestBuilder!!.set(CaptureRequest.JPEG_ORIENTATION, orientations.get(rotation))
         mCaptureRequestBuilder!!.addTarget(outputSurfaces[0])
 
         val captureCallback = object : CameraCaptureSession.CaptureCallback() {
@@ -270,17 +265,11 @@ class CameraActivity : Activity() {
         try {
             for (cameraId in manager.cameraIdList) {
                 val characteristics = manager.getCameraCharacteristics(cameraId)
-
-                val facing = characteristics.get(CameraCharacteristics.LENS_FACING)
-                if (facing != null && facing == CameraCharacteristics.LENS_FACING_FRONT) {
-                    continue
-                }
                 val map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
                     ?: continue
 
                 // Use largest size available
-                val largest: Size =
-                    Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)).get(0).get(0)
+                val largest: Size = listOf(map.getOutputSizes(ImageFormat.JPEG))[0][0]
 
                 mImageReader = ImageReader.newInstance(
                     largest.width, largest.height,
@@ -298,6 +287,7 @@ class CameraActivity : Activity() {
                     }
                     image?.close()
                 }, mBackgroundHandler)
+
 
                 val displaySize = Point()
                 windowManager.defaultDisplay.getSize(displaySize)
@@ -365,6 +355,7 @@ class CameraActivity : Activity() {
         val bigEnough: MutableList<Size> = ArrayList()
         // resolutions < preview Surface
         val notBigEnough: MutableList<Size> = ArrayList()
+        
         val w = aspectRatio.width
         val h = aspectRatio.height
         for (option in choices) {
@@ -383,13 +374,17 @@ class CameraActivity : Activity() {
             }
         }
 
-        return if (bigEnough.size > 0) {
-            Collections.min(bigEnough, CompareSizesByArea())
-        } else if (notBigEnough.size > 0) {
-            Collections.max(notBigEnough, CompareSizesByArea())
-        } else {
-            Log.e("CAMERA", "No suitable preview size")
-            choices[0]
+        return when {
+            bigEnough.size > 0 -> {
+                Collections.min(bigEnough, CompareSizesByArea())
+            }
+            notBigEnough.size > 0 -> {
+                Collections.max(notBigEnough, CompareSizesByArea())
+            }
+            else -> {
+                Log.e("CAMERA", "No suitable preview size")
+                choices[0]
+            }
         }
     }
 
@@ -427,12 +422,11 @@ class CameraActivity : Activity() {
     }
 
     private fun requestPerm() {
-        when {
+        when (PackageManager.PERMISSION_GRANTED) {
             ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.CAMERA
-            ) == PackageManager.PERMISSION_GRANTED -> { }
-
+            ) -> { }
             else -> {
                 requestPermissions(
                     this,
