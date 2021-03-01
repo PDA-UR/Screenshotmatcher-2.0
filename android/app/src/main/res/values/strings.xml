@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">ScreenshotMatcher2</string>
+    <string name="capture_button_text_en">Capture Screenshot</string>
+    <string name="select_device_button_notConnected_en">not connected</string>
 </resources>

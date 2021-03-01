@@ -63,7 +63,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun onServerURLget(serverURL : String){
         Thread {
-            val greyImg = savePhotoToDisk(null, TEST_FILE_PATH, 512)
+            val greyImg = savePhotoToDisk(null,null, TEST_FILE_PATH, 512)
             Log.v("TIMING", "File converted")
             onFileConverted(greyImg, serverURL)
         }.start()

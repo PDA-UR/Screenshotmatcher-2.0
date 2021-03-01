@@ -7,4 +7,7 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <color name="disconnected_red">#FF6969</color>
+    <color name="connected_green">#8CFF64</color>
 </resources>
