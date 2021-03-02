@@ -1,13 +1,15 @@
 package com.pda.screenshotmatcher2
 
 import android.Manifest
-import android.app.Activity
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.*
 import android.hardware.camera2.*
 import android.media.Image
 import android.media.ImageReader
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
@@ -18,15 +20,17 @@ import android.view.TextureView
 import android.view.View
 import android.widget.Button
 import android.widget.ListView
-import androidx.core.app.ActivityCompat.requestPermissions
-import androidx.core.content.ContextCompat
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.view.isVisible
+import net.gotev.uploadservice.UploadServiceConfig
+import java.io.File
 import java.util.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 
 
-class CameraActivity : Activity() {
+class CameraActivity : AppCompatActivity() {
 
     private val MAX_PREVIEW_WIDTH = 1920
     private val MAX_PREVIEW_HEIGHT = 1080
@@ -66,6 +70,10 @@ class CameraActivity : Activity() {
 
     //Permission ID
     private val REQUEST_CAMERA_PERMISSION: Int = 1
+    private var surfaceTextureHeight: Int = 0
+    private var surfaceTextureWidth: Int = 0
+
+    private var serverURL: String = ""
 
     //Other UI Views
     private var mSelectDeviceButton: Button? = null
@@ -75,12 +83,22 @@ class CameraActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera)
+        supportActionBar?.hide()
 
-        initiateViews()
+        verifyPermissions(this)
+        getServerURL()
+        createNotificationChannel()
+        UploadServiceConfig.initialize(
+            context = this.application,
+            defaultNotificationChannel = CameraActivity.notificationChannelID,
+            debug = BuildConfig.DEBUG
+        )
+        initViews()
         setViewListeners()
     }
 
-    private fun initiateViews() {
+
+    private fun initViews() {
         mTextureView = findViewById(R.id.preview_view)
         mCaptureButton = findViewById(R.id.capture_button)
         mSelectDeviceButton = findViewById(R.id.select_device_button)
@@ -97,9 +115,10 @@ class CameraActivity : Activity() {
                     width: Int,
                     height: Int
                 ) {
+                    surfaceTextureWidth = width
+                    surfaceTextureHeight = height
                     openCamera(width, height)
                 }
-
                 override fun onSurfaceTextureSizeChanged(
                     texture: SurfaceTexture,
                     width: Int,
@@ -116,19 +135,41 @@ class CameraActivity : Activity() {
             }
 
         mCaptureButton?.setOnClickListener(View.OnClickListener {
-            captureImageWithCaptureRequest()
-            //captureImageWithPreviewExtraction()
+            //captureImageWithCaptureRequest()
+            captureImageWithPreviewExtraction()
         })
 
         mSelectDeviceButton?.setOnClickListener(View.OnClickListener {
             if (mSelectDeviceList?.isVisible!!){
                 mSelectDeviceList!!.setVisibility(View.INVISIBLE)
-                Log.d("CAMERA_UI", "Hiding list")
+                getServerURL()
             }   else{
                 mSelectDeviceList!!.setVisibility(View.VISIBLE)
-                Log.d("CAMERA_UI", "Showing list")
             }
         })
+    }
+
+    //Callback for camera changes
+    private val mStateCallback: CameraDevice.StateCallback = object : CameraDevice.StateCallback() {
+        override fun onOpened(cameraDevice: CameraDevice) {
+            Log.d("CAMERA", "Camera opened")
+            mCameraOpenCloseLock?.release()
+            mCameraDevice = cameraDevice
+            createCameraPreviewSession()
+        }
+
+        override fun onDisconnected(cameraDevice: CameraDevice) {
+            mCameraOpenCloseLock?.release()
+            cameraDevice.close()
+            mCameraDevice = null
+        }
+
+        override fun onError(cameraDevice: CameraDevice, error: Int) {
+            mCameraOpenCloseLock?.release()
+            cameraDevice.close()
+            mCameraDevice = null
+            finish()
+        }
     }
 
     //Capture an image by simply saving the current frame of the Texture View
@@ -137,7 +178,8 @@ class CameraActivity : Activity() {
         var mBitmap: Bitmap? = mTextureView!!.getBitmap()
         if (mBitmap != null) {
             Log.d("BITMAP", "calling savePhotoToDisk")
-            savePhotoToDisk(mBitmap, null, null, 512)
+            var greyImg = savePhotoToDisk(mBitmap, null, null, 512)
+            sendFile(greyImg, serverURL)
         }
     }
 
@@ -186,26 +228,28 @@ class CameraActivity : Activity() {
         )
     }
 
-    //Callback for camera changes
-    private val mStateCallback: CameraDevice.StateCallback = object : CameraDevice.StateCallback() {
-        override fun onOpened(cameraDevice: CameraDevice) {
-            Log.d("CAMERA", "Camera opened")
-            mCameraOpenCloseLock?.release()
-            mCameraDevice = cameraDevice
-            createCameraPreviewSession()
+    private fun openCamera(width: Int, height: Int) {
+        setUpCameraOutputs(width, height)
+        configureTransform(width, height)
+        val manager =
+            getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.CAMERA
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
         }
+        try {
+            if (!mCameraOpenCloseLock!!.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
+                throw RuntimeException("Camera lock opening timeout")
+            }
 
-        override fun onDisconnected(cameraDevice: CameraDevice) {
-            mCameraOpenCloseLock?.release()
-            cameraDevice.close()
-            mCameraDevice = null
-        }
-
-        override fun onError(cameraDevice: CameraDevice, error: Int) {
-            mCameraOpenCloseLock?.release()
-            cameraDevice.close()
-            mCameraDevice = null
-            finish()
+            manager.openCamera(mCameraId!!, mStateCallback, mBackgroundHandler)
+        } catch (e: CameraAccessException) {
+            e.printStackTrace()
+        } catch (e: InterruptedException) {
+            throw RuntimeException("Camera lock opening interrupted", e)
         }
     }
 
@@ -281,7 +325,8 @@ class CameraActivity : Activity() {
                     var image: Image? = null
                     try {
                         image = reader!!.acquireLatestImage()
-                        savePhotoToDisk(null, image, null, 512)
+                        val greyImg = savePhotoToDisk(null, image, null, 512)
+                        sendFile(greyImg, serverURL)
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
@@ -399,41 +444,67 @@ class CameraActivity : Activity() {
         }
     }
 
-    private fun openCamera(width: Int, height: Int) {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            requestPerm()
-        }
-        setUpCameraOutputs(width, height)
-        configureTransform(width, height)
-        val manager =
-            getSystemService(Context.CAMERA_SERVICE) as CameraManager
-        try {
-            if (!mCameraOpenCloseLock!!.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
-                throw RuntimeException("Camera lock opening timeout")
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions!!, grantResults)
+        Log.d("CAMERA", "Permission Callback Code $requestCode")
+        when (requestCode) {
+            1 -> {
+                if (grantResults.isNotEmpty()
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED
+                ) {
+                    for (permission in  permissions){
+                        Log.d("CAMERA", "GOT permission $permission")
+                    }
+                    Log.d("CAMERA", "Got Permissions")
+                    openCamera(surfaceTextureHeight, surfaceTextureWidth)
+
+                } else {
+                    Log.d("CAMERA", "No permission")
+                }
             }
-            manager.openCamera(mCameraId!!, mStateCallback, mBackgroundHandler)
-        } catch (e: CameraAccessException) {
-            e.printStackTrace()
-        } catch (e: InterruptedException) {
-            throw RuntimeException("Camera lock opening interrupted", e)
         }
     }
 
-    private fun requestPerm() {
-        when (PackageManager.PERMISSION_GRANTED) {
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.CAMERA
-            ) -> { }
-            else -> {
-                requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.CAMERA),
-                    12
-                )
+    private fun getServerURL(){
+        Thread{
+            serverURL = discoverServerOnNetwork(this, 49050, "")
+            onServerURLget(serverURL)
+        }.start()
+//            val httpClient = HTTPClient()
+    }
+
+    private fun onServerURLget(serverURL : String){
+        Thread {
+            Log.v("TIMING", "Got URL")
+            runOnUiThread {
+                mSelectDeviceButton!!.background = resources.getDrawable(R.drawable.select_device_connected)
+                mSelectDeviceButton!!.text = serverURL
             }
+        }.start()
+    }
+
+    private fun sendFile(file : File, serverURL: String){
+        val httpClient = HTTPClient(serverURL, this, this)
+        Thread{
+            Log.v("TIMING", "Sending file to server.")
+            httpClient.sendFileToServer(file.absolutePath)
+        }.start()
+    }
+
+    companion object {
+        const val notificationChannelID = "Screenshotmatcher Channel"
+    }
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= 26) {
+            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val channel = NotificationChannel(notificationChannelID, "Screenshot Matcher", NotificationManager.IMPORTANCE_LOW)
+            manager.createNotificationChannel(channel)
         }
     }
+
 }
