@@ -23,7 +23,12 @@ import android.widget.ListView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.view.isVisible
+import com.android.volley.Request
+import com.android.volley.toolbox.JsonObjectRequest
+import com.android.volley.toolbox.Volley
 import net.gotev.uploadservice.UploadServiceConfig
+import org.json.JSONObject
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.util.*
 import java.util.concurrent.Semaphore
@@ -174,12 +179,14 @@ class CameraActivity : AppCompatActivity() {
 
     //Capture an image by simply saving the current frame of the Texture View
     private fun captureImageWithPreviewExtraction() {
-        Log.d("BITMAP", "Button pressed")
-        var mBitmap: Bitmap? = mTextureView!!.getBitmap()
+        Log.v("TIMING", "Button pressed")
+        val mBitmap: Bitmap? = mTextureView!!.getBitmap()
         if (mBitmap != null) {
-            Log.d("BITMAP", "calling savePhotoToDisk")
-            var greyImg = savePhotoToDisk(mBitmap, null, null, 512)
-            sendFile(greyImg, serverURL)
+//            Log.d("BITMAP", "calling savePhotoToDisk")
+//            val greyImg = savePhotoToDisk(mBitmap, null, null, 512)
+            val greyImg = rescale(mBitmap, 512)
+            Log.v("TIMING", "Image rescaled.")
+            sendBitmap(greyImg, serverURL)
         }
     }
 
@@ -493,6 +500,33 @@ class CameraActivity : AppCompatActivity() {
             Log.v("TIMING", "Sending file to server.")
             httpClient.sendFileToServer(file.absolutePath)
         }.start()
+    }
+
+    private fun sendBitmap(bitmap: Bitmap, serverURL: String){
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            val baos = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
+            val b64Image = Base64.getEncoder().encodeToString(baos.toByteArray())
+            Log.v("TIMING", "Base64 generated")
+            val queue = Volley.newRequestQueue(this)
+            val json = JSONObject()
+            json.put("b64", b64Image)
+
+            val jsonOR = JsonObjectRequest(Request.Method.POST, "$serverURL/match-b64", json,
+                { response ->
+                    Log.v("TIMING", "Got response.")
+                    val httpClient = HTTPClient(serverURL, this, this)
+                    Thread{
+                        httpClient.downloadMatch(response)
+                    }.start()
+                },
+                { error -> Log.v("TIMING", error.toString()) })
+            queue.add(jsonOR)
+            Log.v("TIMING", "Upload queued.")
+        } else {
+            TODO("VERSION.SDK_INT < O")
+        }
+
     }
 
     companion object {

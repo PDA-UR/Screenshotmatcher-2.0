@@ -51,7 +51,14 @@ fun savePhotoToDisk(mBitmap: Bitmap?,image: Image?, filepath: String?, targetSiz
     }
 }
 
-private fun toGrayscale(bmpOriginal: Bitmap): Bitmap {
+fun rescale(bitmap: Bitmap, targetSize: Int): Bitmap {
+    val longSide = max(bitmap.width, bitmap.height)
+    val factor : Float = targetSize.toFloat() / longSide.toFloat()
+    val greybmp : Bitmap = toGrayscale(bitmap)
+    return greybmp.scale(width = (greybmp.width*factor).toInt(), height = (greybmp.height*factor).toInt())
+}
+
+fun toGrayscale(bmpOriginal: Bitmap): Bitmap {
     val height: Int = bmpOriginal.height
     val width: Int = bmpOriginal.width
     val bmpGrayscale = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
