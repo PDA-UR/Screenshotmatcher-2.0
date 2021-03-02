@@ -17,136 +17,193 @@ from common.utils import allowed_file
 
 
 class Server():
-  def __init__(self):
-    logging.basicConfig(filename='./match.log',level=logging.DEBUG)
+    def __init__(self):
+        logging.basicConfig(filename='./match.log', level=logging.DEBUG)
 
-    if Config.IS_DIST:
-      static_path = 'www'
-    else:
-      static_path = '../www'
+        if Config.IS_DIST:
+            static_path = 'www'
+        else:
+            static_path = '../www'
 
-    self.results_dir = './www/results'
+        self.results_dir = './www/results'
 
-    self.app = Flask(__name__, static_url_path='/', static_folder=static_path)
+        self.app = Flask(__name__, static_url_path='/',
+                         static_folder=static_path)
 
+        self.app.add_url_rule('/', 'index', self.index_route)
+        self.app.add_url_rule('/heartbeat', 'heartbeat', self.heartbeat_route)
+        self.app.add_url_rule('/get-url', 'get-url', self.get_url_route)
 
-    self.app.add_url_rule('/', 'index', self.index_route)
-    self.app.add_url_rule('/heartbeat', 'heartbeat', self.heartbeat_route)
-    self.app.add_url_rule('/get-url', 'get-url', self.get_url_route)
-    
-    self.app.add_url_rule('/feedback', 'feedback', self.feedback_route, methods=['POST'])
-    self.app.add_url_rule('/match', 'match', self.match_route, methods=['POST'])
+        self.app.add_url_rule('/feedback', 'feedback',
+                              self.feedback_route, methods=['POST'])
+        self.app.add_url_rule(
+            '/match', 'match', self.match_route, methods=['POST'])
+        self.app.add_url_rule('/match-b64', 'match-b64',
+                              self.match_route_b64, methods=['POST'])
 
+    def start(self):
+        self.app.run(host=Config.HOST, port=Config.PORT, threaded=True)
 
-  def start(self):
-    self.app.run(host=Config.HOST, port=Config.PORT, threaded=True)
+    def stop(self):
+        _shutdown = request.environ.get('werkzeug.server.shutdown')
+        if _shutdown is None:
+            raise RuntimeError('Not running with the Werkzeug Server')
+        _shutdown()
 
-  def stop(self):
-    _shutdown = request.environ.get('werkzeug.server.shutdown')
-    if _shutdown is None:
-        raise RuntimeError('Not running with the Werkzeug Server')
-    _shutdown()
+    # Routes
 
+    def index_route(self):
+        return redirect("/index.html", code=301)
 
-  # Routes
+    def heartbeat_route(self):
+        return "ok"
 
-  def index_route(self):
-    return redirect("/index.html", code=301)
+    def get_url_route(self):
+        return Config.SERVICE_URL
 
-  def heartbeat_route(self):
-    return "ok"
+    def feedback_route(self):
+        uid = request.values.get('uid')
+        has_result = request.values.get('hasResult')
+        has_screenshot = request.values.get('hasScreenshot')
+        comment = request.values.get('comment')
+        device = request.values.get('device')
 
-  def get_url_route(self):
-    return Config.SERVICE_URL
+        payload = {
+            'secret': Config.API_SECRET,
+            'identifier': Config.IDENTIFIER,
+            'comment': comment,
+            'hasScreenshot': has_screenshot,
+            'algorithm': Config.CURRENT_ALGORITHM,
+            'device': device
+        }
 
-  def feedback_route(self):
-    uid = request.values.get('uid')
-    has_result = request.values.get('hasResult')
-    has_screenshot = request.values.get('hasScreenshot')
-    comment = request.values.get('comment')
-    device = request.values.get('device')
+        file_payload = [
+            ('photo', ('photo', open(self.results_dir +
+                                     '/result-' + uid + '/photo.jpg', 'rb'), 'image/jpeg')),
+            ('screenshot', ('screenshot', open(self.results_dir +
+                                               '/result-' + uid + '/screenshot.png', 'rb'), 'image/png')),
+        ]
 
+        if has_result and has_result != 'false':
+            file_payload.append(
+                ('result', ('result', open(self.results_dir +
+                                           '/result-' + uid + '/result.png', 'rb'), 'image/png'))
+            )
 
-    payload = { 
-      'secret': Config.API_SECRET,
-      'identifier': Config.IDENTIFIER,
-      'comment': comment,
-      'hasScreenshot': has_screenshot,
-      'algorithm': Config.CURRENT_ALGORITHM,
-      'device': device
-    }
+        logging.info('sending feedback {}'.format(uid))
 
-    file_payload = [
-     ('photo', ('photo', open(self.results_dir + '/result-' + uid + '/photo.jpg', 'rb'), 'image/jpeg')),
-     ('screenshot', ('screenshot', open(self.results_dir + '/result-' + uid + '/screenshot.png', 'rb'), 'image/png')),
-    ]
+        urllib3.disable_warnings()
 
-    if has_result and has_result != 'false':
-      file_payload.append(
-        ('result', ('result', open(self.results_dir + '/result-' + uid + '/result.png', 'rb'), 'image/png'))
-      )
+        return "ok"
 
-    logging.info('sending feedback {}'.format(uid))
+    def match_route(self):
+        # Check if there is an image in the request
+        if 'file' not in request.files:
+            return 'No file part'
 
-    urllib3.disable_warnings()
+        # Get uploaded file
+        uploaded_file = request.files['file']
 
-    return "ok"
+        # Check if file has data
+        if not uploaded_file or uploaded_file.filename == '':
+            return 'No selected file'
 
-  def match_route(self):
-    # Check if there is an image in the request
-    if 'file' not in request.files:
-      return 'No file part'
+        # Check if filetype is allowed
+        if not allowed_file(uploaded_file.filename):
+            return 'Invalid filetype'
 
-    # Get uploaded file
-    uploaded_file = request.files['file']
+        # Create match uid
+        uid = uuid.uuid4().hex
 
-    # Check if file has data
-    if not uploaded_file or uploaded_file.filename == '':
-      return 'No selected file'
+        # Create Match dir
+        match_dir = self.results_dir + '/result-' + uid
+        os.mkdir(match_dir)
 
-    # Check if filetype is allowed
-    if not allowed_file(uploaded_file.filename):
-      return 'Invalid filetype'
-    
-    # Create match uid
-    uid = uuid.uuid4().hex
+        # Save uploaded image to match dir
+        photo_extension = uploaded_file.filename.rsplit('.', 1)[1].lower()
+        filename = 'photo.' + photo_extension
+        uploaded_file.save(match_dir + '/' + filename)
 
-    # Create Match dir
-    match_dir = self.results_dir + '/result-' + uid
-    os.mkdir(match_dir)
+        # Start matcher
+        start_time = time.perf_counter()
+        matcher = Matcher(uid, filename)
+        t = time.time()
+        match_result = matcher.match(algorithm=Config.CURRENT_ALGORITHM)
+        print("Matching took {} ms".format(time.time()-t))
+        end_time = time.perf_counter()
 
-    # Save uploaded image to match dir
-    photo_extension = uploaded_file.filename.rsplit('.', 1)[1].lower()
-    filename = 'photo.' + photo_extension
-    uploaded_file.save( match_dir + '/' + filename )
-    
-    # Start matcher
-    start_time = time.perf_counter()
-    matcher = Matcher(uid, filename)
-    t = time.time()
-    match_result = matcher.match(algorithm=Config.CURRENT_ALGORITHM)
-    print("Matching took {} ms".format(time.time()-t))
-    end_time = time.perf_counter()
+        # Send data to server for logging
+        payload = {
+            'secret': Config.API_SECRET,
+            'identifier': Config.IDENTIFIER,
+            'hasResult': bool(match_result),
+            'algorithm': Config.CURRENT_ALGORITHM,
+            'device': request.values.get('device'),
+            'speed': round(end_time - start_time, 5)
+        }
 
-    # Send data to server for logging
-    payload = { 
-      'secret': Config.API_SECRET,
-      'identifier': Config.IDENTIFIER,
-      'hasResult': bool(match_result),
-      'algorithm': Config.CURRENT_ALGORITHM,
-      'device': request.values.get('device'),
-      'speed': round( end_time - start_time , 5)
-    }
+        urllib3.disable_warnings()
 
-    urllib3.disable_warnings()
+        response = {'uid': uid}
 
-    response = {'uid': uid}
+        if not match_result:
+            response['hasResult'] = False
+            response['screenshot'] = '/results/result-' + \
+                uid + '/screenshot.png'
+            return Response(json.dumps(response), mimetype='application/json')
+        else:
+            response['hasResult'] = True
+            response['filename'] = '/results/result-' + uid + '/result.png'
+            return Response(json.dumps(response), mimetype='application/json')
 
-    if not match_result:
-      response['hasResult'] = False
-      response['screenshot'] = '/results/result-' + uid + '/screenshot.png'
-      return Response( json.dumps(response), mimetype='application/json' )
-    else:
-      response['hasResult'] = True
-      response['filename'] = '/results/result-' + uid + '/result.png'
-      return Response( json.dumps(response), mimetype='application/json' )
+    def match_route_b64(self):
+        r_json = request.json
+        b64String = r_json.get("b64")
+        with open("b64.txt", "w") as f:
+            f.write(b64String)
+        if b64String is None:
+            return {"error" : "no base64 string attached."}
+
+        # Create match uid
+        uid = uuid.uuid4().hex
+
+        # Create Match dir
+        match_dir = self.results_dir + '/result-' + uid
+        os.mkdir(match_dir)
+
+        # Save uploaded image to match dir
+        # photo_extension = uploaded_file.filename.rsplit('.', 1)[1].lower()
+        # filename = 'photo.' + photo_extension
+        # uploaded_file.save(match_dir + '/' + filename)
+
+        # Start matcher
+        start_time = time.perf_counter()
+        matcher = Matcher(uid, b64String)
+        t = time.time()
+        match_result = matcher.match_b64(algorithm=Config.CURRENT_ALGORITHM)
+        print("Matching took {} ms".format(time.time()-t))
+        end_time = time.perf_counter()
+
+        # Send data to server for logging
+        payload = {
+            'secret': Config.API_SECRET,
+            'identifier': Config.IDENTIFIER,
+            'hasResult': bool(match_result),
+            'algorithm': Config.CURRENT_ALGORITHM,
+            'device': request.values.get('device'),
+            'speed': round(end_time - start_time, 5)
+        }
+
+        urllib3.disable_warnings()
+
+        response = {'uid': uid}
+
+        if not match_result:
+            response['hasResult'] = False
+            response['screenshot'] = '/results/result-' + \
+                uid + '/screenshot.png'
+            return Response(json.dumps(response), mimetype='application/json')
+        else:
+            response['hasResult'] = True
+            response['filename'] = '/results/result-' + uid + '/result.png'
+            return Response(json.dumps(response), mimetype='application/json')
