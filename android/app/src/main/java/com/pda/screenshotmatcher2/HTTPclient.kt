@@ -16,7 +16,6 @@ import net.gotev.uploadservice.network.ServerResponse
 import net.gotev.uploadservice.observer.request.RequestObserverDelegate
 import net.gotev.uploadservice.protocols.multipart.MultipartUploadRequest
 import org.json.JSONObject
-import java.io.File
 
 
 //uses https://github.com/gotev/android-upload-service
@@ -93,7 +92,6 @@ class HTTPClient(
 
     fun downloadMatch(response: JSONObject){
         Log.v("TIMING", "Adding result file download to queue")
-        Log.v(TAG, serverUrl + response["filename"])
         val downloadmanager = context.getSystemService(DOWNLOAD_SERVICE) as DownloadManager
         val uri: Uri = Uri.parse(serverUrl + response["filename"])
         val request = DownloadManager.Request(uri)

@@ -4,7 +4,10 @@ import numpy as np
 import logging
 import os
 import sys
-
+import uuid
+import io
+import base64
+import cv2
 from cv2 import ( # pylint: disable=no-name-in-module
   perspectiveTransform,
   findHomography,
@@ -56,6 +59,27 @@ class Matcher():
     # Load pictures
 
     photo = imread( '{}/{}'.format(self.match_dir, self.photo_file), IMREAD_GRAYSCALE )
+    screen = imread( '{}/{}'.format(self.match_dir, self.screenshot_file), IMREAD_GRAYSCALE )
+    screen_colored = imread( '{}/{}'.format(self.match_dir, self.screenshot_file), IMREAD_COLOR )
+
+    # Provisional switch statement
+    if algorithm == 'SURF':
+      match_result = self.algorithm_SURF(photo, screen, screen_colored)
+    elif algorithm == 'ORB':
+      match_result = self.algorithm_ORB(photo, screen, screen_colored)
+    else:
+      match_result = self.algorithm_SURF(photo, screen, screen_colored)
+
+    self.writeLog('FINAL TIME {}ms'.format(round( (time.perf_counter() - start_time) * 1000 )))
+
+    return match_result
+
+  def match_b64(self, algorithm='SURF'):
+    start_time = time.perf_counter()
+
+    # Load pictures
+    nparr = np.frombuffer(base64.b64decode(self.photo_file), np.uint8)
+    photo = cv2.imdecode(nparr, cv2.IMREAD_GRAYSCALE)
     screen = imread( '{}/{}'.format(self.match_dir, self.screenshot_file), IMREAD_GRAYSCALE )
     screen_colored = imread( '{}/{}'.format(self.match_dir, self.screenshot_file), IMREAD_COLOR )
 
@@ -300,4 +324,3 @@ class Matcher():
     self.writeLog('Wrote Image - {}ms'.format( self.formatTimeDiff(t8, t9) ))
 
     return True
-
