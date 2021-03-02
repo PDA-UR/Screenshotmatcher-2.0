@@ -47,7 +47,7 @@ class HTTPClient(
             )
             .subscribe(context = context, lifecycleOwner = lifecycleOwner, delegate = object : RequestObserverDelegate {
                 override fun onProgress(context: Context, uploadInfo: UploadInfo) {
-                    // do your thing
+                    Log.d("TIMING", "Uploading...")
                 }
 
                 override fun onSuccess(

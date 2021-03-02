@@ -12,13 +12,15 @@ lateinit var APP_DIRECTORY : File
 private val PERMISSIONS = arrayOf<String>(
     Manifest.permission.READ_EXTERNAL_STORAGE,
     Manifest.permission.WRITE_EXTERNAL_STORAGE,
-    Manifest.permission.INTERNET
+    Manifest.permission.INTERNET,
+    Manifest.permission.CAMERA,
 )
 
 fun verifyPermissions(activity: Activity?) {
     // Check if we have write permission
-    val permission = ActivityCompat.checkSelfPermission(activity!!, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-    if (permission != PackageManager.PERMISSION_GRANTED) {
+    val writePermission = ActivityCompat.checkSelfPermission(activity!!, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    val cameraPermission = ActivityCompat.checkSelfPermission(activity!!, Manifest.permission.CAMERA)
+    if (writePermission != PackageManager.PERMISSION_GRANTED || cameraPermission != PackageManager.PERMISSION_GRANTED) {
         // We don't have permission so prompt the user
         ActivityCompat.requestPermissions(
             activity,
