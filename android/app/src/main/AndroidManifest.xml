@@ -20,13 +20,14 @@
         android:hardwareAccelerated="true"
         android:theme="@style/Theme.ScreenshotMatcher2"
         tools:targetApi="n">
-        <activity android:name=".CameraActivity"></activity>
-        <activity android:name=".MainActivity">
+        <activity android:name=".CameraActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity android:name=".MainActivity">
+
         </activity>
     </application>
 

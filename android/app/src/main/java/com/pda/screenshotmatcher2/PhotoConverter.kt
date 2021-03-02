@@ -31,7 +31,7 @@ fun savePhotoToDisk(mBitmap: Bitmap?,image: Image?, filepath: String?, targetSiz
         val filename = System.currentTimeMillis().toString()+".jpg"
 
         //val file = File(APP_DIRECTORY, filename)  // TODO: replace with resource variable for app directory
-        val file = File("/storage/emulated/0/Download/testScreenshots", filename)
+        val file = File("/storage/emulated/0/Download/", filename)
 
         try {
             val out = FileOutputStream(file)
