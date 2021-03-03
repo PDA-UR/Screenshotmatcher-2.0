@@ -2,6 +2,7 @@ package com.pda.screenshotmatcher2
 
 import android.content.Context
 import android.net.wifi.WifiManager
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import java.io.IOException
 import java.net.DatagramPacket
@@ -29,6 +30,7 @@ fun discoverServerOnNetwork(context: Context, port: Int = 49050, message: String
     s.close()
     // expected answer from server: "192.168.0.45:99887"
     val serverURL = PROTOCOL + String(packetR.data, 0, packetR.length)
+    Log.v("TEST", serverURL)
     return serverURL
 }
 

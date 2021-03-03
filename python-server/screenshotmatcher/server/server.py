@@ -6,6 +6,9 @@ import requests
 import urllib3
 import logging
 import time
+import timeit
+import threading
+from cv2 import imwrite
 
 from flask import Flask, request, redirect, url_for, Response, send_from_directory
 from werkzeug.utils import secure_filename
@@ -98,6 +101,7 @@ class Server():
 
     def match_route(self):
         # Check if there is an image in the request
+        t_start = time.time()
         if 'file' not in request.files:
             return 'No file part'
 
@@ -145,7 +149,7 @@ class Server():
         urllib3.disable_warnings()
 
         response = {'uid': uid}
-
+        print("Time spent on server: {}".format(time.time() - t_start))
         if not match_result:
             response['hasResult'] = False
             response['screenshot'] = '/results/result-' + \
@@ -157,10 +161,12 @@ class Server():
             return Response(json.dumps(response), mimetype='application/json')
 
     def match_route_b64(self):
+        t_start = time.perf_counter()
+        print("{}:\t request get".format(time.time()))
         r_json = request.json
         b64String = r_json.get("b64")
-        with open("b64.txt", "w") as f:
-            f.write(b64String)
+        print("{}:\t b64 string with size {} get".format(time.time(), sys.getsizeof(b64String)))
+
         if b64String is None:
             return {"error" : "no base64 string attached."}
 
@@ -171,16 +177,16 @@ class Server():
         match_dir = self.results_dir + '/result-' + uid
         os.mkdir(match_dir)
 
-        # Save uploaded image to match dir
-        # photo_extension = uploaded_file.filename.rsplit('.', 1)[1].lower()
-        # filename = 'photo.' + photo_extension
-        # uploaded_file.save(match_dir + '/' + filename)
-
         # Start matcher
         start_time = time.perf_counter()
+        print("{}:\t Creating matcher...".format(time.time()))
         matcher = Matcher(uid, b64String)
+        print("{}:\t Matcher created. Starting algo...".format(time.time()))
         t = time.time()
+
         match_result = matcher.match_b64(algorithm=Config.CURRENT_ALGORITHM)
+        print("{}:\t Matching algo finished".format(time.time()))
+
         print("Matching took {} ms".format(time.time()-t))
         end_time = time.perf_counter()
 
@@ -195,9 +201,11 @@ class Server():
         }
 
         urllib3.disable_warnings()
+        print("{}:\t Generating response.".format(time.time()))
+        print("Time until response: {}\n".format(time.perf_counter() - t_start))
 
         response = {'uid': uid}
-
+        
         if not match_result:
             response['hasResult'] = False
             response['screenshot'] = '/results/result-' + \
@@ -205,5 +213,5 @@ class Server():
             return Response(json.dumps(response), mimetype='application/json')
         else:
             response['hasResult'] = True
-            response['filename'] = '/results/result-' + uid + '/result.png'
+            response['b64'] = match_result
             return Response(json.dumps(response), mimetype='application/json')
