@@ -1,6 +1,7 @@
 package com.pda.screenshotmatcher2
 
 import android.Manifest
+import android.R.string
 import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
@@ -17,6 +18,7 @@ import androidx.core.app.ActivityCompat
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
+
 
 lateinit var APP_DIRECTORY : File
 
@@ -67,7 +69,7 @@ fun saveB64ToInternalFile(b64String: String, context: Context){
 }
 
 @Suppress("DEPRECATION")
-fun saveFileToExternalDir(b64String: String, context: Context, dir: String = "Pictures/"){
+fun saveFileToExternalDir(b64String: String, context: Context, dir: String = "Pictures/"): String {
     val out : OutputStream
     val filename = System.currentTimeMillis().toString() + ".jpg"
 
@@ -95,4 +97,6 @@ fun saveFileToExternalDir(b64String: String, context: Context, dir: String = "Pi
     bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
     out.flush()
     out.close()
+
+    return filename
 }
