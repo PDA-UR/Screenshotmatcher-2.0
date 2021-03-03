@@ -8,6 +8,8 @@ import uuid
 import io
 import base64
 import cv2
+import timeit
+import threading
 from cv2 import ( # pylint: disable=no-name-in-module
   perspectiveTransform,
   findHomography,
@@ -41,7 +43,7 @@ class Matcher():
     if create_screenshot:
       self.screenshot_file = 'screenshot.png'
       self.screenshot = ImageGrab.grab()
-      self.screenshot.save(self.match_dir + '/' + self.screenshot_file)
+      # self.screenshot.save(self.match_dir + '/' + self.screenshot_file)
   
   def setMatchDir(self, new_dir):
     self.match_dir = new_dir
@@ -80,8 +82,8 @@ class Matcher():
     # Load pictures
     nparr = np.frombuffer(base64.b64decode(self.photo_file), np.uint8)
     photo = cv2.imdecode(nparr, cv2.IMREAD_GRAYSCALE)
-    screen = imread( '{}/{}'.format(self.match_dir, self.screenshot_file), IMREAD_GRAYSCALE )
-    screen_colored = imread( '{}/{}'.format(self.match_dir, self.screenshot_file), IMREAD_COLOR )
+    screen = cv2.cvtColor(np.array(self.screenshot), IMREAD_GRAYSCALE)
+    screen_colored = cv2.cvtColor(np.array(self.screenshot), cv2.COLOR_BGR2RGB)
 
     # Provisional switch statement
     if algorithm == 'SURF':
@@ -90,6 +92,9 @@ class Matcher():
       match_result = self.algorithm_ORB(photo, screen, screen_colored)
     else:
       match_result = self.algorithm_SURF(photo, screen, screen_colored)
+
+    t = threading.Thread(target=self.save_screenshot, args=(), daemon=True)
+    t.start()
 
     self.writeLog('FINAL TIME {}ms'.format(round( (time.perf_counter() - start_time) * 1000 )))
 
@@ -213,7 +218,7 @@ class Matcher():
     return True
 
 
-  def algorithm_ORB(self, photo, screen, screen_colored, nfeatures = 4500, descriptor_matcher_name = 'BruteForce-Hamming'):
+  def algorithm_ORB(self, photo, screen, screen_colored, nfeatures = 2000, descriptor_matcher_name = 'BruteForce-Hamming'):
     
     t1 = time.perf_counter()
 
@@ -318,9 +323,13 @@ class Matcher():
     if maxY - minY <= 0:
       return False
 
-    imwrite(self.match_dir + '/result.png', screen_colored[ int(minY):int(maxY), int(minX):int(maxX)])
+    # imwrite(self.match_dir + '/result.png', screen_colored[ int(minY):int(maxY), int(minX):int(maxX)])
 
     t9 = time.perf_counter()
     self.writeLog('Wrote Image - {}ms'.format( self.formatTimeDiff(t8, t9) ))
-
-    return True
+    retval, buffer = cv2.imencode('.jpg', screen_colored[ int(minY):int(maxY), int(minX):int(maxX)])
+    b64_string = base64.b64encode(buffer).decode("ASCII")
+    return b64_string
+  
+  def save_screenshot(self):
+    self.screenshot.save(self.match_dir + '/' + self.screenshot_file)
