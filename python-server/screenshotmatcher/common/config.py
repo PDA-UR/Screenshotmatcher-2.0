@@ -31,7 +31,7 @@ class Config():
   SERVICE_URL = 'http://{}:{}'.format(HOST, PORT)
   ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
-  DEFAULT_ALGORITHM = 'SURF'
+  DEFAULT_ALGORITHM = 'ORB'
   CURRENT_ALGORITHM = DEFAULT_ALGORITHM
 
   API_SECRET = 'd45f6g7h8j9§$d5AHF7h8k'

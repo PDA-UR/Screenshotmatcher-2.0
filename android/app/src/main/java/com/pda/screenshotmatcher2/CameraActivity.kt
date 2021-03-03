@@ -12,6 +12,7 @@ import android.media.ImageReader
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.util.Base64
 import android.util.Log
 import android.util.Size
 import android.util.SparseIntArray
@@ -20,6 +21,7 @@ import android.view.TextureView
 import android.view.View
 import android.widget.Button
 import android.widget.ListView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.view.isVisible
@@ -30,6 +32,7 @@ import net.gotev.uploadservice.UploadServiceConfig
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.lang.reflect.InvocationTargetException
 import java.util.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
@@ -79,6 +82,7 @@ class CameraActivity : AppCompatActivity() {
     private var surfaceTextureWidth: Int = 0
 
     private var serverURL: String = ""
+    private var startTime : Long = 0
 
     //Other UI Views
     private var mSelectDeviceButton: Button? = null
@@ -180,13 +184,15 @@ class CameraActivity : AppCompatActivity() {
     //Capture an image by simply saving the current frame of the Texture View
     private fun captureImageWithPreviewExtraction() {
         Log.v("TIMING", "Button pressed")
+        startTime = System.currentTimeMillis()
         val mBitmap: Bitmap? = mTextureView!!.getBitmap()
         if (mBitmap != null) {
 //            Log.d("BITMAP", "calling savePhotoToDisk")
 //            val greyImg = savePhotoToDisk(mBitmap, null, null, 512)
+//            sendFile(greyImg, "http://192.168.178.34:49049")
             val greyImg = rescale(mBitmap, 512)
             Log.v("TIMING", "Image rescaled.")
-            sendBitmap(greyImg, serverURL)
+            sendBitmap(greyImg,  serverURL)
         }
     }
 
@@ -478,6 +484,7 @@ class CameraActivity : AppCompatActivity() {
 
     private fun getServerURL(){
         Thread{
+            Log.v("TEST", "discovering server...")
             serverURL = discoverServerOnNetwork(this, 49050, "")
             onServerURLget(serverURL)
         }.start()
@@ -503,29 +510,46 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun sendBitmap(bitmap: Bitmap, serverURL: String){
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            val baos = ByteArrayOutputStream()
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
-            val b64Image = Base64.getEncoder().encodeToString(baos.toByteArray())
-            Log.v("TIMING", "Base64 generated")
-            val queue = Volley.newRequestQueue(this)
-            val json = JSONObject()
-            json.put("b64", b64Image)
+        val baos = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
+        val b64Image = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT)
+        Log.v("TIMING", "Base64 generated")
+        Log.v("TIMING", b64Image.length.toString())
+        val queue = Volley.newRequestQueue(this)
+        val json = JSONObject()
+        json.put("b64", b64Image)
+        val qTime = System.currentTimeMillis()
+        Log.v("TIMING", "Upload queued.")
 
-            val jsonOR = JsonObjectRequest(Request.Method.POST, "$serverURL/match-b64", json,
-                { response ->
-                    Log.v("TIMING", "Got response.")
-                    val httpClient = HTTPClient(serverURL, this, this)
-                    Thread{
-                        httpClient.downloadMatch(response)
-                    }.start()
-                },
-                { error -> Log.v("TIMING", error.toString()) })
-            queue.add(jsonOR)
-            Log.v("TIMING", "Upload queued.")
-        } else {
-            TODO("VERSION.SDK_INT < O")
-        }
+        val jsonOR = JsonObjectRequest(Request.Method.POST, "$serverURL/match-b64", json,
+            { response ->
+                val rTime = System.currentTimeMillis()
+                Log.v("TIMING", "Got response.")
+//                    val timeDiff = System.currentTimeMillis() - response.getJSONObject().get("timestamp")
+//                    val httpClient = HTTPClient(serverURL, this, this)
+//                    Thread{
+//                        httpClient.downloadMatch(response)
+//                    }.start()
+                Log.v("TEST", response.get("hasResult").toString())
+                if(response.get("hasResult").toString() != "false") {
+                    try {
+                        val b64ImageString = response.get("b64").toString()
+                        Log.v("TESTING",b64ImageString)
+                        if (b64ImageString.isNotEmpty()) {
+                            Log.v("TEST", "got valid screenshot")
+                            saveFileToExternalDir(b64ImageString, this)
+
+                            val timeTotal = System.currentTimeMillis() - startTime
+                            Log.v("TIMING", "Total time taken was: $timeTotal")
+                            Toast.makeText(this, "Round-trip time: $timeTotal ms", Toast.LENGTH_LONG).show()
+                        }
+                    } catch (e: InvocationTargetException) {
+                        e.printStackTrace()
+                    }
+                }
+            },
+            { error -> Log.v("TIMING", error.toString()) })
+        queue.add(jsonOR)
 
     }
 

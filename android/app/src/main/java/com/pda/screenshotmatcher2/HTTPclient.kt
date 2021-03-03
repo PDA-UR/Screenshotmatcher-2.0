@@ -46,7 +46,7 @@ class HTTPClient(
             )
             .subscribe(context = context, lifecycleOwner = lifecycleOwner, delegate = object : RequestObserverDelegate {
                 override fun onProgress(context: Context, uploadInfo: UploadInfo) {
-                    Log.d("TIMING", "Uploading...")
+                    // stuff
                 }
 
                 override fun onSuccess(
@@ -54,8 +54,9 @@ class HTTPClient(
                     uploadInfo: UploadInfo,
                     serverResponse: ServerResponse
                 ) {
-                    val json = JSONObject(serverResponse.bodyString)
-                    onServerResponse(json)
+                    Log.v("TIMING", "Got response.")
+//                    val json = JSONObject(serverResponse.bodyString)
+//                    onServerResponse(json)
                 }
 
                 override fun onError(
@@ -63,9 +64,10 @@ class HTTPClient(
                     uploadInfo: UploadInfo,
                     exception: Throwable
                 ) {
-                    println(uploadInfo)
-                    println(exception)
-                    onServerResponse(null)
+                    Log.v("TIMING", "Got response.")
+//                    println(uploadInfo)
+//                    println(exception)
+//                    onServerResponse(null)
                 }
 
                 override fun onCompleted(context: Context, uploadInfo: UploadInfo) {
