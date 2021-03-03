@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.*
 import android.hardware.camera2.*
@@ -185,7 +186,7 @@ class CameraActivity : AppCompatActivity() {
     private fun captureImageWithPreviewExtraction() {
         Log.v("TIMING", "Button pressed")
         startTime = System.currentTimeMillis()
-        val mBitmap: Bitmap? = mTextureView!!.getBitmap()
+        val mBitmap: Bitmap? = mTextureView!!.bitmap
         if (mBitmap != null) {
 //            Log.d("BITMAP", "calling savePhotoToDisk")
 //            val greyImg = savePhotoToDisk(mBitmap, null, null, 512)
@@ -537,8 +538,8 @@ class CameraActivity : AppCompatActivity() {
                         Log.v("TESTING",b64ImageString)
                         if (b64ImageString.isNotEmpty()) {
                             Log.v("TEST", "got valid screenshot")
-                            saveFileToExternalDir(b64ImageString, this)
-
+                            var croppedScreenshotFilename: String = saveFileToExternalDir(b64ImageString, this)
+                            startResultsActivity(croppedScreenshotFilename)
                             val timeTotal = System.currentTimeMillis() - startTime
                             Log.v("TIMING", "Total time taken was: $timeTotal")
                             Toast.makeText(this, "Round-trip time: $timeTotal ms", Toast.LENGTH_LONG).show()
@@ -551,6 +552,13 @@ class CameraActivity : AppCompatActivity() {
             { error -> Log.v("TIMING", error.toString()) })
         queue.add(jsonOR)
 
+    }
+
+    private fun startResultsActivity(filename: String) {
+        val intent = Intent(this, ResultsActivity::class.java).apply {
+            putExtra("ScreenshotFilename", filename)
+        }
+        startActivity(intent)
     }
 
     companion object {
