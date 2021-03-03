@@ -4,16 +4,172 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/results_activity_background"
     tools:context=".ResultsActivity">
 
-    <ImageView
-        android:id="@+id/croppedScreenshotImage"
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/imageButton"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_margin="10dp"
+        android:background="@drawable/back_button_round_background"
+        android:src="@drawable/ic_baseline_keyboard_arrow_left_48"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="400dp"
+        android:layout_margin="10dp"
+        android:padding="5dp"
+        app:cardCornerRadius="15dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageButton">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#DCDCDC"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_marginTop="10dp"
+                android:layout_weight="1"
+                android:background="@drawable/pill_navigation_background"
+                android:orientation="horizontal">
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/pill_navigation_selected_item"
+                    android:text="Cropped"/>
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:background="#00000000"
+                    android:text="Full"/>
+            </LinearLayout>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_margin="10dp"
+                android:layout_weight="12"
+                android:clipToPadding="false">
+
+                <androidx.appcompat.widget.AppCompatImageButton
+                    android:layout_width="50dp"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="left|center"
+                    android:background="#00000000"
+                    android:src="@drawable/ic_baseline_arrow_back_ios_new_48"/>
+
+                <androidx.appcompat.widget.AppCompatImageButton
+                    android:layout_width="50dp"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="right|center"
+                    android:background="#00000000"
+                    android:src="@drawable/ic_baseline_arrow_forward_ios_48"/>
+
+                <ImageView
+                    android:id="@+id/croppedScreenshotImage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center_horizontal"
+                    android:adjustViewBounds="true"
+                    android:background="@color/white"
+                    android:elevation="15dp"
+                    android:outlineProvider="bounds"
+                    android:outlineSpotShadowColor="@color/black"
+                    android:scaleType="fitXY"/>
+
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="4"
+                android:background="@color/white"
+                android:orientation="horizontal"
+                android:padding="5dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <androidx.appcompat.widget.AppCompatImageButton
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:background="@color/white"
+                        android:src="@drawable/ic_baseline_share_48"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="Share"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <androidx.appcompat.widget.AppCompatImageButton
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:background="@color/white"
+                        android:src="@drawable/ic_baseline_filter_2_48"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="Save both"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <androidx.appcompat.widget.AppCompatImageButton
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:background="@color/white"
+                        android:src="@drawable/ic_baseline_image_48"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="Save xxxx"/>
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:background="@color/white"
+        android:text="@string/result_activity_retake_button_en"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-    </ImageView>
-
+        app:layout_constraintTop_toBottomOf="@+id/cardView"/>
 </androidx.constraintlayout.widget.ConstraintLayout>
