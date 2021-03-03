@@ -17,11 +17,11 @@ class ResultsActivity : AppCompatActivity() {
 
         val intent = intent
         val croppedFilename: String? = intent.getStringExtra("ScreenshotFilename")
-            val imageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-            val imgFile = File("$imageDir/$croppedFilename")
-            val myBitmap = BitmapFactory.decodeFile(imgFile.absolutePath)
-            if (myBitmap != null){
-                croppedScreenshotImageView?.setImageBitmap(myBitmap)
-            }
+        val imageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+        val imgFile = File("$imageDir/$croppedFilename")
+        val myBitmap = BitmapFactory.decodeFile(imgFile.absolutePath)
+        if (myBitmap != null) {
+            croppedScreenshotImageView?.setImageBitmap(myBitmap)
+        }
     }
 }
