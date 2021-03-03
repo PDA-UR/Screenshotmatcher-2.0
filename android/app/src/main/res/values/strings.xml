@@ -3,4 +3,7 @@
     <string name="capture_button_text_en">Capture Screenshot</string>
     <string name="select_device_button_notConnected_en">not connected</string>
     <string name="result_activity_retake_button_en">Take another one</string>
+    <string name="result_image_content_description_en">Matched screenshot</string>
+    <string name="result_activity_pill_navigation_full_en">Full</string>
+    <string name="result_activity_pill_navigation_cropped_en">Cropped</string>
 </resources>

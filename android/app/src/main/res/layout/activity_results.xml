@@ -47,13 +47,13 @@
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:background="@drawable/pill_navigation_selected_item"
-                    android:text="Cropped"/>
+                    android:text="@string/result_activity_pill_navigation_cropped_en"/>
 
                 <androidx.appcompat.widget.AppCompatButton
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:background="#00000000"
-                    android:text="Full"/>
+                    android:text="@string/result_activity_pill_navigation_full_en"/>
             </LinearLayout>
 
             <FrameLayout
@@ -66,19 +66,22 @@
                 <androidx.appcompat.widget.AppCompatImageButton
                     android:layout_width="50dp"
                     android:layout_height="match_parent"
-                    android:layout_gravity="left|center"
+                    android:layout_gravity="start|center"
                     android:background="#00000000"
-                    android:src="@drawable/ic_baseline_arrow_back_ios_new_48"/>
+                    android:src="@drawable/ic_baseline_arrow_back_ios_new_48"
+                    android:elevation="16dp"/>
 
                 <androidx.appcompat.widget.AppCompatImageButton
                     android:layout_width="50dp"
                     android:layout_height="match_parent"
-                    android:layout_gravity="right|center"
+                    android:layout_gravity="end|center"
                     android:background="#00000000"
-                    android:src="@drawable/ic_baseline_arrow_forward_ios_48"/>
+                    android:src="@drawable/ic_baseline_arrow_forward_ios_48"
+                    android:elevation="16dp"/>
 
                 <ImageView
                     android:id="@+id/croppedScreenshotImage"
+                    android:contentDescription="@string/result_image_content_description_en"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_gravity="center_horizontal"
@@ -97,7 +100,8 @@
                 android:layout_weight="4"
                 android:background="@color/white"
                 android:orientation="horizontal"
-                android:padding="5dp">
+                android:padding="5dp"
+                android:baselineAligned="false">
 
                 <LinearLayout
                     android:layout_width="0dp"
