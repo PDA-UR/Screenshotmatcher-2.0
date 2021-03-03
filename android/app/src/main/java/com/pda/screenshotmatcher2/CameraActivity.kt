@@ -83,7 +83,7 @@ class CameraActivity : AppCompatActivity() {
     private var surfaceTextureWidth: Int = 0
 
     private var serverURL: String = ""
-    private var startTime : Long = 0
+    private var startTime: Long = 0
 
     //Other UI Views
     private var mSelectDeviceButton: Button? = null
@@ -113,7 +113,8 @@ class CameraActivity : AppCompatActivity() {
         mCaptureButton = findViewById(R.id.capture_button)
         mSelectDeviceButton = findViewById(R.id.select_device_button)
         mSelectDeviceButton!!.text = getString(R.string.select_device_button_notConnected_en)
-        mSelectDeviceButton!!.background = resources.getDrawable(R.drawable.select_device_disconnected)
+        mSelectDeviceButton!!.background =
+            resources.getDrawable(R.drawable.select_device_disconnected)
         mSelectDeviceList = findViewById(R.id.select_device_list)
     }
 
@@ -129,6 +130,7 @@ class CameraActivity : AppCompatActivity() {
                     surfaceTextureHeight = height
                     openCamera(width, height)
                 }
+
                 override fun onSurfaceTextureSizeChanged(
                     texture: SurfaceTexture,
                     width: Int,
@@ -150,10 +152,10 @@ class CameraActivity : AppCompatActivity() {
         })
 
         mSelectDeviceButton?.setOnClickListener(View.OnClickListener {
-            if (mSelectDeviceList?.isVisible!!){
+            if (mSelectDeviceList?.isVisible!!) {
                 mSelectDeviceList!!.setVisibility(View.INVISIBLE)
                 getServerURL()
-            }   else{
+            } else {
                 mSelectDeviceList!!.setVisibility(View.VISIBLE)
             }
         })
@@ -193,7 +195,7 @@ class CameraActivity : AppCompatActivity() {
 //            sendFile(greyImg, "http://192.168.178.34:49049")
             val greyImg = rescale(mBitmap, 512)
             Log.v("TIMING", "Image rescaled.")
-            sendBitmap(greyImg,  serverURL)
+            sendBitmap(greyImg, serverURL)
         }
     }
 
@@ -414,7 +416,7 @@ class CameraActivity : AppCompatActivity() {
         val bigEnough: MutableList<Size> = ArrayList()
         // resolutions < preview Surface
         val notBigEnough: MutableList<Size> = ArrayList()
-        
+
         val w = aspectRatio.width
         val h = aspectRatio.height
         for (option in choices) {
@@ -470,7 +472,7 @@ class CameraActivity : AppCompatActivity() {
                 if (grantResults.isNotEmpty()
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED
                 ) {
-                    for (permission in  permissions){
+                    for (permission in permissions) {
                         Log.d("CAMERA", "GOT permission $permission")
                     }
                     Log.d("CAMERA", "Got Permissions")
@@ -483,8 +485,8 @@ class CameraActivity : AppCompatActivity() {
         }
     }
 
-    private fun getServerURL(){
-        Thread{
+    private fun getServerURL() {
+        Thread {
             Log.v("TEST", "discovering server...")
             serverURL = discoverServerOnNetwork(this, 49050, "")
             onServerURLget(serverURL)
@@ -492,25 +494,26 @@ class CameraActivity : AppCompatActivity() {
 //            val httpClient = HTTPClient()
     }
 
-    private fun onServerURLget(serverURL : String){
+    private fun onServerURLget(serverURL: String) {
         Thread {
             Log.v("TIMING", "Got URL")
             runOnUiThread {
-                mSelectDeviceButton!!.background = resources.getDrawable(R.drawable.select_device_connected)
+                mSelectDeviceButton!!.background =
+                    resources.getDrawable(R.drawable.select_device_connected)
                 mSelectDeviceButton!!.text = serverURL
             }
         }.start()
     }
 
-    private fun sendFile(file : File, serverURL: String){
+    private fun sendFile(file: File, serverURL: String) {
         val httpClient = HTTPClient(serverURL, this, this)
-        Thread{
+        Thread {
             Log.v("TIMING", "Sending file to server.")
             httpClient.sendFileToServer(file.absolutePath)
         }.start()
     }
 
-    private fun sendBitmap(bitmap: Bitmap, serverURL: String){
+    private fun sendBitmap(bitmap: Bitmap, serverURL: String) {
         val baos = ByteArrayOutputStream()
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
         val b64Image = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT)
@@ -532,17 +535,22 @@ class CameraActivity : AppCompatActivity() {
 //                        httpClient.downloadMatch(response)
 //                    }.start()
                 Log.v("TEST", response.get("hasResult").toString())
-                if(response.get("hasResult").toString() != "false") {
+                if (response.get("hasResult").toString() != "false") {
                     try {
                         val b64ImageString = response.get("b64").toString()
-                        Log.v("TESTING",b64ImageString)
+                        Log.v("TESTING", b64ImageString)
                         if (b64ImageString.isNotEmpty()) {
                             Log.v("TEST", "got valid screenshot")
-                            var croppedScreenshotFilename: String = saveFileToExternalDir(b64ImageString, this)
+                            var croppedScreenshotFilename: String =
+                                saveFileToExternalDir(b64ImageString, this)
                             startResultsActivity(croppedScreenshotFilename)
                             val timeTotal = System.currentTimeMillis() - startTime
                             Log.v("TIMING", "Total time taken was: $timeTotal")
-                            Toast.makeText(this, "Round-trip time: $timeTotal ms", Toast.LENGTH_LONG).show()
+                            Toast.makeText(
+                                this,
+                                "Round-trip time: $timeTotal ms",
+                                Toast.LENGTH_LONG
+                            ).show()
                         }
                     } catch (e: InvocationTargetException) {
                         e.printStackTrace()
@@ -568,7 +576,11 @@ class CameraActivity : AppCompatActivity() {
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= 26) {
             val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            val channel = NotificationChannel(notificationChannelID, "Screenshot Matcher", NotificationManager.IMPORTANCE_LOW)
+            val channel = NotificationChannel(
+                notificationChannelID,
+                "Screenshot Matcher",
+                NotificationManager.IMPORTANCE_LOW
+            )
             manager.createNotificationChannel(channel)
         }
     }
