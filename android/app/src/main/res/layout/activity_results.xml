@@ -8,7 +8,7 @@
     tools:context=".ResultsActivity">
 
     <androidx.appcompat.widget.AppCompatImageButton
-        android:id="@+id/imageButton"
+        android:id="@+id/ra_backButton"
         android:layout_width="64dp"
         android:layout_height="64dp"
         android:layout_margin="10dp"
@@ -18,7 +18,7 @@
         app:layout_constraintTop_toTopOf="parent"/>
 
     <androidx.cardview.widget.CardView
-        android:id="@+id/cardView"
+        android:id="@+id/ra_cardView"
         android:layout_width="match_parent"
         android:layout_height="400dp"
         android:layout_margin="10dp"
@@ -26,7 +26,7 @@
         app:cardCornerRadius="15dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageButton">
+        app:layout_constraintTop_toBottomOf="@+id/ra_backButton">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -44,15 +44,17 @@
                 android:orientation="horizontal">
 
                 <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/ra_pillNavigation_button1"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:background="@drawable/pill_navigation_selected_item"
                     android:text="@string/result_activity_pill_navigation_cropped_en"/>
 
                 <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/ra_pillNavigation_button2"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
-                    android:background="#00000000"
+                    android:background="@color/invisible"
                     android:text="@string/result_activity_pill_navigation_full_en"/>
             </LinearLayout>
 
@@ -64,6 +66,7 @@
                 android:clipToPadding="false">
 
                 <androidx.appcompat.widget.AppCompatImageButton
+                    android:id="@+id/ra_imagePreview_previousButton"
                     android:layout_width="50dp"
                     android:layout_height="match_parent"
                     android:layout_gravity="start|center"
@@ -72,6 +75,7 @@
                     android:elevation="16dp"/>
 
                 <androidx.appcompat.widget.AppCompatImageButton
+                    android:id="@+id/ra_imagePreview_nextButton"
                     android:layout_width="50dp"
                     android:layout_height="match_parent"
                     android:layout_gravity="end|center"
@@ -80,11 +84,11 @@
                     android:elevation="16dp"/>
 
                 <ImageView
-                    android:id="@+id/croppedScreenshotImage"
+                    android:id="@+id/ra_imagePreview_imageView"
                     android:contentDescription="@string/result_image_content_description_en"
                     android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_gravity="center_horizontal"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center|center_horizontal"
                     android:adjustViewBounds="true"
                     android:background="@color/white"
                     android:elevation="15dp"
@@ -110,6 +114,7 @@
                     android:orientation="vertical">
 
                     <androidx.appcompat.widget.AppCompatImageButton
+                        android:id="@+id/ra_shareButton"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_margin="5dp"
@@ -117,10 +122,10 @@
                         android:src="@drawable/ic_baseline_share_48"/>
 
                     <TextView
+                        android:id="@+id/ra_shareButtonText"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:text="Share"/>
+                        android:gravity="center" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -130,26 +135,7 @@
                     android:orientation="vertical">
 
                     <androidx.appcompat.widget.AppCompatImageButton
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="5dp"
-                        android:background="@color/white"
-                        android:src="@drawable/ic_baseline_filter_2_48"/>
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:text="Save both"/>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <androidx.appcompat.widget.AppCompatImageButton
+                        android:id="@+id/ra_saveOneButton"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_margin="5dp"
@@ -157,16 +143,39 @@
                         android:src="@drawable/ic_baseline_image_48"/>
 
                     <TextView
+                        android:id="@+id/ra_saveOneButtonText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <androidx.appcompat.widget.AppCompatImageButton
+                        android:id="@+id/ra_saveBothButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:background="@color/white"
+                        android:src="@drawable/ic_baseline_filter_2_48"/>
+
+                    <TextView
+                        android:id="@+id/ra_saveBothButtonText"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="Save xxxx"/>
+                        android:text="@string/result_activity_saveBothButtonText_en"/>
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
     <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/ra_retakeImageButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
@@ -175,5 +184,5 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/cardView"/>
+        app:layout_constraintTop_toBottomOf="@+id/ra_cardView"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

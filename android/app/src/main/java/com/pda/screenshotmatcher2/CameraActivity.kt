@@ -153,10 +153,10 @@ class CameraActivity : AppCompatActivity() {
 
         mSelectDeviceButton?.setOnClickListener(View.OnClickListener {
             if (mSelectDeviceList?.isVisible!!) {
-                mSelectDeviceList!!.setVisibility(View.INVISIBLE)
+                mSelectDeviceList!!.visibility = View.INVISIBLE
                 getServerURL()
             } else {
-                mSelectDeviceList!!.setVisibility(View.VISIBLE)
+                mSelectDeviceList!!.visibility = View.VISIBLE
             }
         })
     }
