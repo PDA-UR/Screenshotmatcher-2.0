@@ -6,4 +6,9 @@
     <string name="result_image_content_description_en">Matched screenshot</string>
     <string name="result_activity_pill_navigation_full_en">Full</string>
     <string name="result_activity_pill_navigation_cropped_en">Cropped</string>
+    <string name="result_activity_shareButtonText1_en">Share cropped</string>
+    <string name="result_activity_saveBothButtonText_en">Save both</string>
+    <string name="result_activity_saveOneButtonText1_en">Save cropped</string>
+    <string name="result_activity_shareButtonText2_en">Share full</string>
+    <string name="result_activity_saveOneButtonText2_en">Save full</string>
 </resources>
