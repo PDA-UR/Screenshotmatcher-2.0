@@ -10,4 +10,8 @@
 
     <color name="disconnected_red">#FF6969</color>
     <color name="connected_green">#8CFF64</color>
+
+    <color name="invisible">#00000000</color>
+
+    <color name="arrow_grey">#50000000</color>
 </resources>
