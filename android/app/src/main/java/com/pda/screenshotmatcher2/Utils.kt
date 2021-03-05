@@ -40,7 +40,7 @@ fun verifyPermissions(activity: Activity?) {
         Manifest.permission.WRITE_EXTERNAL_STORAGE
     )
     val cameraPermission = ActivityCompat.checkSelfPermission(
-        activity!!,
+        activity,
         Manifest.permission.CAMERA
     )
     if (writePermission != PackageManager.PERMISSION_GRANTED || cameraPermission != PackageManager.PERMISSION_GRANTED) {
