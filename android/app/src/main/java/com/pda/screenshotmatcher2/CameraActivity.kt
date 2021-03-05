@@ -1,39 +1,24 @@
 package com.pda.screenshotmatcher2
 
 import android.Manifest
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.*
 import android.hardware.camera2.*
-import android.media.Image
 import android.media.ImageReader
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
-import android.util.Base64
 import android.util.Log
 import android.util.Size
-import android.util.SparseIntArray
 import android.view.Surface
 import android.view.TextureView
 import android.view.View
 import android.widget.Button
 import android.widget.ListView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.view.isVisible
-import com.android.volley.Request
-import com.android.volley.toolbox.JsonObjectRequest
-import com.android.volley.toolbox.Volley
-import net.gotev.uploadservice.UploadServiceConfig
-import org.json.JSONObject
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.lang.reflect.InvocationTargetException
 import java.util.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
@@ -68,9 +53,6 @@ class CameraActivity : AppCompatActivity() {
     //Camera preview builder
     private var mPreviewRequestBuilder: CaptureRequest.Builder? = null
 
-    //Camera capture builder
-    private var mCaptureRequestBuilder: CaptureRequest.Builder? = null
-
     //Request from builder
     private var mPreviewRequest: CaptureRequest? = null
 
@@ -97,12 +79,6 @@ class CameraActivity : AppCompatActivity() {
 
         verifyPermissions(this)
         getServerURL()
-        createNotificationChannel()
-        UploadServiceConfig.initialize(
-            context = this.application,
-            defaultNotificationChannel = CameraActivity.notificationChannelID,
-            debug = BuildConfig.DEBUG
-        )
         initViews()
         setViewListeners()
     }
@@ -147,7 +123,6 @@ class CameraActivity : AppCompatActivity() {
             }
 
         mCaptureButton?.setOnClickListener(View.OnClickListener {
-            //captureImageWithCaptureRequest()
             captureImageWithPreviewExtraction()
         })
 
@@ -190,58 +165,10 @@ class CameraActivity : AppCompatActivity() {
         startTime = System.currentTimeMillis()
         val mBitmap: Bitmap? = mTextureView!!.bitmap
         if (mBitmap != null) {
-//            Log.d("BITMAP", "calling savePhotoToDisk")
-//            val greyImg = savePhotoToDisk(mBitmap, null, null, 512)
-//            sendFile(greyImg, "http://192.168.178.34:49049")
             val greyImg = rescale(mBitmap, 512)
             Log.v("TIMING", "Image rescaled.")
-            sendBitmap(greyImg, mServerURL)
+            sendBitmap(greyImg, mServerURL, this, this)
         }
-    }
-
-    //Capture an image by using a Capture Request
-    private fun captureImageWithCaptureRequest() {
-        val outputSurfaces: MutableList<Surface> = LinkedList()
-        outputSurfaces.add(mImageReader!!.getSurface())
-
-        mCaptureRequestBuilder =
-            mCameraDevice!!.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE)
-        mCaptureRequestBuilder!!.set(
-            CaptureRequest.CONTROL_AF_MODE,
-            CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
-        )
-
-        val orientations = SparseIntArray()
-        orientations.append(Surface.ROTATION_0, 90)
-        orientations.append(Surface.ROTATION_90, 0)
-        orientations.append(Surface.ROTATION_180, 270)
-        orientations.append(Surface.ROTATION_270, 180)
-        val rotation = windowManager.defaultDisplay.rotation
-
-        mCaptureRequestBuilder!!.set(CaptureRequest.JPEG_ORIENTATION, orientations.get(rotation))
-        mCaptureRequestBuilder!!.addTarget(outputSurfaces[0])
-
-        val captureCallback = object : CameraCaptureSession.CaptureCallback() {
-            override fun onCaptureProgressed(
-                session: CameraCaptureSession,
-                request: CaptureRequest,
-                partialResult: CaptureResult
-            ) {
-            }
-
-            override fun onCaptureCompleted(
-                session: CameraCaptureSession,
-                request: CaptureRequest,
-                result: TotalCaptureResult
-            ) {
-                Log.d("CAMERA", "Capture complete")
-            }
-        }
-        mCaptureSession!!.capture(
-            mCaptureRequestBuilder!!.build(),
-            captureCallback,
-            mBackgroundHandler
-        )
     }
 
     private fun openCamera(width: Int, height: Int) {
@@ -281,7 +208,7 @@ class CameraActivity : AppCompatActivity() {
             mPreviewRequestBuilder!!.addTarget(surface)
 
             mCameraDevice!!.createCaptureSession(
-                Arrays.asList(surface, mImageReader!!.surface),
+                listOf(surface, mImageReader!!.surface),
                 object : CameraCaptureSession.StateCallback() {
                     override fun onConfigured(cameraCaptureSession: CameraCaptureSession) {
                         // The camera is already closed
@@ -337,17 +264,17 @@ class CameraActivity : AppCompatActivity() {
                 )
 
                 //Callback for receiving images as soon as they are available
-                mImageReader!!.setOnImageAvailableListener({ reader ->
-                    var image: Image? = null
-                    try {
-                        image = reader!!.acquireLatestImage()
-                        val greyImg = savePhotoToDisk(null, image, null, 512)
-                        sendFile(greyImg, mServerURL)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                    image?.close()
-                }, mBackgroundHandler)
+//                mImageReader!!.setOnImageAvailableListener({ reader ->
+//                    var image: Image? = null
+//                    try {
+//                        image = reader!!.acquireLatestImage()
+//                        val greyImg = savePhotoToDisk(null, image, null, 512)
+//                        sendFile(greyImg, mServerURL)
+//                    } catch (e: Exception) {
+//                        e.printStackTrace()
+//                    }
+//                    image?.close()
+//                }, mBackgroundHandler)
 
 
                 val displaySize = Point()
@@ -465,7 +392,7 @@ class CameraActivity : AppCompatActivity() {
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
-        super.onRequestPermissionsResult(requestCode, permissions!!, grantResults)
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         Log.d("CAMERA", "Permission Callback Code $requestCode")
         when (requestCode) {
             1 -> {
@@ -491,7 +418,6 @@ class CameraActivity : AppCompatActivity() {
             mServerURL = discoverServerOnNetwork(this, 49050, "")
             onServerURLget(mServerURL)
         }.start()
-//            val httpClient = HTTPClient()
     }
 
     private fun onServerURLget(serverURL: String) {
@@ -505,69 +431,6 @@ class CameraActivity : AppCompatActivity() {
         }.start()
     }
 
-    private fun sendFile(file: File, serverURL: String) {
-        val httpClient = HTTPClient(serverURL, this, this)
-        Thread {
-            Log.v("TIMING", "Sending file to server.")
-            httpClient.sendFileToServer(file.absolutePath)
-        }.start()
-    }
-
-    private fun sendBitmap(bitmap: Bitmap, serverURL: String) {
-        val baos = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
-        val b64Image = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT)
-        Log.v("TIMING", "Base64 generated")
-        Log.v("TIMING", b64Image.length.toString())
-        val queue = Volley.newRequestQueue(this)
-        val json = JSONObject()
-        json.put("b64", b64Image)
-        val qTime = System.currentTimeMillis()
-        Log.v("TIMING", "Upload queued.")
-
-        val jsonOR = JsonObjectRequest(Request.Method.POST, "$serverURL/match-b64", json,
-            { response ->
-                val rTime = System.currentTimeMillis()
-                Log.v("TIMING", "Got response.")
-//                    val timeDiff = System.currentTimeMillis() - response.getJSONObject().get("timestamp")
-//                    val httpClient = HTTPClient(serverURL, this, this)
-//                    Thread{
-//                        httpClient.downloadMatch(response)
-//                    }.start()
-                Log.v("TEST", response.get("hasResult").toString())
-                if (response.get("hasResult").toString() != "false") {
-
-                    Log.d("uid", response.toString())
-
-                    try {
-                        val b64ImageString = response.get("b64").toString()
-                        Log.v("TESTING", b64ImageString)
-                        if (b64ImageString.isNotEmpty()) {
-                            Log.v("TEST", "got valid screenshot")
-                            var croppedScreenshotFilename: String =
-                                saveFileToExternalDir(b64ImageString, this, response.get("uid").toString())
-
-                            val httpClient = mServerURL?.let { HTTPClient(it, this, this) }
-                            val downloadID : Long = httpClient?.downloadMatch(response.get("uid").toString())
-                            startResultsActivity(croppedScreenshotFilename, downloadID)
-                            val timeTotal = System.currentTimeMillis() - startTime
-                            Log.v("TIMING", "Total time taken was: $timeTotal")
-                            Toast.makeText(
-                                this,
-                                "Round-trip time: $timeTotal ms",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
-                    } catch (e: InvocationTargetException) {
-                        e.printStackTrace()
-                    }
-                }
-            },
-            { error -> Log.v("TIMING", error.toString()) })
-        queue.add(jsonOR)
-
-    }
-
     private fun startResultsActivity(filename: String, downloadID: Long) {
         val intent = Intent(this, ResultsActivity::class.java).apply {
             putExtra("ScreenshotsDirectoryName", filename)
@@ -577,20 +440,7 @@ class CameraActivity : AppCompatActivity() {
         startActivity(intent)
     }
 
-    companion object {
-        const val notificationChannelID = "Screenshotmatcher Channel"
+    fun onMatchResult(fileName: String, downloadID: Long){
+        startResultsActivity(fileName, downloadID)
     }
-
-    private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= 26) {
-            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            val channel = NotificationChannel(
-                notificationChannelID,
-                "Screenshot Matcher",
-                NotificationManager.IMPORTANCE_LOW
-            )
-            manager.createNotificationChannel(channel)
-        }
-    }
-
 }
