@@ -82,7 +82,7 @@ class CameraActivity : AppCompatActivity() {
     private var surfaceTextureHeight: Int = 0
     private var surfaceTextureWidth: Int = 0
 
-    private var serverURL: String = ""
+    private var mServerURL: String = ""
     private var startTime: Long = 0
 
     //Other UI Views
@@ -195,7 +195,7 @@ class CameraActivity : AppCompatActivity() {
 //            sendFile(greyImg, "http://192.168.178.34:49049")
             val greyImg = rescale(mBitmap, 512)
             Log.v("TIMING", "Image rescaled.")
-            sendBitmap(greyImg, serverURL)
+            sendBitmap(greyImg, mServerURL)
         }
     }
 
@@ -342,7 +342,7 @@ class CameraActivity : AppCompatActivity() {
                     try {
                         image = reader!!.acquireLatestImage()
                         val greyImg = savePhotoToDisk(null, image, null, 512)
-                        sendFile(greyImg, serverURL)
+                        sendFile(greyImg, mServerURL)
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
@@ -488,8 +488,8 @@ class CameraActivity : AppCompatActivity() {
     private fun getServerURL() {
         Thread {
             Log.v("TEST", "discovering server...")
-            serverURL = discoverServerOnNetwork(this, 49050, "")
-            onServerURLget(serverURL)
+            mServerURL = discoverServerOnNetwork(this, 49050, "")
+            onServerURLget(mServerURL)
         }.start()
 //            val httpClient = HTTPClient()
     }
@@ -536,14 +536,20 @@ class CameraActivity : AppCompatActivity() {
 //                    }.start()
                 Log.v("TEST", response.get("hasResult").toString())
                 if (response.get("hasResult").toString() != "false") {
+
+                    Log.d("uid", response.toString())
+
                     try {
                         val b64ImageString = response.get("b64").toString()
                         Log.v("TESTING", b64ImageString)
                         if (b64ImageString.isNotEmpty()) {
                             Log.v("TEST", "got valid screenshot")
                             var croppedScreenshotFilename: String =
-                                saveFileToExternalDir(b64ImageString, this)
-                            startResultsActivity(croppedScreenshotFilename)
+                                saveFileToExternalDir(b64ImageString, this, response.get("uid").toString())
+
+                            val httpClient = mServerURL?.let { HTTPClient(it, this, this) }
+                            val downloadID : Long = httpClient?.downloadMatch(response.get("uid").toString())
+                            startResultsActivity(croppedScreenshotFilename, downloadID)
                             val timeTotal = System.currentTimeMillis() - startTime
                             Log.v("TIMING", "Total time taken was: $timeTotal")
                             Toast.makeText(
@@ -562,9 +568,11 @@ class CameraActivity : AppCompatActivity() {
 
     }
 
-    private fun startResultsActivity(filename: String) {
+    private fun startResultsActivity(filename: String, downloadID: Long) {
         val intent = Intent(this, ResultsActivity::class.java).apply {
-            putExtra("ScreenshotFilename", filename)
+            putExtra("ScreenshotsDirectoryName", filename)
+            putExtra("ServerURL", mServerURL)
+            putExtra("DownloadID", downloadID)
         }
         startActivity(intent)
     }
