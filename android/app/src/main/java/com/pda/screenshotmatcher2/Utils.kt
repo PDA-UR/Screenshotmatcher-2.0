@@ -1,7 +1,6 @@
 package com.pda.screenshotmatcher2
 
 import android.Manifest
-import android.R.string
 import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
@@ -20,7 +19,7 @@ import java.io.FileOutputStream
 import java.io.OutputStream
 
 
-lateinit var APP_DIRECTORY : File
+const val APP_DIRECTORY : String = "/ScreenshotMatcher/"
 
 private val PERMISSIONS = arrayOf<String>(
     Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -28,6 +27,11 @@ private val PERMISSIONS = arrayOf<String>(
     Manifest.permission.INTERNET,
     Manifest.permission.CAMERA,
 )
+
+fun getDataDir(context: Context): String? {
+    return context.packageManager
+        .getPackageInfo(context.packageName, 0).applicationInfo.dataDir
+}
 
 fun verifyPermissions(activity: Activity?) {
     // Check if we have write permission
@@ -69,9 +73,11 @@ fun saveB64ToInternalFile(b64String: String, context: Context){
 }
 
 @Suppress("DEPRECATION")
-fun saveFileToExternalDir(b64String: String, context: Context, dir: String = "Pictures/"): String {
+fun saveFileToExternalDir(b64String: String, context: Context, dirName: String = "Pictures/"): String {
     val out : OutputStream
-    val filename = System.currentTimeMillis().toString() + ".jpg"
+    val dir : String = Environment.DIRECTORY_PICTURES + APP_DIRECTORY + dirName
+    val filename = "croppedScreenshot.jpg"
+    Log.d("saving", "Dir name: $dir")
 
     if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
         val resolver = context.contentResolver
@@ -84,11 +90,11 @@ fun saveFileToExternalDir(b64String: String, context: Context, dir: String = "Pi
     }
     else{
         val imageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-        val file = File(imageDir.toString() + File.separator + "ScreenshotMatcher")
+        val file = File(dir)
         if(!file.exists()){
             file.mkdir()
         }
-        val image = File(imageDir, filename)
+        val image = File(dir, filename)
         out = FileOutputStream(image)
     }
 
@@ -98,5 +104,5 @@ fun saveFileToExternalDir(b64String: String, context: Context, dir: String = "Pi
     out.flush()
     out.close()
 
-    return filename
+    return dir
 }
