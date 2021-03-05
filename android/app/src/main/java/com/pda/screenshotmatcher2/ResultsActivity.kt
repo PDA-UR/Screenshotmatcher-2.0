@@ -1,8 +1,15 @@
 package com.pda.screenshotmatcher2
 
+import android.annotation.SuppressLint
+import android.app.DownloadManager
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.os.Environment
+import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -31,8 +38,11 @@ var mPillNavigationState: Int = -1
 
 var imageDir: File? = null
 var mCroppedImageFile: File? = null
-var mCroppedImageFilename: String? = null
+var mScreenshotsFileDirectory: String? = null
 var mFullImageFile: File? = null
+var mServerURL: String? = null
+var mFullScreenshotFilename: String? = null
+var downloadID: Long? = null
 
 
 
@@ -40,18 +50,34 @@ class ResultsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_results)
-
         initViews()
         setViewListeners()
 
         val intent = intent
-        mCroppedImageFilename = intent.getStringExtra("ScreenshotFilename")
-        imageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-        mCroppedImageFile = File("$imageDir/$mCroppedImageFilename")
+        mServerURL = intent.getStringExtra("ServerURL")
+        downloadID = intent.getLongExtra("DownloadID", 0)
 
+        mScreenshotsFileDirectory = "/storage/emulated/0/${intent.getStringExtra("ScreenshotsDirectoryName")}"
+        imageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+
+        mCroppedImageFile = File("$mScreenshotsFileDirectory/croppedScreenshot.jpg")
         setImageViewBitmapWithFile(mCroppedImageFile)
+        this.registerReceiver(onDownloadComplete, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)) // TODO>: call this in the onCreate() function of the fragment, that displays the result
+
     }
 
+
+    val onDownloadComplete: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            Log.d("RESULT", "Check Recieve")
+            //Fetching the download id received with the broadcast
+            val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
+            //Checking if the received broadcast is for our enqueued download by matching download id
+            if (downloadID == id) {
+                mFullImageFile = File("$mScreenshotsFileDirectory/fullScreenshot.png")
+            }
+        }
+    }
     private fun setImageViewBitmapWithFile(mFile: File?) {
         val mBitmap = BitmapFactory.decodeFile(mFile!!.absolutePath)
         if (mBitmap != null) {
@@ -83,12 +109,9 @@ class ResultsActivity : AppCompatActivity() {
         TODO("Not yet implemented")
     }
 
+    @SuppressLint("UseCompatLoadingForDrawables")
     private fun togglePillNavigationSelection() {
         mPillNavigationState *= -1
-
-        if (mFullImageFile == null){
-            downloadFullImage()
-        }
 
         when (mPillNavigationState){
             -1 -> {
@@ -107,18 +130,20 @@ class ResultsActivity : AppCompatActivity() {
                 mImagePreviewNextButton?.visibility = View.INVISIBLE
                 mShareButtonText?.text = getString(R.string.result_activity_shareButtonText2_en)
                 mSaveOneButtonText?.text = getString(R.string.result_activity_saveOneButtonText2_en)
-                setImageViewBitmapWithFile(mFullImageFile)
+                if (mFullImageFile == null){
+                    mScreenshotImageView?.setImageDrawable(resources.getDrawable(R.drawable.ic_baseline_downloading_24));
+                }   else{
+                    setImageViewBitmapWithFile(mFullImageFile)
+                }
+
+
             }
         }
     }
 
-    private fun downloadFullImage() {
-        mFullImageFile = File("$imageDir/testFullScreenshot.jpg")
-    }
-
-
     private fun goBackToCameraActivity() {
-        mCroppedImageFile?.delete()
+        mCroppedImageFile?.parentFile?.deleteRecursively()
+        unregisterReceiver(onDownloadComplete)
         finish()
     }
 

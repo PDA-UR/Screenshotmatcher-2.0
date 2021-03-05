@@ -54,9 +54,10 @@ class HTTPClient(
                     uploadInfo: UploadInfo,
                     serverResponse: ServerResponse
                 ) {
-                    Log.v("TIMING", "Got response.")
-//                    val json = JSONObject(serverResponse.bodyString)
-//                    onServerResponse(json)
+                    val json = JSONObject(serverResponse.bodyString)
+                    Log.v("TIMING", "onSuccess called")
+                    Log.v("TIMING", json.toString())
+                    onServerResponse(json)
                 }
 
                 override fun onError(
@@ -87,36 +88,43 @@ class HTTPClient(
             false -> Log.v(TAG, "Match failure.")
             true -> {
                 Log.v(TAG, "Match found.")
-                downloadMatch(response)
+                Log.d("TIMING", response["filename"] as String)
+                downloadMatch(response["filename"].toString())
             }
         }
     }
 
-    fun downloadMatch(response: JSONObject){
+//    fun downloadMatch(response: JSONObject){
+//        Log.v("TIMING", "Adding result file download to queue")
+//        val downloadmanager = context.getSystemService(DOWNLOAD_SERVICE) as DownloadManager
+//        val uri: Uri = Uri.parse(serverUrl + response["filename"])
+//        Log.d("TIMING", "Filename:")
+//        Log.d("TIMING", response["filename"] as String)
+//        val request = DownloadManager.Request(uri)
+//        request.setTitle("Screenshot")
+//        request.setDescription("downloading")
+//        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+//        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_PICTURES, "/"+response["filename"].toString().substringAfterLast('/'))
+//
+//        downloadID = downloadmanager.enqueue(request)
+//        context.registerReceiver(onDownloadComplete, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)) // TODO>: call this in the onCreate() function of the fragment, that displays the result
+//        Log.v("TIMING", "Download queued")
+//    }
+
+
+    fun downloadMatch(fileName: String): Long {
         Log.v("TIMING", "Adding result file download to queue")
         val downloadmanager = context.getSystemService(DOWNLOAD_SERVICE) as DownloadManager
-        val uri: Uri = Uri.parse(serverUrl + response["filename"])
+        val uri: Uri = Uri.parse("$serverUrl/results/result-$fileName/screenshot.png")
+        Log.d("TIMING", "Filename:")
+        Log.d("TIMING", fileName)
         val request = DownloadManager.Request(uri)
-        request.setTitle("Screenshot")
-        request.setDescription("downloading")
-        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_PICTURES, "/"+response["filename"].toString().substringAfterLast('/'))
+        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_PICTURES, "$APP_DIRECTORY$fileName/fullScreenshot.png")
 
         downloadID = downloadmanager.enqueue(request)
-        context.registerReceiver(onDownloadComplete, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)) // TODO>: call this in the onCreate() function of the fragment, that displays the result
         Log.v("TIMING", "Download queued")
+        return downloadID
     }
-
     // TODO: still has to be unregistered somewhere. prefarably in the fragment, that displays the result image. maybe inside onDestroy()
-    val onDownloadComplete: BroadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            //Fetching the download id received with the broadcast
-            val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
-            //Checking if the received broadcast is for our enqueued download by matching download id
-            if (downloadID == id) {
-                Log.v("TIMING", "Download complete")
-                Toast.makeText(context, "Download Completed", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
+
 }
