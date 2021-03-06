@@ -15,6 +15,7 @@ import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.lang.reflect.InvocationTargetException
 
+var downloadID : Long = 0
 
 fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, context: Context){
     val baos = ByteArrayOutputStream()
@@ -32,11 +33,14 @@ fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, context: 
                 try {
                     val b64ImageString = response.get("b64").toString()
                     if (b64ImageString.isNotEmpty()) {
-                        val croppedScreenshotFilename: String =
-                            saveFileToExternalDir(b64ImageString, context, response.get("uid").toString())
-                        val downloadID : Long = downloadFullScreenshot(response.get("uid").toString(), serverURL, context)
+                        val byteArray = Base64.decode(b64ImageString, Base64.DEFAULT)
 
-                        if(activity is CameraActivity) activity.onMatchResult(croppedScreenshotFilename, downloadID)
+                        if(activity is CameraActivity) {
+                            activity.onMatchResult(
+                                matchID = response.get("uid").toString(),
+                                img = byteArray
+                            )
+                        }
                     }
                 } catch (e: InvocationTargetException) {
                     e.printStackTrace()
@@ -48,15 +52,15 @@ fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, context: 
     queue.add(jsonOR)
 }
 
-fun downloadFullScreenshot(fileName: String, serverURL: String, context: Context): Long {
+fun downloadFullScreenshot(matchID: String, filename : String, serverURL: String, context: Context) {
+    val uri: Uri = Uri.parse("$serverURL/results/result-$matchID/screenshot.png")
+    Log.v("TEST", uri.toString())
     Log.v("TIMING", "Adding result file download to queue")
+    val filenameFull = "${filename}_Full.png"
     val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-    val uri: Uri = Uri.parse("$serverURL/results/result-$fileName/screenshot.png")
-    Log.d("TIMING", "Filename:")
-    Log.d("TIMING", fileName)
     val request = DownloadManager.Request(uri)
-    request.setDestinationInExternalPublicDir(Environment.DIRECTORY_PICTURES, "$APP_DIRECTORY$fileName/fullScreenshot.png")
+    request.setDestinationInExternalFilesDir(context, Environment.DIRECTORY_PICTURES, filenameFull)
 
     Log.v("TIMING", "Download queued")
-    return downloadManager.enqueue(request)
+    downloadID = downloadManager.enqueue(request)
 }

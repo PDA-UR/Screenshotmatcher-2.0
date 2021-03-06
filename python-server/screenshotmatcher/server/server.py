@@ -175,9 +175,7 @@ class Server():
 
         # Create Match dir
         match_dir = self.results_dir + '/result-' + uid
-        print(os.path.abspath(os.getcwd()) + match_dir)
         os.mkdir(match_dir)
-        print(match_dir)
 
         # Start matcher
         start_time = time.perf_counter()
