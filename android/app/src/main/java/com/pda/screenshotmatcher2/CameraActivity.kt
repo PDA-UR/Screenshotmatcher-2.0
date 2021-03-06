@@ -184,7 +184,7 @@ class CameraActivity : AppCompatActivity() {
                 throw RuntimeException("Camera lock opening timeout")
             }
 
-            manager.openCamera(mCameraId, mStateCallback, mBackgroundHandler)
+            manager.openCamera(mCameraId, mStateCallback, null)
         } catch (e: CameraAccessException) {
             e.printStackTrace()
         } catch (e: InterruptedException) {
@@ -217,7 +217,7 @@ class CameraActivity : AppCompatActivity() {
                             mPreviewRequest = mPreviewRequestBuilder.build()
                             mCaptureSession.setRepeatingRequest(
                                 mPreviewRequest,
-                                null, mBackgroundHandler
+                                null, null
                             )
                             Log.d("CAMERA", "Start Preview with size: $mPreviewSize")
                         } catch (e: CameraAccessException) {
@@ -297,7 +297,7 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun configureTransform(viewWidth: Int, viewHeight: Int) {
-        val rotation = applicationContext.display?.rotation
+        val rotation = windowManager.defaultDisplay.rotation
         val matrix = Matrix()
         val viewRect = RectF(0F, 0F, viewWidth.toFloat(), viewHeight.toFloat())
         val bufferRect = RectF(
