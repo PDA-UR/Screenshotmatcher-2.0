@@ -1,6 +1,5 @@
 package com.pda.screenshotmatcher2
 
-import android.annotation.SuppressLint
 import android.app.DownloadManager
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -40,12 +39,8 @@ class ResultsActivity : AppCompatActivity() {
     private lateinit var mSaveOneButtonText: TextView
     private lateinit var mRetakeImageButton: AppCompatButton
 
-    private lateinit var imageDir: File
-    private lateinit var mCroppedImageFile: File
-    private lateinit var mScreenshotsFileDirectory: String
     private lateinit var mFullImageFile: File
     private lateinit var mServerURL: String
-    private lateinit var mFullScreenshotFilename: String
     private lateinit var lastDateTime : String
     private lateinit var mCroppedScreenshot : Bitmap
     private lateinit var mFullScreenshot : Bitmap
@@ -60,16 +55,15 @@ class ResultsActivity : AppCompatActivity() {
         setViewListeners()
 
         mServerURL = intent.getStringExtra("ServerURL")!!
+
         val imgByteArray = intent.getByteArrayExtra("img")!!
         mCroppedScreenshot = BitmapFactory.decodeByteArray(imgByteArray, 0, imgByteArray.size)
         val matchID = intent.getStringExtra("matchID")!!
-        lastDateTime = getDateString()
-        Log.v("TEST", lastDateTime)
-        imageDir = File(IMG_DIR)
         mScreenshotImageView.setImageBitmap(mCroppedScreenshot)
-//        setImageViewBitmapWithFile()
+
+        lastDateTime = getDateString()
         Thread{downloadFullScreenshot(matchID, lastDateTime, mServerURL, applicationContext)}.start()
-        this.registerReceiver(onDownloadComplete, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)) // TODO>: call this in the onCreate() function of the fragment, that displays the result
+        this.registerReceiver(onDownloadComplete, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
     }
 
     private val onDownloadComplete: BroadcastReceiver = object : BroadcastReceiver() {
@@ -109,7 +103,6 @@ class ResultsActivity : AppCompatActivity() {
         TODO("Not yet implemented")
     }
 
-    @SuppressLint("UseCompatLoadingForDrawables")
     private fun togglePillNavigationSelection() {
         mPillNavigationState *= -1
 

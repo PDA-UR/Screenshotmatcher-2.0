@@ -1,17 +1,7 @@
 package com.pda.screenshotmatcher2
 
-import android.content.Context
 import android.graphics.*
-import android.media.Image
-import android.net.Uri
-import android.os.Build
-import android.os.ParcelFileDescriptor
-import android.util.Base64
-import android.util.Log
-import androidx.core.content.FileProvider
 import androidx.core.graphics.scale
-import java.io.*
-import java.nio.ByteBuffer
 import kotlin.math.max
 
 fun rescale(bitmap: Bitmap, targetSize: Int): Bitmap {
@@ -33,10 +23,4 @@ fun toGrayscale(bmpOriginal: Bitmap): Bitmap {
     paint.colorFilter = f
     c.drawBitmap(bmpOriginal, 0f, 0f, paint)
     return bmpGrayscale
-}
-
-fun b64ToBitmap(b64String : String) : Bitmap{
-    val byteArray = Base64.decode(b64String, Base64.DEFAULT)
-    val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
-    return bitmap
 }
