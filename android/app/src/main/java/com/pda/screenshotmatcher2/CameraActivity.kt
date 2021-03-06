@@ -8,7 +8,9 @@ import android.graphics.*
 import android.hardware.camera2.*
 import android.media.ImageReader
 import android.os.Bundle
+import android.os.Environment
 import android.os.Handler
+import android.text.style.TtsSpan
 import android.util.Log
 import android.util.Size
 import android.view.Surface
@@ -19,6 +21,8 @@ import android.widget.ListView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.view.isVisible
+import java.text.SimpleDateFormat
+import java.time.LocalDateTime
 import java.util.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
@@ -76,7 +80,7 @@ class CameraActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera)
         supportActionBar?.hide()
-
+        Log.v("TEST", getExternalFilesDir(Environment.DIRECTORY_PICTURES).toString())
         verifyPermissions(this)
         getServerURL()
         initViews()
@@ -431,16 +435,17 @@ class CameraActivity : AppCompatActivity() {
         }.start()
     }
 
-    private fun startResultsActivity(filename: String, downloadID: Long) {
+    private fun startResultsActivity(matchID: String, img: ByteArray) {
         val intent = Intent(this, ResultsActivity::class.java).apply {
-            putExtra("ScreenshotsDirectoryName", filename)
+            putExtra("matchID", matchID)
+            putExtra("img", img)
             putExtra("ServerURL", mServerURL)
-            putExtra("DownloadID", downloadID)
+//            putExtra("DownloadID", downloadID)
         }
         startActivity(intent)
     }
 
-    fun onMatchResult(fileName: String, downloadID: Long){
-        startResultsActivity(fileName, downloadID)
+    fun onMatchResult(matchID: String, img : ByteArray){
+        startResultsActivity(matchID, img)
     }
 }
