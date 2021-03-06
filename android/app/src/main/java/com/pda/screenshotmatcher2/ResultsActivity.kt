@@ -7,11 +7,8 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
-import android.provider.MediaStore
-import android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
@@ -19,9 +16,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
 import androidx.appcompat.widget.AppCompatImageButton
-import androidx.core.content.FileProvider
 import java.io.File
-import kotlin.properties.Delegates
 
 
 class ResultsActivity : AppCompatActivity() {
@@ -69,9 +64,9 @@ class ResultsActivity : AppCompatActivity() {
     private val onDownloadComplete: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             Log.d("RESULT", "Check Receive")
+
             //Fetching the download id received with the broadcast
             val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
-            //Checking if the received broadcast is for our enqueued download by matching download id
             if (downloadID == id) {
                 mFullImageFile = File(getExternalFilesDir(Environment.DIRECTORY_PICTURES), lastDateTime + "_Full.png")
                 mFullScreenshot = BitmapFactory.decodeFile(mFullImageFile.absolutePath)
