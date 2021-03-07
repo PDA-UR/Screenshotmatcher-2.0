@@ -85,16 +85,17 @@ class Matcher():
     screen = cv2.cvtColor(np.array(self.screenshot), IMREAD_GRAYSCALE)
     screen_colored = cv2.cvtColor(np.array(self.screenshot), cv2.COLOR_BGR2RGB)
 
+    # save screenshot in separate thread
+    t = threading.Thread(target=self.save_screenshot, args=(), daemon=True)
+    t.start()
+
     # Provisional switch statement
     if algorithm == 'SURF':
       match_result = self.algorithm_SURF(photo, screen, screen_colored)
     elif algorithm == 'ORB':
       match_result = self.algorithm_ORB(photo, screen, screen_colored)
     else:
-      match_result = self.algorithm_SURF(photo, screen, screen_colored)
-
-    t = threading.Thread(target=self.save_screenshot, args=(), daemon=True)
-    t.start()
+      match_result = self.algorithm_SURF(photo, screen, screen_colored)  
 
     self.writeLog('FINAL TIME {}ms'.format(round( (time.perf_counter() - start_time) * 1000 )))
 
