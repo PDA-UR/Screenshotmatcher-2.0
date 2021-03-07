@@ -60,14 +60,12 @@ class ResultsActivity : AppCompatActivity() {
         mCroppedScreenshot = BitmapFactory.decodeByteArray(imgByteArray, 0, imgByteArray.size)
         val matchID = intent.getStringExtra("matchID")!!
         mScreenshotImageView.setImageBitmap(mCroppedScreenshot)
-
+        Log.v("TIMING", "Result screen shown.")
         lastDateTime = getDateString()
         Thread{downloadFullScreenshot(matchID, lastDateTime, mServerURL, applicationContext)}.start()
-
-        mCroppedImageFile = File(getExternalFilesDir(Environment.DIRECTORY_PICTURES), lastDateTime + "_Cropped.png")
-        saveBitmapToFile(mCroppedImageFile, mCroppedScreenshot)
-
         this.registerReceiver(onDownloadComplete, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
+
+
     }
 
     private val onDownloadComplete: BroadcastReceiver = object : BroadcastReceiver() {
@@ -77,6 +75,7 @@ class ResultsActivity : AppCompatActivity() {
             //Fetching the download id received with the broadcast
             val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
             if (downloadID == id) {
+                Log.v("TIMING", "full screenshot downloaded")
                 mFullImageFile = File(getExternalFilesDir(Environment.DIRECTORY_PICTURES), lastDateTime + "_Full.png")
                 mFullScreenshot = BitmapFactory.decodeFile(mFullImageFile.absolutePath)
             }
@@ -137,6 +136,8 @@ class ResultsActivity : AppCompatActivity() {
 
     private fun shareImage() {
         if(mPillNavigationState == -1){
+            mCroppedImageFile = File(getExternalFilesDir(Environment.DIRECTORY_PICTURES), lastDateTime + "_Cropped.png")
+            saveBitmapToFile(mCroppedImageFile, mCroppedScreenshot)
             val contentUri =
                 getUriForFile(this, BuildConfig.APPLICATION_ID + ".fileprovider", mCroppedImageFile)
             val intent = Intent().apply {
@@ -187,8 +188,6 @@ class ResultsActivity : AppCompatActivity() {
     }
 
     private fun goBackToCameraActivity() {
-        mFullImageFile.delete()
-        mCroppedImageFile.delete()
         unregisterReceiver(onDownloadComplete)
         finish()
     }
