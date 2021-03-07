@@ -11,4 +11,10 @@
     <string name="result_activity_saveOneButtonText1_en">Save cropped</string>
     <string name="result_activity_shareButtonText2_en">Share full</string>
     <string name="result_activity_saveOneButtonText2_en">Save full</string>
+    <string name="result_activity_saved_cropped_en">Saved cropped image</string>
+    <string name="result_activity_saved_full_en">Saved full image</string>
+    <string name="result_activity_saved_both_en">Saved both images</string>
+    <string name="screenshot_description_en">Created with Screenshot Matcher</string>
+    <string name="cropped_screenshot_title_en">cropped_screenshot</string>
+    <string name="full_screenshot_title_en">full_screenshot</string>
 </resources>
