@@ -7,15 +7,19 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
 import androidx.appcompat.widget.AppCompatImageButton
+import androidx.core.content.FileProvider.getUriForFile
 import java.io.File
 
 
@@ -35,6 +39,7 @@ class ResultsActivity : AppCompatActivity() {
     private lateinit var mRetakeImageButton: AppCompatButton
 
     private lateinit var mFullImageFile: File
+    private lateinit var mCroppedImageFile: File
     private lateinit var mServerURL: String
     private lateinit var lastDateTime : String
     private lateinit var mCroppedScreenshot : Bitmap
@@ -58,6 +63,10 @@ class ResultsActivity : AppCompatActivity() {
 
         lastDateTime = getDateString()
         Thread{downloadFullScreenshot(matchID, lastDateTime, mServerURL, applicationContext)}.start()
+
+        mCroppedImageFile = File(getExternalFilesDir(Environment.DIRECTORY_PICTURES), lastDateTime + "_Cropped.png")
+        saveBitmapToFile(mCroppedImageFile, mCroppedScreenshot)
+
         this.registerReceiver(onDownloadComplete, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
     }
 
@@ -86,16 +95,70 @@ class ResultsActivity : AppCompatActivity() {
         mSaveOneButton.setOnClickListener { saveCurrentPreviewImage() }
     }
 
+
+
     private fun saveCurrentPreviewImage() {
-        TODO("Not yet implemented")
+        if(mPillNavigationState == -1){
+            MediaStore.Images.Media.insertImage(
+                contentResolver,
+                mCroppedScreenshot,
+                getString(R.string.cropped_screenshot_title_en),
+                getString(R.string.screenshot_description_en)
+            )
+            Toast.makeText(this, getText(R.string.result_activity_saved_cropped_en), Toast.LENGTH_SHORT).show()
+        }   else {
+            MediaStore.Images.Media.insertImage(
+                contentResolver,
+                mFullScreenshot,
+                getString(R.string.full_screenshot_title_en),
+                getString(R.string.screenshot_description_en)
+            )
+            Toast.makeText(this, getText(R.string.result_activity_saved_full_en), Toast.LENGTH_SHORT).show()
+        }
+
     }
 
     private fun saveBothImages() {
-        TODO("Not yet implemented")
+        MediaStore.Images.Media.insertImage(
+            contentResolver,
+            mCroppedScreenshot,
+            getString(R.string.cropped_screenshot_title_en),
+            getString(R.string.screenshot_description_en)
+        )
+
+        MediaStore.Images.Media.insertImage(
+            contentResolver,
+            mFullScreenshot,
+            getString(R.string.full_screenshot_title_en),
+            getString(R.string.screenshot_description_en)
+        )
+        Toast.makeText(this, getText(R.string.result_activity_saved_both_en), Toast.LENGTH_SHORT).show()
     }
 
     private fun shareImage() {
-        TODO("Not yet implemented")
+        if(mPillNavigationState == -1){
+            val contentUri =
+                getUriForFile(this, BuildConfig.APPLICATION_ID + ".fileprovider", mCroppedImageFile)
+            val intent = Intent().apply {
+                this.action = Intent.ACTION_SEND
+                this.putExtra(Intent.EXTRA_STREAM, contentUri)
+                this.type = "image/png"
+                this.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(intent)
+        }   else {
+            val contentUri =
+                getUriForFile(this, BuildConfig.APPLICATION_ID + ".fileprovider", mFullImageFile)
+            val intent = Intent().apply {
+                this.action = Intent.ACTION_SEND
+                this.putExtra(Intent.EXTRA_STREAM, contentUri)
+                this.type = "image/png"
+                this.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(intent)
+        }
+
+
     }
 
     private fun togglePillNavigationSelection() {
@@ -124,6 +187,8 @@ class ResultsActivity : AppCompatActivity() {
     }
 
     private fun goBackToCameraActivity() {
+        mFullImageFile.delete()
+        mCroppedImageFile.delete()
         unregisterReceiver(onDownloadComplete)
         finish()
     }

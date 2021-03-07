@@ -164,6 +164,7 @@ class CameraActivity : AppCompatActivity() {
             val greyImg = rescale(mBitmap, 512)
             Log.v("TIMING", "Image rescaled.")
             sendBitmap(greyImg, mServerURL, this, this)
+
         }
     }
 
