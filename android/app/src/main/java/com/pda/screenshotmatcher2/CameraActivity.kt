@@ -69,6 +69,7 @@ class CameraActivity : AppCompatActivity() {
     private lateinit var mCaptureButton: Button
 
     private var mServerURL: String = ""
+    private var mUserID : String = ""
     private var startTime: Long = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -77,10 +78,21 @@ class CameraActivity : AppCompatActivity() {
         supportActionBar?.hide()
         verifyPermissions(this)
         getServerURL()
+        getUserID()
         initViews()
         setViewListeners()
     }
 
+    private fun getUserID(){
+        val sharedPreferences = this.getSharedPreferences("com.pda.screenshotmatcher2", Context.MODE_PRIVATE)
+        mUserID = sharedPreferences.getString("uid", "").toString()
+        if (mUserID.isEmpty()){
+            val allowedChars = ('A'..'Z') + ('a'..'z') + ('0'..'9')
+            mUserID = (1..20).map { allowedChars.random() }.joinToString("")
+            sharedPreferences.edit().putString("uid", mUserID).apply()
+        }
+        Log.v("TEST", mUserID)
+    }
 
     private fun initViews() {
         mTextureView = findViewById(R.id.preview_view)
@@ -164,7 +176,6 @@ class CameraActivity : AppCompatActivity() {
             val greyImg = rescale(mBitmap, 512)
             Log.v("TIMING", "Image rescaled.")
             sendBitmap(greyImg, mServerURL, this, this)
-
         }
     }
 
