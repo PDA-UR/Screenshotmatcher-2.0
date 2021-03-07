@@ -7,7 +7,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
@@ -61,17 +60,21 @@ class ResultsActivity : AppCompatActivity() {
         val matchID = intent.getStringExtra("matchID")!!
         mScreenshotImageView.setImageBitmap(mCroppedScreenshot)
         Log.v("TIMING", "Result screen shown.")
+        StudyLogger.hashMap["tResultShown"] = System.currentTimeMillis()
         lastDateTime = getDateString()
         Thread{downloadFullScreenshot(matchID, lastDateTime, mServerURL, applicationContext)}.start()
         this.registerReceiver(onDownloadComplete, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
+    }
 
-
+    override fun onStop() {
+        super.onStop()
+        //TODO: send log data to server
+        StudyLogger.hashMap.clear()
     }
 
     private val onDownloadComplete: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             Log.d("RESULT", "Check Receive")
-
             //Fetching the download id received with the broadcast
             val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
             if (downloadID == id) {
@@ -104,6 +107,7 @@ class ResultsActivity : AppCompatActivity() {
                 getString(R.string.cropped_screenshot_title_en),
                 getString(R.string.screenshot_description_en)
             )
+            StudyLogger.hashMap["bSaveMatch"] = true
             Toast.makeText(this, getText(R.string.result_activity_saved_cropped_en), Toast.LENGTH_SHORT).show()
         }   else {
             MediaStore.Images.Media.insertImage(
@@ -112,9 +116,9 @@ class ResultsActivity : AppCompatActivity() {
                 getString(R.string.full_screenshot_title_en),
                 getString(R.string.screenshot_description_en)
             )
+            StudyLogger.hashMap["bSaveFull"] = true
             Toast.makeText(this, getText(R.string.result_activity_saved_full_en), Toast.LENGTH_SHORT).show()
         }
-
     }
 
     private fun saveBothImages() {
@@ -131,11 +135,14 @@ class ResultsActivity : AppCompatActivity() {
             getString(R.string.full_screenshot_title_en),
             getString(R.string.screenshot_description_en)
         )
+        StudyLogger.hashMap["bSaveMatch"] = true
+        StudyLogger.hashMap["bSaveFull"] = true
         Toast.makeText(this, getText(R.string.result_activity_saved_both_en), Toast.LENGTH_SHORT).show()
     }
 
     private fun shareImage() {
         if(mPillNavigationState == -1){
+            StudyLogger.hashMap["bShareMatch"] = true
             mCroppedImageFile = File(getExternalFilesDir(Environment.DIRECTORY_PICTURES), lastDateTime + "_Cropped.png")
             saveBitmapToFile(mCroppedImageFile, mCroppedScreenshot)
             val contentUri =
@@ -148,6 +155,7 @@ class ResultsActivity : AppCompatActivity() {
             }
             startActivity(intent)
         }   else {
+            StudyLogger.hashMap["bShareFull"] = true
             val contentUri =
                 getUriForFile(this, BuildConfig.APPLICATION_ID + ".fileprovider", mFullImageFile)
             val intent = Intent().apply {
@@ -158,8 +166,6 @@ class ResultsActivity : AppCompatActivity() {
             }
             startActivity(intent)
         }
-
-
     }
 
     private fun togglePillNavigationSelection() {
@@ -189,6 +195,9 @@ class ResultsActivity : AppCompatActivity() {
 
     private fun goBackToCameraActivity() {
         unregisterReceiver(onDownloadComplete)
+        Log.v("TEST", StudyLogger.hashMap.toString())
+        StudyLogger.hashMap.clear()
+        //TODO: send log data to server
         finish()
     }
 

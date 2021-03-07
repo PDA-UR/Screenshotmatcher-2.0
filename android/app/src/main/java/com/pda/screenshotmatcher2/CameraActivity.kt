@@ -83,17 +83,6 @@ class CameraActivity : AppCompatActivity() {
         setViewListeners()
     }
 
-    private fun getUserID(){
-        val sharedPreferences = this.getSharedPreferences("com.pda.screenshotmatcher2", Context.MODE_PRIVATE)
-        mUserID = sharedPreferences.getString("uid", "").toString()
-        if (mUserID.isEmpty()){
-            val allowedChars = ('A'..'Z') + ('a'..'z') + ('0'..'9')
-            mUserID = (1..20).map { allowedChars.random() }.joinToString("")
-            sharedPreferences.edit().putString("uid", mUserID).apply()
-        }
-        Log.v("TEST", mUserID)
-    }
-
     private fun initViews() {
         mTextureView = findViewById(R.id.preview_view)
         mCaptureButton = findViewById(R.id.capture_button)
@@ -133,6 +122,8 @@ class CameraActivity : AppCompatActivity() {
             }
 
         mCaptureButton.setOnClickListener {
+            StudyLogger.hashMap["userID"] = mUserID
+            StudyLogger.hashMap["tButtonPressed"] = System.currentTimeMillis()
             captureImageWithPreviewExtraction()
         }
 
@@ -167,17 +158,6 @@ class CameraActivity : AppCompatActivity() {
         }
     }
 
-    //Capture an image by simply saving the current frame of the Texture View
-    private fun captureImageWithPreviewExtraction() {
-        Log.v("TIMING", "Button pressed")
-        startTime = System.currentTimeMillis()
-        val mBitmap: Bitmap? = mTextureView.bitmap
-        if (mBitmap != null) {
-            val greyImg = rescale(mBitmap, 512)
-            Log.v("TIMING", "Image rescaled.")
-            sendBitmap(greyImg, mServerURL, this, this)
-        }
-    }
 
     private fun openCamera(width: Int, height: Int) {
         setUpCameraOutputs(width, height)
@@ -232,6 +212,8 @@ class CameraActivity : AppCompatActivity() {
                                 null, null
                             )
                             Log.d("CAMERA", "Start Preview with size: $mPreviewSize")
+                            StudyLogger.hashMap["previewWidth"] = mPreviewSize.width
+                            StudyLogger.hashMap["previewHeight"] = mPreviewSize.height
                         } catch (e: CameraAccessException) {
                             e.printStackTrace()
                         }
@@ -410,6 +392,30 @@ class CameraActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    //Capture an image by simply saving the current frame of the Texture View
+    private fun captureImageWithPreviewExtraction() {
+        Log.v("TIMING", "Button pressed")
+        startTime = System.currentTimeMillis()
+        val mBitmap: Bitmap? = mTextureView.bitmap
+        if (mBitmap != null) {
+            StudyLogger.hashMap.put("tImageCaptured", System.currentTimeMillis())
+            val greyImg = rescale(mBitmap, 512)
+            Log.v("TIMING", "Image rescaled.")
+            sendBitmap(greyImg, mServerURL, this, this)
+        }
+    }
+
+    private fun getUserID(){
+        val sharedPreferences = this.getSharedPreferences("com.pda.screenshotmatcher2", Context.MODE_PRIVATE)
+        mUserID = sharedPreferences.getString("uid", "").toString()
+        if (mUserID.isEmpty()){
+            val allowedChars = ('A'..'Z') + ('a'..'z') + ('0'..'9')
+            mUserID = (1..20).map { allowedChars.random() }.joinToString("")
+            sharedPreferences.edit().putString("uid", mUserID).apply()
+        }
+        Log.v("TEST", mUserID)
     }
 
     private fun getServerURL() {

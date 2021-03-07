@@ -29,6 +29,8 @@ fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, context: 
         Request.Method.POST, "$serverURL/match-b64", json,
         { response ->
             Log.v("TIMING", "Got response.")
+            StudyLogger.hashMap["tHttpResponse"] = System.currentTimeMillis()
+            StudyLogger.hashMap["matchID"] = response.get("uid").toString()
             if (response.get("hasResult").toString() != "false") {
                 try {
                     val b64ImageString = response.get("b64").toString()
@@ -49,6 +51,7 @@ fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, context: 
         },
         { error -> Log.v("TIMING", error.toString()) })
 
+    StudyLogger.hashMap["tHttpRequest"] = System.currentTimeMillis()
     queue.add(jsonOR)
 }
 
