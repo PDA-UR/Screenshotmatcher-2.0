@@ -34,7 +34,7 @@ fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, context: 
                     val b64ImageString = response.get("b64").toString()
                     if (b64ImageString.isNotEmpty()) {
                         val byteArray = Base64.decode(b64ImageString, Base64.DEFAULT)
-
+                        //downloadFullScreenshot(response.get("uid").toString(), "screenshot.png", serverURL, context)
                         if(activity is CameraActivity) {
                             activity.onMatchResult(
                                 matchID = response.get("uid").toString(),
