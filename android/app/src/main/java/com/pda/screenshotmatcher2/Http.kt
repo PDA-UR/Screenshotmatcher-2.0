@@ -49,9 +49,13 @@ fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, context: 
                 } catch (e: InvocationTargetException) {
                     e.printStackTrace()
                 }
+            } else{
+                if(activity is CameraActivity) {
+                    activity.openErrorFragment()
+                }
             }
         },
-        { error -> Log.v("TIMING", error.toString()) })
+        { error -> Log.d("TIMING", error.toString()) })
 
     StudyLogger.hashMap["tc_http_request"] = System.currentTimeMillis()
     queue.add(jsonOR)
