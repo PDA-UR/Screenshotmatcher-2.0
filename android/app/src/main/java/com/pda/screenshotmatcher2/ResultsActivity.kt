@@ -51,6 +51,7 @@ class ResultsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_results)
         initViews()
+        supportActionBar?.hide()
         setViewListeners()
 
         mServerURL = intent.getStringExtra("ServerURL")!!
