@@ -9,12 +9,14 @@ import android.os.Environment
 import android.util.Base64
 import android.util.Log
 import com.android.volley.Request
+import com.android.volley.Response
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.lang.reflect.InvocationTargetException
 
+private const val LOG_DEST = "/logs"
 var downloadID : Long = 0
 
 fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, context: Context){
@@ -29,8 +31,8 @@ fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, context: 
         Request.Method.POST, "$serverURL/match-b64", json,
         { response ->
             Log.v("TIMING", "Got response.")
-            StudyLogger.hashMap["tHttpResponse"] = System.currentTimeMillis()
-            StudyLogger.hashMap["matchID"] = response.get("uid").toString()
+            StudyLogger.hashMap["tc_http_response"] = System.currentTimeMillis()
+            StudyLogger.hashMap["match_id"] = response.get("uid").toString()
             if (response.get("hasResult").toString() != "false") {
                 try {
                     val b64ImageString = response.get("b64").toString()
@@ -51,7 +53,7 @@ fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, context: 
         },
         { error -> Log.v("TIMING", error.toString()) })
 
-    StudyLogger.hashMap["tHttpRequest"] = System.currentTimeMillis()
+    StudyLogger.hashMap["tc_http_request"] = System.currentTimeMillis()
     queue.add(jsonOR)
 }
 
@@ -66,4 +68,23 @@ fun downloadFullScreenshot(matchID: String, filename : String, serverURL: String
 
     Log.v("TIMING", "Download queued")
     downloadID = downloadManager.enqueue(request)
+}
+
+fun sendLog(serverURL: String, context: Context){
+// Instantiate the RequestQueue.
+    val queue = Volley.newRequestQueue(context)
+    val json = JSONObject(StudyLogger.hashMap)
+    val jsonObjectRequest = JsonObjectRequest(Request.Method.POST, serverURL + LOG_DEST, json,
+        { response ->
+            Log.v("HTTP", "Log sent.")
+        },
+        { error ->
+            error.printStackTrace()
+        }
+    )
+
+
+// Add the request to the RequestQueue.
+    queue.add(jsonObjectRequest)
+
 }
