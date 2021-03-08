@@ -19,6 +19,7 @@ import android.widget.ListView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.view.isVisible
+import androidx.fragment.app.Fragment
 import java.util.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
@@ -451,5 +452,14 @@ class CameraActivity : AppCompatActivity() {
 
     fun onMatchResult(matchID: String, img : ByteArray){
         startResultsActivity(matchID, img)
+    }
+
+
+    fun openErrorFragment() {
+        Log.d("FRAG", "opening fragment")
+        val errorFragment = ErrorFragment()
+        this.supportFragmentManager.beginTransaction()
+            .add(R.id.fragment_container_view, errorFragment)
+            .commit();
     }
 }
