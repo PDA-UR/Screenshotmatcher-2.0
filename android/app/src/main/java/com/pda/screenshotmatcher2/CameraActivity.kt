@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit
 class CameraActivity : AppCompatActivity() {
     private val MAX_PREVIEW_WIDTH = 1920
     private val MAX_PREVIEW_HEIGHT = 1080
+    private val IMG_TARGET_SIZE = 512
 
     //Physical camera
     private lateinit var mCameraId: String
@@ -122,8 +123,8 @@ class CameraActivity : AppCompatActivity() {
             }
 
         mCaptureButton.setOnClickListener {
-            StudyLogger.hashMap["userID"] = mUserID
-            StudyLogger.hashMap["tButtonPressed"] = System.currentTimeMillis()
+            StudyLogger.hashMap["client_id"] = mUserID
+            StudyLogger.hashMap["tc_button_pressed"] = System.currentTimeMillis()
             captureImageWithPreviewExtraction()
         }
 
@@ -212,8 +213,8 @@ class CameraActivity : AppCompatActivity() {
                                 null, null
                             )
                             Log.d("CAMERA", "Start Preview with size: $mPreviewSize")
-                            StudyLogger.hashMap["previewWidth"] = mPreviewSize.width
-                            StudyLogger.hashMap["previewHeight"] = mPreviewSize.height
+                            StudyLogger.hashMap["preview_width"] = mPreviewSize.width
+                            StudyLogger.hashMap["preview_height"] = mPreviewSize.height
                         } catch (e: CameraAccessException) {
                             e.printStackTrace()
                         }
@@ -400,8 +401,9 @@ class CameraActivity : AppCompatActivity() {
         startTime = System.currentTimeMillis()
         val mBitmap: Bitmap? = mTextureView.bitmap
         if (mBitmap != null) {
-            StudyLogger.hashMap.put("tImageCaptured", System.currentTimeMillis())
-            val greyImg = rescale(mBitmap, 512)
+            StudyLogger.hashMap["tc_image_captured"] = System.currentTimeMillis()
+            StudyLogger.hashMap["long_side"] = IMG_TARGET_SIZE
+            val greyImg = rescale(mBitmap, IMG_TARGET_SIZE)
             Log.v("TIMING", "Image rescaled.")
             sendBitmap(greyImg, mServerURL, this, this)
         }

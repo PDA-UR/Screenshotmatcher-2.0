@@ -8,16 +8,18 @@ import logging
 import time
 import timeit
 import threading
-from cv2 import imwrite
 
+from cv2 import imwrite
 from flask import Flask, request, redirect, url_for, Response, send_from_directory
 from werkzeug.utils import secure_filename
 
-from common.config import Config
+import common.log
 
+from common.config import Config
 from matching.matcher import Matcher
 from common.utils import allowed_file
 
+LOGS_TO_KEEP = 3
 
 class Server():
     def __init__(self):
@@ -29,6 +31,8 @@ class Server():
             static_path = '../www'
 
         self.results_dir = './www/results'
+
+        self.last_logs = []
 
         self.app = Flask(__name__, static_url_path='/',
                          static_folder=static_path)
@@ -43,6 +47,7 @@ class Server():
             '/match', 'match', self.match_route, methods=['POST'])
         self.app.add_url_rule('/match-b64', 'match-b64',
                               self.match_route_b64, methods=['POST'])
+        self.app.add_url_rule("/logs", "logs", self.log_route, methods=["POST"])
 
     def start(self):
         self.app.run(host=Config.HOST, port=Config.PORT, threaded=True)
@@ -63,6 +68,16 @@ class Server():
 
     def get_url_route(self):
         return Config.SERVICE_URL
+
+    def log_route(self):
+        phone_log = request.json
+        for log in self.last_logs:
+            if phone_log.get("match_id") == log.value_pairs.get("match_uid"):
+                for key,value in phone_log.items():
+                    log.value_pairs[key] = value
+                self.last_logs.remove(log)
+        # TODO: send log to central server
+        return "ok"
 
     def feedback_route(self):
         uid = request.values.get('uid')
@@ -161,10 +176,17 @@ class Server():
             return Response(json.dumps(response), mimetype='application/json')
 
     def match_route_b64(self):
+        log = common.log.Logger()
+        self.last_logs.insert(0, log)
+        if len(self.last_logs) > LOGS_TO_KEEP:
+            self.last_logs.pop()
+
         t_start = time.perf_counter()
-        print("{}:\t request get".format(time.time()))
+        print("{}:\t request get".format(int(time.time()* 1000)))
+        log.value_pairs["st_request_received"] = round(time.time() * 1000)
         r_json = request.json
         b64String = r_json.get("b64")
+        log.value_pairs["st_photo_received"] = round(time.time() * 1000)
         print("{}:\t b64 string with size {} get".format(time.time(), sys.getsizeof(b64String)))
 
         if b64String is None:
@@ -172,6 +194,8 @@ class Server():
 
         # Create match uid
         uid = uuid.uuid4().hex
+        log.value_pairs["match_uid"] = uid
+        print("{}:\t request get".format(int(time.time()* 1000)))
 
         # Create Match dir
         match_dir = self.results_dir + '/result-' + uid
@@ -180,10 +204,9 @@ class Server():
         # Start matcher
         start_time = time.perf_counter()
         print("{}:\t Creating matcher...".format(time.time()))
-        matcher = Matcher(uid, b64String)
+        matcher = Matcher(uid, b64String, log)
         print("{}:\t Matcher created. Starting algo...".format(time.time()))
         t = time.time()
-
         match_result = matcher.match_b64(algorithm=Config.CURRENT_ALGORITHM)
         print("{}:\t Matching algo finished".format(time.time()))
 
@@ -192,7 +215,6 @@ class Server():
 
         # Send data to server for logging
         payload = {
-            'secret': Config.API_SECRET,
             'identifier': Config.IDENTIFIER,
             'hasResult': bool(match_result),
             'algorithm': Config.CURRENT_ALGORITHM,
@@ -205,13 +227,19 @@ class Server():
         print("Time until response: {}\n".format(time.perf_counter() - t_start))
 
         response = {'uid': uid}
-        
+        log.value_pairs["st_response_sent"] = round(time.time() * 1000)
         if not match_result:
+            log.value_pairs["match_success"] = False
+            print(log.value_pairs)
+
             response['hasResult'] = False
             response['screenshot'] = '/results/result-' + \
                 uid + '/screenshot.png'
             return Response(json.dumps(response), mimetype='application/json')
         else:
+            log.value_pairs["match_success"] = True
+            print(log.value_pairs)
+
             response['hasResult'] = True
             response['b64'] = match_result
             return Response(json.dumps(response), mimetype='application/json')
