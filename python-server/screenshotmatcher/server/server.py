@@ -45,8 +45,6 @@ class Server():
                               self.feedback_route, methods=['POST'])
         self.app.add_url_rule(
             '/match', 'match', self.match_route, methods=['POST'])
-        self.app.add_url_rule('/match-b64', 'match-b64',
-                              self.match_route_b64, methods=['POST'])
         self.app.add_url_rule("/logs", "logs", self.log_route, methods=["POST"])
 
     def start(self):
@@ -115,67 +113,6 @@ class Server():
         return "ok"
 
     def match_route(self):
-        # Check if there is an image in the request
-        t_start = time.time()
-        if 'file' not in request.files:
-            return 'No file part'
-
-        # Get uploaded file
-        uploaded_file = request.files['file']
-
-        # Check if file has data
-        if not uploaded_file or uploaded_file.filename == '':
-            return 'No selected file'
-
-        # Check if filetype is allowed
-        if not allowed_file(uploaded_file.filename):
-            return 'Invalid filetype'
-
-        # Create match uid
-        uid = uuid.uuid4().hex
-
-        # Create Match dir
-        match_dir = self.results_dir + '/result-' + uid
-        os.mkdir(match_dir)
-
-        # Save uploaded image to match dir
-        photo_extension = uploaded_file.filename.rsplit('.', 1)[1].lower()
-        filename = 'photo.' + photo_extension
-        uploaded_file.save(match_dir + '/' + filename)
-
-        # Start matcher
-        start_time = time.perf_counter()
-        matcher = Matcher(uid, filename)
-        t = time.time()
-        match_result = matcher.match(algorithm=Config.CURRENT_ALGORITHM)
-        print("Matching took {} ms".format(time.time()-t))
-        end_time = time.perf_counter()
-
-        # Send data to server for logging
-        payload = {
-            'secret': Config.API_SECRET,
-            'identifier': Config.IDENTIFIER,
-            'hasResult': bool(match_result),
-            'algorithm': Config.CURRENT_ALGORITHM,
-            'device': request.values.get('device'),
-            'speed': round(end_time - start_time, 5)
-        }
-
-        urllib3.disable_warnings()
-
-        response = {'uid': uid}
-        print("Time spent on server: {}".format(time.time() - t_start))
-        if not match_result:
-            response['hasResult'] = False
-            response['screenshot'] = '/results/result-' + \
-                uid + '/screenshot.png'
-            return Response(json.dumps(response), mimetype='application/json')
-        else:
-            response['hasResult'] = True
-            response['filename'] = '/results/result-' + uid + '/result.png'
-            return Response(json.dumps(response), mimetype='application/json')
-
-    def match_route_b64(self):
         log = common.log.Logger()
         self.last_logs.insert(0, log)
         if len(self.last_logs) > LOGS_TO_KEEP:
@@ -207,7 +144,7 @@ class Server():
         matcher = Matcher(uid, b64String, log)
         print("{}:\t Matcher created. Starting algo...".format(time.time()))
         t = time.time()
-        match_result = matcher.match_b64(algorithm=Config.CURRENT_ALGORITHM)
+        match_result = matcher.match(algorithm=Config.CURRENT_ALGORITHM)
         print("{}:\t Matching algo finished".format(time.time()))
 
         print("Matching took {} ms".format(time.time()-t))
