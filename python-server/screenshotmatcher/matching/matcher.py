@@ -33,13 +33,13 @@ from common.config import Config
 
 
 class Matcher():
-  def __init__(self, match_uid, photo, log, create_screenshot = True):
+  def __init__(self, match_uid, b64_string, log, create_screenshot = True):
 
     self.match_uid = match_uid
 
     self.match_dir = './www/results/result-' + match_uid
 
-    self.photo_file = photo
+    self.b64_string = b64_string
     self.log = log
 
     if create_screenshot:
@@ -57,34 +57,12 @@ class Matcher():
   def formatTimeDiff(self, start, end):
     return round( (end - start) * 1000, 2 )
 
-  def match(self, algorithm='SURF'):
-
-    start_time = time.perf_counter()
-
-    # Load pictures
-
-    photo = imread( '{}/{}'.format(self.match_dir, self.photo_file), IMREAD_GRAYSCALE )
-    screen = imread( '{}/{}'.format(self.match_dir, self.screenshot_file), IMREAD_GRAYSCALE )
-    screen_colored = imread( '{}/{}'.format(self.match_dir, self.screenshot_file), IMREAD_COLOR )
-
-    # Provisional switch statement
-    if algorithm == 'SURF':
-      match_result = self.algorithm_SURF(photo, screen, screen_colored)
-    elif algorithm == 'ORB':
-      match_result = self.algorithm_ORB(photo, screen, screen_colored)
-    else:
-      match_result = self.algorithm_SURF(photo, screen, screen_colored)
-
-    self.writeLog('FINAL TIME {}ms'.format(round( (time.perf_counter() - start_time) * 1000 )))
-
-    return match_result
-
-  def match_b64(self, algorithm='SURF'):
+  def match(self, algorithm='ORB'):
     start_time = time.perf_counter()
 
     # Load pictures
     self.log.value_pairs["st_img_convert_start"] = round(time.time() * 1000)
-    nparr = np.frombuffer(base64.b64decode(self.photo_file), np.uint8)
+    nparr = np.frombuffer(base64.b64decode(self.b64_string), np.uint8)
     photo = cv2.imdecode(nparr, cv2.IMREAD_GRAYSCALE)
     screen = cv2.cvtColor(np.array(self.screenshot), IMREAD_GRAYSCALE)
     screen_colored = cv2.cvtColor(np.array(self.screenshot), cv2.COLOR_BGR2RGB)
@@ -225,7 +203,9 @@ class Matcher():
     t9 = time.perf_counter()
     self.writeLog('Wrote Image - {}ms'.format( self.formatTimeDiff(t8, t9) ))
 
-    return True
+    retval, buffer = cv2.imencode('.jpg', screen_colored[ int(minY):int(maxY), int(minX):int(maxX)])
+    b64_string = base64.b64encode(buffer).decode("ASCII")
+    return b64_string
 
 
   def algorithm_ORB(self, photo, screen, screen_colored, nfeatures = 2000, descriptor_matcher_name = 'BruteForce-Hamming'):
