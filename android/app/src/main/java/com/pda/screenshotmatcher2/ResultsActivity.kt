@@ -40,9 +40,11 @@ class ResultsActivity : AppCompatActivity() {
     private lateinit var mFullImageFile: File
     private lateinit var mCroppedImageFile: File
     private lateinit var mServerURL: String
-    private lateinit var lastDateTime : String
-    private lateinit var mCroppedScreenshot : Bitmap
-    private lateinit var mFullScreenshot : Bitmap
+    private lateinit var lastDateTime: String
+    private lateinit var mCroppedScreenshot: Bitmap
+    private lateinit var mFullScreenshot: Bitmap
+
+    private var displayFullScreenshotOnly: Boolean = false
 
     // -1 = cropped page, 1 = full page
     private var mPillNavigationState: Int = -1
@@ -55,16 +57,44 @@ class ResultsActivity : AppCompatActivity() {
         setViewListeners()
 
         mServerURL = intent.getStringExtra("ServerURL")!!
-
-        val imgByteArray = intent.getByteArrayExtra("img")!!
-        mCroppedScreenshot = BitmapFactory.decodeByteArray(imgByteArray, 0, imgByteArray.size)
         val matchID = intent.getStringExtra("matchID")!!
-        mScreenshotImageView.setImageBitmap(mCroppedScreenshot)
-        Log.v("TIMING", "Result screen shown.")
+
+        if (intent.hasExtra("img")) {
+            val imgByteArray = intent.getByteArrayExtra("img")!!
+            mCroppedScreenshot = BitmapFactory.decodeByteArray(imgByteArray, 0, imgByteArray.size)
+            mScreenshotImageView.setImageBitmap(mCroppedScreenshot)
+        } else {
+            displayFullScreenshotOnly = activateFullScreenshotOnlyMode()
+        }
+
+
         StudyLogger.hashMap["tc_result_shown"] = System.currentTimeMillis()
         lastDateTime = getDateString()
-        Thread{downloadFullScreenshot(matchID, lastDateTime, mServerURL, applicationContext)}.start()
-        this.registerReceiver(onDownloadComplete, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
+
+        Thread {
+            downloadFullScreenshot(
+                matchID,
+                lastDateTime,
+                mServerURL,
+                applicationContext
+            )
+        }.start()
+
+        this.registerReceiver(
+            onDownloadComplete,
+            IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
+        )
+    }
+
+    private fun activateFullScreenshotOnlyMode(): Boolean {
+        mImagePreviewPreviousButton.visibility = View.INVISIBLE
+        mPillNavigationButton1.setBackgroundColor(getColor(R.color.invisible))
+        mPillNavigationButton2.background = resources.getDrawable(R.drawable.pill_navigation_selected_item)
+        mImagePreviewNextButton.visibility = View.INVISIBLE
+        mShareButtonText.text = getString(R.string.result_activity_shareButtonText2_en)
+        mSaveOneButtonText.text = getString(R.string.result_activity_saveOneButtonText2_en)
+        mPillNavigationState *= -1
+        return true
     }
 
     override fun onStop() {
@@ -76,13 +106,16 @@ class ResultsActivity : AppCompatActivity() {
 
     private val onDownloadComplete: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            Log.d("RESULT", "Check Receive")
-            //Fetching the download id received with the broadcast
             val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
             if (downloadID == id) {
-                Log.v("TIMING", "full screenshot downloaded")
-                mFullImageFile = File(getExternalFilesDir(Environment.DIRECTORY_PICTURES), lastDateTime + "_Full.png")
+                mFullImageFile = File(
+                    getExternalFilesDir(Environment.DIRECTORY_PICTURES),
+                    lastDateTime + "_Full.png"
+                )
                 mFullScreenshot = BitmapFactory.decodeFile(mFullImageFile.absolutePath)
+                if (displayFullScreenshotOnly) {
+                    mScreenshotImageView.setImageBitmap(mFullScreenshot)
+                }
             }
         }
     }
@@ -90,8 +123,16 @@ class ResultsActivity : AppCompatActivity() {
     private fun setViewListeners() {
         mBackButton.setOnClickListener { goBackToCameraActivity() }
         mRetakeImageButton.setOnClickListener { goBackToCameraActivity() }
-        mPillNavigationButton1.setOnClickListener { if (mPillNavigationState != -1){togglePillNavigationSelection()} }
-        mPillNavigationButton2.setOnClickListener { if (mPillNavigationState != 1){togglePillNavigationSelection()} }
+        mPillNavigationButton1.setOnClickListener {
+            if (mPillNavigationState != -1) {
+                togglePillNavigationSelection()
+            }
+        }
+        mPillNavigationButton2.setOnClickListener {
+            if (mPillNavigationState != 1) {
+                togglePillNavigationSelection()
+            }
+        }
         mImagePreviewPreviousButton.setOnClickListener { togglePillNavigationSelection() }
         mImagePreviewNextButton.setOnClickListener { togglePillNavigationSelection() }
         mShareButton.setOnClickListener { shareImage() }
@@ -100,9 +141,8 @@ class ResultsActivity : AppCompatActivity() {
     }
 
 
-
     private fun saveCurrentPreviewImage() {
-        if(mPillNavigationState == -1){
+        if (mPillNavigationState == -1) {
             MediaStore.Images.Media.insertImage(
                 contentResolver,
                 mCroppedScreenshot,
@@ -110,8 +150,12 @@ class ResultsActivity : AppCompatActivity() {
                 getString(R.string.screenshot_description_en)
             )
             StudyLogger.hashMap["save_match"] = true
-            Toast.makeText(this, getText(R.string.result_activity_saved_cropped_en), Toast.LENGTH_SHORT).show()
-        }   else {
+            Toast.makeText(
+                this,
+                getText(R.string.result_activity_saved_cropped_en),
+                Toast.LENGTH_SHORT
+            ).show()
+        } else {
             MediaStore.Images.Media.insertImage(
                 contentResolver,
                 mFullScreenshot,
@@ -119,33 +163,54 @@ class ResultsActivity : AppCompatActivity() {
                 getString(R.string.screenshot_description_en)
             )
             StudyLogger.hashMap["save_full"] = true
-            Toast.makeText(this, getText(R.string.result_activity_saved_full_en), Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                this,
+                getText(R.string.result_activity_saved_full_en),
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
     private fun saveBothImages() {
-        MediaStore.Images.Media.insertImage(
-            contentResolver,
-            mCroppedScreenshot,
-            getString(R.string.cropped_screenshot_title_en),
-            getString(R.string.screenshot_description_en)
-        )
+        if (displayFullScreenshotOnly) {
+            Toast.makeText(
+                this,
+                getText(R.string.result_activity_only_full_available_en),
+                Toast.LENGTH_SHORT
+            ).show()
+        } else {
+            MediaStore.Images.Media.insertImage(
+                contentResolver,
+                mCroppedScreenshot,
+                getString(R.string.cropped_screenshot_title_en),
+                getString(R.string.screenshot_description_en)
+            )
 
-        MediaStore.Images.Media.insertImage(
-            contentResolver,
-            mFullScreenshot,
-            getString(R.string.full_screenshot_title_en),
-            getString(R.string.screenshot_description_en)
-        )
-        StudyLogger.hashMap["save_match"] = true
-        StudyLogger.hashMap["save_full"] = true
-        Toast.makeText(this, getText(R.string.result_activity_saved_both_en), Toast.LENGTH_SHORT).show()
+            MediaStore.Images.Media.insertImage(
+                contentResolver,
+                mFullScreenshot,
+                getString(R.string.full_screenshot_title_en),
+                getString(R.string.screenshot_description_en)
+            )
+
+            StudyLogger.hashMap["save_match"] = true
+            StudyLogger.hashMap["save_full"] = true
+
+            Toast.makeText(
+                this,
+                getText(R.string.result_activity_saved_both_en),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
     }
 
     private fun shareImage() {
-        if(mPillNavigationState == -1){
+        if (mPillNavigationState == -1) {
             StudyLogger.hashMap["share_match"] = true
-            mCroppedImageFile = File(getExternalFilesDir(Environment.DIRECTORY_PICTURES), lastDateTime + "_Cropped.png")
+            mCroppedImageFile = File(
+                getExternalFilesDir(Environment.DIRECTORY_PICTURES),
+                lastDateTime + "_Cropped.png"
+            )
             saveBitmapToFile(mCroppedImageFile, mCroppedScreenshot)
             val contentUri =
                 getUriForFile(this, BuildConfig.APPLICATION_ID + ".fileprovider", mCroppedImageFile)
@@ -156,7 +221,7 @@ class ResultsActivity : AppCompatActivity() {
                 this.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
             startActivity(intent)
-        }   else {
+        } else {
             StudyLogger.hashMap["share_full"] = true
             val contentUri =
                 getUriForFile(this, BuildConfig.APPLICATION_ID + ".fileprovider", mFullImageFile)
@@ -172,27 +237,44 @@ class ResultsActivity : AppCompatActivity() {
 
     private fun togglePillNavigationSelection() {
         mPillNavigationState *= -1
+        if (!displayFullScreenshotOnly) {
+            when (mPillNavigationState) {
+                -1 -> {
 
-        when (mPillNavigationState){
-            -1 -> {
-                mPillNavigationButton2.setBackgroundColor(getColor(R.color.invisible))
-                mPillNavigationButton1.background = resources.getDrawable(R.drawable.pill_navigation_selected_item)
-                mImagePreviewPreviousButton.visibility = View.INVISIBLE
-                mImagePreviewNextButton.visibility = View.VISIBLE
-                mShareButtonText.text = getString(R.string.result_activity_shareButtonText1_en)
-                mSaveOneButtonText.text = getString(R.string.result_activity_saveOneButtonText1_en)
-                mScreenshotImageView.setImageBitmap(mCroppedScreenshot)
+                    mPillNavigationButton2.setBackgroundColor(getColor(R.color.invisible))
+                    mPillNavigationButton1.background =
+                        resources.getDrawable(R.drawable.pill_navigation_selected_item)
+                    mImagePreviewPreviousButton.visibility = View.INVISIBLE
+                    mImagePreviewNextButton.visibility = View.VISIBLE
+                    mShareButtonText.text = getString(R.string.result_activity_shareButtonText1_en)
+                    mSaveOneButtonText.text =
+                        getString(R.string.result_activity_saveOneButtonText1_en)
+                    mScreenshotImageView.setImageBitmap(mCroppedScreenshot)
+
+                }
+                1 -> {
+
+                    mPillNavigationButton1.setBackgroundColor(getColor(R.color.invisible))
+                    mPillNavigationButton2.background =
+                        resources.getDrawable(R.drawable.pill_navigation_selected_item)
+                    mImagePreviewPreviousButton.visibility = View.VISIBLE
+                    mImagePreviewNextButton.visibility = View.INVISIBLE
+                    mShareButtonText.text = getString(R.string.result_activity_shareButtonText2_en)
+                    mSaveOneButtonText.text =
+                        getString(R.string.result_activity_saveOneButtonText2_en)
+
+                    mScreenshotImageView.setImageBitmap(mFullScreenshot)
+
+                }
             }
-            1 -> {
-                mPillNavigationButton1.setBackgroundColor(getColor(R.color.invisible))
-                mPillNavigationButton2.background = resources.getDrawable(R.drawable.pill_navigation_selected_item)
-                mImagePreviewPreviousButton.visibility = View.VISIBLE
-                mImagePreviewNextButton.visibility = View.INVISIBLE
-                mShareButtonText.text = getString(R.string.result_activity_shareButtonText2_en)
-                mSaveOneButtonText.text = getString(R.string.result_activity_saveOneButtonText2_en)
-                mScreenshotImageView.setImageBitmap(mFullScreenshot)
-            }
+        } else {
+            Toast.makeText(
+                this,
+                getText(R.string.result_activity_only_full_available_en),
+                Toast.LENGTH_SHORT
+            ).show()
         }
+
     }
 
     private fun goBackToCameraActivity() {

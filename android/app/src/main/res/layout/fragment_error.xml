@@ -2,14 +2,13 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/errorFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context=".ErrorFragment"
-    android:id="@+id/errorFragment"
     android:background="@drawable/fragment_background"
+    android:orientation="vertical"
     android:padding="10dp"
-    >
+    tools:context=".ErrorFragment">
 
     <TextView
         android:id="@+id/ef_no_match_text_view"
@@ -26,7 +25,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:src="@drawable/ic_baseline_error_outline_128"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp"
+        android:src="@drawable/ic_comic_characters_sad"
         app:layout_constraintBottom_toTopOf="@+id/ef_send_feedback_button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -36,12 +37,12 @@
         android:id="@+id/ef_send_feedback_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/fragment_red_button_big"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/fragment_green_button_big"
+        android:text="@string/send_feedback_button_en"
         app:layout_constraintBottom_toTopOf="@+id/ef_button_layout"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:text="@string/send_feedback_button_en"
-        android:layout_marginBottom="10dp"></Button>
+        app:layout_constraintStart_toStartOf="parent"></Button>
 
     <LinearLayout
         android:id="@+id/ef_button_layout"
@@ -53,6 +54,7 @@
         app:layout_constraintStart_toStartOf="parent">
 
         <Button
+            android:id="@+id/ef_full_image_button"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginRight="5dp"
