@@ -5,11 +5,18 @@ import subprocess
 import colored
 
 def getCurrentIPAddress():
-  s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-  s.connect(("8.8.8.8", 80))
-  ipAddr = s.getsockname()[0]
-  s.close()
-  return ipAddr
+  s_ip = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)     # socket for finding local network IP
+  s_ip.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # reuse address if already in use
+  ip = ""
+  try:
+      s_ip.connect(('10.255.255.255', 1))
+      ip = s_ip.getsockname()[0]
+  except Exception as e:
+      print("Exception caught while trying to determine server IP")
+      print(e)
+  finally:
+      s_ip.close()
+  return ip
 
 def getScriptDir(filename):
   return os.path.dirname(os.path.realpath(filename))
