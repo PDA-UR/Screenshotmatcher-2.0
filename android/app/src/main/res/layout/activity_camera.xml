@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical"
     android:background="@color/black"
+    android:id="@+id/camera_layout"
     >
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        >
         <FrameLayout
             android:id="@+id/frameLayout2"
             android:layout_width="wrap_content"
@@ -30,6 +32,15 @@
                 ></Button>
         </FrameLayout>
 
+        <Button
+            android:id="@+id/capture_button"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:background="@drawable/round_button"
+            android:text="@string/capture_button_text_en"
+            android:textColor="@color/white"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/camera_activity_frameLayout"></Button>
 
         <FrameLayout
             android:id="@+id/camera_activity_frameLayout"
@@ -52,29 +63,40 @@
                 android:id="@+id/preview_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
-            <androidx.fragment.app.FragmentContainerView
-                xmlns:android="http://schemas.android.com/apk/res/android"
-                android:id="@+id/fragment_container_view"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+
+
         </FrameLayout>
-
-
-        <Button
-            android:id="@+id/capture_button"
-            android:layout_width="match_parent"
-            android:background="@drawable/round_button"
-            android:layout_height="0dp"
-            android:text="@string/capture_button_text_en"
-            android:textColor="@color/white"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/camera_activity_frameLayout">
-        </Button>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+    <FrameLayout
+        android:id="@+id/ca_dark_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/fragmentBackground"
+        android:visibility="invisible"></FrameLayout>
 
-
-
-</LinearLayout>
+    <FrameLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/fragment_container_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_margin="10dp"
+        android:elevation="15dp"
+        android:outlineProvider="bounds"
+        android:outlineSpotShadowColor="@color/black"
+        android:visibility="invisible"
+        android:scaleType="fitXY"/>
+    <FrameLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/feedback_fragment_container_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_margin="10dp"
+        android:elevation="10dp"
+        android:outlineProvider="bounds"
+        android:outlineSpotShadowColor="@color/black"
+        android:scaleType="fitXY"
+        android:visibility="invisible"/>
+</FrameLayout>

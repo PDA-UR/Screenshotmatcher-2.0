@@ -15,8 +15,11 @@ import android.view.Surface
 import android.view.TextureView
 import android.view.View
 import android.widget.Button
+import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.widget.ListView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -69,6 +72,7 @@ class CameraActivity : AppCompatActivity() {
     private lateinit var mSelectDeviceButton: Button
     private lateinit var mSelectDeviceList: ListView
     private lateinit var mCaptureButton: Button
+    private lateinit var backgroundDarkening: FrameLayout
 
     private var mServerURL: String = ""
     private var mUserID : String = ""
@@ -93,6 +97,8 @@ class CameraActivity : AppCompatActivity() {
         mSelectDeviceButton.background =
             resources.getDrawable(R.drawable.select_device_disconnected)
         mSelectDeviceList = findViewById(R.id.select_device_list)
+        backgroundDarkening = findViewById(R.id.ca_dark_background)
+        backgroundDarkening.setOnClickListener { Log.d("bg", "background clicked") }
     }
 
     private fun setViewListeners() {
@@ -458,8 +464,10 @@ class CameraActivity : AppCompatActivity() {
     fun openErrorFragment() {
         Log.d("FRAG", "opening fragment")
         val errorFragment = ErrorFragment()
+        val container: FrameLayout = findViewById(R.id.fragment_container_view)
         this.supportFragmentManager.beginTransaction()
             .add(R.id.fragment_container_view, errorFragment)
-            .commit();
+            .commit()
+        backgroundDarkening.visibility = View.VISIBLE
     }
 }
