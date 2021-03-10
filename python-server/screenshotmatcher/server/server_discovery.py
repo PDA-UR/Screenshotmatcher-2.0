@@ -25,7 +25,7 @@ def local_network_address():
 
 # start in thread to prevent blocking from socket.recvfrom()
 def start():
-    network_address = local_network_address().encode('ASCII')
+    network_address = (str(Config.HOST) + ":" + str(Config.PORT)).encode('ASCII')
 
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)        # socket for discovery
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)     # reuse address if already in use
