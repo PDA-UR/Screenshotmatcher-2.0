@@ -36,10 +36,12 @@
         android:id="@+id/ef_send_feedback_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@drawable/fragment_red_button_big"
         app:layout_constraintBottom_toTopOf="@+id/ef_button_layout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        android:text="@string/send_feedback_button_en"></Button>
+        android:text="@string/send_feedback_button_en"
+        android:layout_marginBottom="10dp"></Button>
 
     <LinearLayout
         android:id="@+id/ef_button_layout"
@@ -55,6 +57,7 @@
             android:layout_height="wrap_content"
             android:layout_marginRight="5dp"
             android:layout_weight="1"
+            android:background="@drawable/fragment_normal_button_small"
             android:text="@string/view_full_image_button_en"></Button>
 
         <Button
@@ -63,6 +66,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="5dp"
             android:layout_weight="1"
+            android:background="@drawable/fragment_normal_button_small"
             android:text="@string/close_button_en"></Button>
     </LinearLayout>
 

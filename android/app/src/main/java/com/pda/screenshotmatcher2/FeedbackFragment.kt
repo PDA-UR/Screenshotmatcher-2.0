@@ -14,54 +14,38 @@ import android.widget.FrameLayout
 private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
 
+
+lateinit var containerView: FrameLayout
+lateinit var backgroundDarkening: FrameLayout
+lateinit var mSendFeedbackButton: Button
+
 /**
  * A simple [Fragment] subclass.
- * Use the [ErrorFragment.newInstance] factory method to
+ * Use the [FeedbackFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class ErrorFragment : Fragment() {
+class FeedbackFragment : Fragment() {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
 
-    //Views
-    lateinit var mBackButton: Button
-    lateinit var mFeedbackButton: Button
-    lateinit var containerView: FrameLayout
-    lateinit var backgroundDarkening: FrameLayout
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d("FF", "created")
         arguments?.let {
             param1 = it.getString(ARG_PARAM1)
             param2 = it.getString(ARG_PARAM2)
         }
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        mBackButton = requireView().findViewById(R.id.ef_back_button)
-        mBackButton.setOnClickListener { removeThisFragment(true) }
-        mFeedbackButton = requireView().findViewById(R.id.ef_send_feedback_button)
-        mFeedbackButton.setOnClickListener { openFeedbackFragment() }
-        backgroundDarkening = activity?.findViewById(R.id.ca_dark_background)!!
-        backgroundDarkening.setOnClickListener { removeThisFragment(true) }
-    }
-
-    private fun openFeedbackFragment() {
-        val feedbackFragment: FeedbackFragment = FeedbackFragment()
-        Log.d("FF", "opening ff")
-        activity?.supportFragmentManager?.beginTransaction()?.replace(R.id.feedback_fragment_container_view, feedbackFragment)?.commit()
-        removeThisFragment(false)
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        // Inflate the layout for this fragment
         containerView = container as FrameLayout
         containerView?.visibility = View.VISIBLE
-        return inflater.inflate(R.layout.fragment_error, container, false)
+        return inflater.inflate(R.layout.fragment_feedback, container, false)
     }
 
     companion object {
@@ -71,18 +55,27 @@ class ErrorFragment : Fragment() {
          *
          * @param param1 Parameter 1.
          * @param param2 Parameter 2.
-         * @return A new instance of fragment ErrorFragment.
+         * @return A new instance of fragment FeedbackFragment.
          */
         // TODO: Rename and change types and number of parameters
         @JvmStatic
         fun newInstance(param1: String, param2: String) =
-            ErrorFragment().apply {
+            FeedbackFragment().apply {
                 arguments = Bundle().apply {
                     putString(ARG_PARAM1, param1)
                     putString(ARG_PARAM2, param2)
                 }
             }
     }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        backgroundDarkening = activity?.findViewById(R.id.ca_dark_background)!!
+        backgroundDarkening.setOnClickListener { removeThisFragment(true) }
+        mSendFeedbackButton = activity?.findViewById(R.id.ef_send_feedback_button)!!
+        mSendFeedbackButton.setOnClickListener { removeThisFragment(true) }
+    }
+
     private fun removeThisFragment(removeBackground: Boolean = true) {
         containerView.visibility = View.INVISIBLE
         if (removeBackground){backgroundDarkening.visibility = View.INVISIBLE}
