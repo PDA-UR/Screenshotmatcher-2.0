@@ -170,8 +170,7 @@ class Server():
             print(log.value_pairs)
 
             response['hasResult'] = False
-            response['screenshot'] = '/results/result-' + \
-                uid + '/screenshot.png'
+            response['uid'] = uid
             return Response(json.dumps(response), mimetype='application/json')
         else:
             log.value_pairs["match_success"] = True
