@@ -54,7 +54,7 @@ fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, context: 
                 }
             } else{
                 if(activity is CameraActivity) {
-                    activity.openErrorFragment()
+                    activity.openErrorFragment(response.get("uid").toString(), serverURL)
                 }
             }
         },

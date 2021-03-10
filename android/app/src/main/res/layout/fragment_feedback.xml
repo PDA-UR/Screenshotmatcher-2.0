@@ -43,15 +43,16 @@
 
     </LinearLayout>
 
-    <Button
+    <androidx.appcompat.widget.AppCompatButton
         android:layout_width="match_parent"
         android:layout_height="75dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:textSize="30dp"
-        android:text="@string/ff_submit_feedback_en"
+        android:textAllCaps="false"
         android:layout_marginTop="20dp"
+        android:background="@drawable/fragment_feedback_button_background"
         android:clickable="true"
-        android:background="@drawable/fragment_feedback_button_background">
-    </Button>
+        android:text="@string/ff_submit_feedback_en"
+        android:textSize="30dp"
+        app:layout_constraintBottom_toBottomOf="parent"></androidx.appcompat.widget.AppCompatButton>
+
 
 </LinearLayout>
