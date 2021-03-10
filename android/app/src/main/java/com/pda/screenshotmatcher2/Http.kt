@@ -17,9 +17,12 @@ import java.io.ByteArrayOutputStream
 import java.lang.reflect.InvocationTargetException
 
 private const val LOG_DEST = "/logs"
+private const val MATCH_DEST = "/match"
+private const val RESULT_DEST = "/results/result-"
 var downloadID : Long = 0
 
 fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, context: Context){
+    Log.d("DEBB", serverURL+ MATCH_DEST)
     val baos = ByteArrayOutputStream()
     bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
     val b64Image = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT)
@@ -28,7 +31,7 @@ fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, context: 
     val json = JSONObject()
     json.put("b64", b64Image)
     val jsonOR = JsonObjectRequest(
-        Request.Method.POST, "$serverURL/match-b64", json,
+        Request.Method.POST, serverURL + MATCH_DEST, json,
         { response ->
             Log.v("TIMING", "Got response.")
             StudyLogger.hashMap["tc_http_response"] = System.currentTimeMillis()
@@ -62,7 +65,7 @@ fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, context: 
 }
 
 fun downloadFullScreenshot(matchID: String, filename : String, serverURL: String, context: Context) {
-    val uri: Uri = Uri.parse("$serverURL/results/result-$matchID/screenshot.png")
+    val uri: Uri = Uri.parse("${serverURL + RESULT_DEST + matchID}/screenshot.png")
     Log.v("TEST", uri.toString())
     Log.v("TIMING", "Adding result file download to queue")
     val filenameFull = "${filename}_Full.png"
