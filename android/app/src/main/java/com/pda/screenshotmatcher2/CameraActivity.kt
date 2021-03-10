@@ -16,13 +16,11 @@ import android.view.TextureView
 import android.view.View
 import android.widget.Button
 import android.widget.FrameLayout
-import android.widget.LinearLayout
 import android.widget.ListView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentTransaction
 import java.util.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
@@ -75,7 +73,7 @@ class CameraActivity : AppCompatActivity() {
     private lateinit var backgroundDarkening: FrameLayout
 
     private var mServerURL: String = ""
-    private var mUserID : String = ""
+    private var mUserID: String = ""
     private var startTime: Long = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -102,7 +100,7 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun setViewListeners() {
-        mTextureView!!.surfaceTextureListener =
+        mTextureView.surfaceTextureListener =
             object : TextureView.SurfaceTextureListener {
                 override fun onSurfaceTextureAvailable(
                     texture: SurfaceTexture,
@@ -416,10 +414,11 @@ class CameraActivity : AppCompatActivity() {
         }
     }
 
-    private fun getUserID(){
-        val sharedPreferences = this.getSharedPreferences("com.pda.screenshotmatcher2", Context.MODE_PRIVATE)
+    private fun getUserID() {
+        val sharedPreferences =
+            this.getSharedPreferences("com.pda.screenshotmatcher2", Context.MODE_PRIVATE)
         mUserID = sharedPreferences.getString("uid", "").toString()
-        if (mUserID.isEmpty()){
+        if (mUserID.isEmpty()) {
             val allowedChars = ('A'..'Z') + ('a'..'z') + ('0'..'9')
             mUserID = (1..20).map { allowedChars.random() }.joinToString("")
             sharedPreferences.edit().putString("uid", mUserID).apply()
@@ -456,18 +455,26 @@ class CameraActivity : AppCompatActivity() {
         startActivity(intent)
     }
 
-    fun onMatchResult(matchID: String, img : ByteArray){
+    fun onMatchResult(matchID: String, img: ByteArray) {
         startResultsActivity(matchID, img)
     }
 
 
-    fun openErrorFragment() {
+    fun openErrorFragment(uid: String, url: String) {
         Log.d("FRAG", "opening fragment")
         val errorFragment = ErrorFragment()
-        val container: FrameLayout = findViewById(R.id.fragment_container_view)
-        this.supportFragmentManager.beginTransaction()
+
+        val bundle = Bundle()
+        bundle.putString(UID_KEY, uid)
+        bundle.putString(URL_KEY, url)
+        errorFragment.arguments = bundle
+
+        this.supportFragmentManager
+            .beginTransaction()
             .add(R.id.fragment_container_view, errorFragment)
+            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
             .commit()
+
         backgroundDarkening.visibility = View.VISIBLE
     }
 }
