@@ -1,57 +1,71 @@
 package com.pda.screenshotmatcher2
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.FrameLayout
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentTransaction
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
 
-/**
- * A simple [Fragment] subclass.
- * Use the [ErrorFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
+const val UID_KEY: String = "UID"
+const val URL_KEY: String = "URL"
+
 class ErrorFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
-
     //Views
     lateinit var mBackButton: Button
     lateinit var mFeedbackButton: Button
+    lateinit var mFullImageButton: Button
     lateinit var containerView: FrameLayout
-    lateinit var backgroundDarkening: FrameLayout
+    lateinit var mFragmentBackground: FrameLayout
+
+    //Full screenshot info
+    lateinit var uid: String
+    lateinit var url: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
+        val bundle = this.arguments
+        if (bundle != null) {
+            uid = bundle.getString(UID_KEY, "undefined")
+            url = bundle.getString(URL_KEY, "undefined")
         }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        initViews()
+    }
+
+    private fun initViews() {
         mBackButton = requireView().findViewById(R.id.ef_back_button)
         mBackButton.setOnClickListener { removeThisFragment(true) }
         mFeedbackButton = requireView().findViewById(R.id.ef_send_feedback_button)
         mFeedbackButton.setOnClickListener { openFeedbackFragment() }
-        backgroundDarkening = activity?.findViewById(R.id.ca_dark_background)!!
-        backgroundDarkening.setOnClickListener { removeThisFragment(true) }
+        mFullImageButton = requireView().findViewById(R.id.ef_full_image_button)
+        mFullImageButton.setOnClickListener { openResultsActivity() }
+        mFragmentBackground = activity?.findViewById(R.id.ca_dark_background)!!
+        mFragmentBackground.setOnClickListener { removeThisFragment(true) }
+    }
+
+    private fun openResultsActivity() {
+        val intent = Intent(activity, ResultsActivity::class.java)
+        intent.putExtra("matchID", uid)
+        intent.putExtra("ServerURL", url)
+        startActivity(intent)
     }
 
     private fun openFeedbackFragment() {
         val feedbackFragment: FeedbackFragment = FeedbackFragment()
-        Log.d("FF", "opening ff")
-        activity?.supportFragmentManager?.beginTransaction()?.replace(R.id.feedback_fragment_container_view, feedbackFragment)?.commit()
+        activity?.supportFragmentManager
+            ?.beginTransaction()
+            ?.replace(R.id.feedback_fragment_container_view, feedbackFragment)
+            ?.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+            ?.commit()
         removeThisFragment(false)
     }
 
@@ -60,32 +74,16 @@ class ErrorFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         containerView = container as FrameLayout
-        containerView?.visibility = View.VISIBLE
+        containerView.visibility = View.VISIBLE
         return inflater.inflate(R.layout.fragment_error, container, false)
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment ErrorFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            ErrorFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
-            }
-    }
     private fun removeThisFragment(removeBackground: Boolean = true) {
         containerView.visibility = View.INVISIBLE
-        if (removeBackground){backgroundDarkening.visibility = View.INVISIBLE}
-        activity?.supportFragmentManager?.beginTransaction()?.remove(this)?.commit();
+        if (removeBackground) {
+            mFragmentBackground.visibility = View.INVISIBLE
+        }
+        activity?.supportFragmentManager?.beginTransaction()?.remove(this)
+            ?.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)?.commit()
     }
 }

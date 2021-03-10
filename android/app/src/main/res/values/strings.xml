@@ -17,11 +17,12 @@
     <string name="screenshot_description_en">Created with Screenshot Matcher</string>
     <string name="cropped_screenshot_title_en">cropped_screenshot</string>
     <string name="full_screenshot_title_en">full_screenshot</string>
-    <string name="no_match_en">No match!</string>
+    <string name="no_match_en">No match</string>
     <string name="send_feedback_button_en">Send Feedback</string>
     <string name="view_full_image_button_en">Full Image</string>
     <string name="close_button_en">Close</string>
     <string name="feedback_en">Feedback</string>
     <string name="ff_comment_en">Comment (optional)</string>
-    <string name="ff_submit_feedback_en">Submit Feedback</string>
+    <string name="ff_submit_feedback_en">Submit</string>
+    <string name="result_activity_only_full_available_en">Only full screenshot available</string>
 </resources>
