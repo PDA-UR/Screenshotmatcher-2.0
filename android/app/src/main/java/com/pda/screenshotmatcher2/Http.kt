@@ -22,6 +22,7 @@ import java.lang.reflect.InvocationTargetException
 private const val LOG_DEST = "/logs"
 private const val MATCH_DEST = "/match"
 private const val SCREENSHOT_DEST = "/screenshot"
+private const val FEEDBACK_DEST = "/feedback"
 var downloadID : Long = 0
 
 fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, context: Context){
