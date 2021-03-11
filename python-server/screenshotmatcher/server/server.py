@@ -80,12 +80,14 @@ class Server():
         return "ok"
 
     def feedback_route(self):
-        uid = request.values.get('uid')
-        has_result = request.values.get('hasResult')
-        has_screenshot = request.values.get('hasScreenshot')
-        comment = request.values.get('comment')
-        device = request.values.get('device')
+        r_json = request.json
 
+        uid = r_json.get('uid')
+        has_result = r_json.get('hasResult')
+        has_screenshot = r_json.get('hasScreenshot')
+        comment = r_json.get('comment')
+        device = r_json.get('device')
+        
         payload = {
             'secret': Config.API_SECRET,
             'identifier': Config.IDENTIFIER,
@@ -94,13 +96,15 @@ class Server():
             'algorithm': Config.CURRENT_ALGORITHM,
             'device': device
         }
+       
+        file_payload = [('screenshot', ('screenshot', open(self.results_dir + '/result-' + uid + '/screenshot.png', 'rb'), 'image/png'))]
 
-        file_payload = [
-            ('photo', ('photo', open(self.results_dir +
-                                     '/result-' + uid + '/photo.jpg', 'rb'), 'image/jpeg')),
-            ('screenshot', ('screenshot', open(self.results_dir +
-                                               '/result-' + uid + '/screenshot.png', 'rb'), 'image/png')),
-        ]
+#        old_file_payload = [
+#            ('photo', ('photo', open(self.results_dir +
+#                                     '/result-' + uid + '/photo.jpg', 'rb'), 'image/jpeg')),
+#            ('screenshot', ('screenshot', open(self.results_dir +
+#                                               '/result-' + uid + '/screenshot.png', 'rb'), 'image/png')),
+#        ]
 
         if has_result and has_result != 'false':
             file_payload.append(
@@ -110,9 +114,11 @@ class Server():
 
         logging.info('sending feedback {}'.format(uid))
 
+        
         urllib3.disable_warnings()
+        
+        return {"feedbackPosted" : "true"}
 
-        return "ok"
 
     def match_route(self):
         log = common.log.Logger()
