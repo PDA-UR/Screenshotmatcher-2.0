@@ -1,5 +1,6 @@
 import socket
 import os
+import sys
 import platform
 import subprocess
 import colored
@@ -20,7 +21,31 @@ def getCurrentIPAddress():
 
 def getScriptDir(filename):
   return os.path.dirname(os.path.realpath(filename))
-  
+
+def get_main_dir():
+  # Ensure correct paths when running the compiled binary created with PyInstaller. https://stackoverflow.com/a/42615559
+  if getattr(sys, 'frozen', False):
+      # If the application is run as a bundle, the PyInstaller bootloader
+      # extends the sys module by a flag frozen=True and sets the app 
+      # path into variable _MEIPASS'.
+      application_path = sys._MEIPASS
+  else:
+      # get the directory of main.py
+      application_path = os.path.dirname(os.path.realpath(__file__))
+      if platform.system() == "Windows":
+          application_path = application_path.rsplit('\\', 1)[0]
+      else:
+          application_path = application_path.rsplit('/', 1)[0]
+
+  return application_path
+
+def create_results_dir():
+  main_dir = get_main_dir()
+  print(main_dir)
+  if not os.path.exists(main_dir + "/www"):
+    os.mkdir("www")
+  if not os.path.exists(main_dir + "/www/results"):
+    os.mkdir("www/results")
 
 def allowed_file(filename):
   return '.' in filename and \
