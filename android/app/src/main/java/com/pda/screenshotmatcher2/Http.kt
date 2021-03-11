@@ -20,7 +20,13 @@ import java.io.ByteArrayOutputStream
 import java.lang.reflect.InvocationTargetException
 
 private const val LOG_DEST = "/logs"
+<<<<<<< Updated upstream
 private const val FEEDBACK_DEST = "/feedback"
+=======
+private const val MATCH_DEST = "/match"
+private const val RESULT_DEST = "/results/result-"
+private const val FEEDBACK_DEST = "/Feedback"
+>>>>>>> Stashed changes
 var downloadID : Long = 0
 
 fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, context: Context){
