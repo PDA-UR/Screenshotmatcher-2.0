@@ -45,6 +45,7 @@ class ResultsActivity : AppCompatActivity() {
     private lateinit var mFullScreenshot: Bitmap
 
     private var displayFullScreenshotOnly: Boolean = false
+    private var hasSharedImage: Boolean = false
 
     // -1 = cropped page, 1 = full page
     private var mPillNavigationState: Int = -1
@@ -66,6 +67,7 @@ class ResultsActivity : AppCompatActivity() {
         } else {
             displayFullScreenshotOnly = activateFullScreenshotOnlyMode()
         }
+        Log.d("ra", displayFullScreenshotOnly.toString())
 
 
         StudyLogger.hashMap["tc_result_shown"] = System.currentTimeMillis()
@@ -142,6 +144,10 @@ class ResultsActivity : AppCompatActivity() {
 
 
     private fun saveCurrentPreviewImage() {
+        hasSharedImage = true
+        if (!displayFullScreenshotOnly){
+            saveCroppedImageToAppDir()
+        }
         if (mPillNavigationState == -1) {
             MediaStore.Images.Media.insertImage(
                 contentResolver,
@@ -172,6 +178,8 @@ class ResultsActivity : AppCompatActivity() {
     }
 
     private fun saveBothImages() {
+        hasSharedImage = true
+
         if (displayFullScreenshotOnly) {
             Toast.makeText(
                 this,
@@ -179,6 +187,8 @@ class ResultsActivity : AppCompatActivity() {
                 Toast.LENGTH_SHORT
             ).show()
         } else {
+            saveCroppedImageToAppDir()
+
             MediaStore.Images.Media.insertImage(
                 contentResolver,
                 mCroppedScreenshot,
@@ -205,12 +215,10 @@ class ResultsActivity : AppCompatActivity() {
     }
 
     private fun shareImage() {
+        hasSharedImage = true
         if (mPillNavigationState == -1) {
             StudyLogger.hashMap["share_match"] = true
-            mCroppedImageFile = File(
-                getExternalFilesDir(Environment.DIRECTORY_PICTURES),
-                lastDateTime + "_Cropped.png"
-            )
+            saveCroppedImageToAppDir()
             saveBitmapToFile(mCroppedImageFile, mCroppedScreenshot)
             val contentUri =
                 getUriForFile(this, BuildConfig.APPLICATION_ID + ".fileprovider", mCroppedImageFile)
@@ -277,7 +285,19 @@ class ResultsActivity : AppCompatActivity() {
 
     }
 
+    private fun saveCroppedImageToAppDir(){
+        if (mCroppedImageFile == null && !displayFullScreenshotOnly){
+            mCroppedImageFile = File(
+                getExternalFilesDir(Environment.DIRECTORY_PICTURES),
+                lastDateTime + "_Cropped.png"
+            )
+        }
+    }
+
     private fun goBackToCameraActivity() {
+        if (!hasSharedImage){
+            mFullImageFile.delete()
+        }
         unregisterReceiver(onDownloadComplete)
         Log.v("TEST", StudyLogger.hashMap.toString())
         sendLog(mServerURL, this)

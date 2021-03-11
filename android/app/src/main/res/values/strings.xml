@@ -25,4 +25,6 @@
     <string name="ff_comment_en">Comment (optional)</string>
     <string name="ff_submit_feedback_en">Submit</string>
     <string name="result_activity_only_full_available_en">Only full screenshot available</string>
+    <string name="ff_submit_success_en">Feedback sent</string>
+    <string name="ff_submit_failed_en">Failed to send feedback</string>
 </resources>
