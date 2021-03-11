@@ -3,11 +3,14 @@ package com.pda.screenshotmatcher2
 import android.app.Activity
 import android.app.DownloadManager
 import android.content.Context
+import android.content.res.Resources
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Environment
 import android.util.Base64
 import android.util.Log
+import android.widget.Toast
+import androidx.fragment.app.Fragment
 import com.android.volley.Request
 import com.android.volley.Response
 import com.android.volley.toolbox.JsonObjectRequest
@@ -17,6 +20,7 @@ import java.io.ByteArrayOutputStream
 import java.lang.reflect.InvocationTargetException
 
 private const val LOG_DEST = "/logs"
+private const val FEEDBACK_DEST = "/feedback"
 var downloadID : Long = 0
 
 fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, context: Context){
@@ -90,5 +94,29 @@ fun sendLog(serverURL: String, context: Context){
 
 // Add the request to the RequestQueue.
     queue.add(jsonObjectRequest)
+}
 
+fun sendFeedbackToServer(fragment: Fragment, context: Context, serverUrl: String, uid: String, hasResult: Boolean, hasScreenshot: Boolean, comment: String){
+    val queue = Volley.newRequestQueue(context)
+    val json = JSONObject()
+    json.put("uid", uid)
+    json.put("hasResult", hasResult)
+    json.put("hasScreenshot", hasScreenshot)
+    json.put("comment", comment)
+    json.put("device", getDeviceName())
+    val jsonObjectRequest = JsonObjectRequest(Request.Method.POST, serverUrl + FEEDBACK_DEST, json,
+        { response ->
+            if (response.getBoolean("feedbackPosted")){
+                if (fragment is FeedbackFragment){
+                    fragment.onFeedbackPosted()
+                }
+            } else {
+                Toast.makeText(context, context.getString(R.string.ff_submit_failed_en), Toast.LENGTH_LONG).show()
+            }
+        },
+        { error ->
+            error.printStackTrace()
+        }
+    )
+    queue.add(jsonObjectRequest)
 }
