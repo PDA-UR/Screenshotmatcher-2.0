@@ -18,7 +18,7 @@ import java.lang.reflect.InvocationTargetException
 
 private const val LOG_DEST = "/logs"
 private const val MATCH_DEST = "/match"
-private const val RESULT_DEST = "/results/result-"
+private const val SCREENSHOT_DEST = "/screenshot"
 var downloadID : Long = 0
 
 fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, context: Context){
@@ -65,7 +65,7 @@ fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, context: 
 }
 
 fun downloadFullScreenshot(matchID: String, filename : String, serverURL: String, context: Context) {
-    val uri: Uri = Uri.parse("${serverURL + RESULT_DEST + matchID}/screenshot.png")
+    val uri: Uri = Uri.parse("$serverURL$SCREENSHOT_DEST/$matchID")
     Log.v("TEST", uri.toString())
     Log.v("TIMING", "Adding result file download to queue")
     val filenameFull = "${filename}_Full.png"
