@@ -18,7 +18,7 @@ import common.log
 
 from common.config import Config
 from matching.matcher import Matcher
-from common.utils import allowed_file
+from common.utils import allowed_file, get_main_dir
 
 LOGS_TO_KEEP = 3
 
@@ -192,19 +192,7 @@ class Server():
         if not result_id:
             return "No match-id given."
 
-        # Ensure correct paths when running the compiled binary created with PyInstaller. https://stackoverflow.com/a/42615559
-        if getattr(sys, 'frozen', False):
-            # If the application is run as a bundle, the PyInstaller bootloader
-            # extends the sys module by a flag frozen=True and sets the app 
-            # path into variable _MEIPASS'.
-            application_path = sys._MEIPASS
-        else:
-            # get the directory of main.py
-            application_path = os.path.dirname(os.path.abspath(__file__))
-            if platform.system() == "Windows":
-                application_path = application_path.rsplit('\\', 1)[0]
-            else:
-                application_path = application_path.rsplit('/', 1)[0]
+        application_path = get_main_dir()
                 
         path = os.path.join(application_path, self.results_dir, "result-{}".format(result_id))
         return send_from_directory(path, "screenshot.png")

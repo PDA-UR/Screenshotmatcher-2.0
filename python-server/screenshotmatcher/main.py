@@ -12,7 +12,7 @@ from common.config import Config
 # Import app parts
 import gui.tray
 import server.server_discovery as discovery
-from common.utils import print_banner
+from common.utils import print_banner, create_results_dir
 from matching.matcher import Matcher
 from server.server import Server
 
@@ -25,6 +25,9 @@ def main():
 
   # Print Banner
   print_banner( Config.APP_NAME, Config.CURRENT_VERSION, Config.IDENTIFIER )
+
+  # Create saving directory, if neccessary
+  create_results_dir()
 
   # Start server in different thread
   x = threading.Thread(target=server.start, args=(), daemon=True)
