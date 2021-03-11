@@ -60,7 +60,13 @@ class ErrorFragment : Fragment() {
     }
 
     private fun openFeedbackFragment() {
-        val feedbackFragment: FeedbackFragment = FeedbackFragment()
+        val feedbackFragment = FeedbackFragment()
+
+        val bundle = Bundle()
+        bundle.putString(UID_KEY, uid)
+        bundle.putString(URL_KEY, url)
+        feedbackFragment.arguments = bundle
+
         activity?.supportFragmentManager
             ?.beginTransaction()
             ?.replace(R.id.feedback_fragment_container_view, feedbackFragment)
