@@ -18,7 +18,6 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.OutputStream
-import java.lang.System.out
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -119,5 +118,15 @@ fun saveBitmapToFile(filename: File, bitmap: Bitmap){
         out.close()
     } catch (e: IOException) {
         e.printStackTrace()
+    }
+}
+
+fun getDeviceName(): String {
+    val manufacturer = Build.MANUFACTURER
+    val model = Build.MODEL
+    return if (model.startsWith(manufacturer)) {
+        model
+    } else {
+        "$manufacturer $model"
     }
 }
