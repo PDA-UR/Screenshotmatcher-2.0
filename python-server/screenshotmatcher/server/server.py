@@ -8,9 +8,10 @@ import logging
 import time
 import timeit
 import threading
+import platform
 
 from cv2 import imwrite
-from flask import Flask, request, redirect, url_for, Response, send_from_directory
+from flask import Flask, request, redirect, url_for, Response, send_from_directory, send_file
 from werkzeug.utils import secure_filename
 
 import common.log
@@ -30,7 +31,7 @@ class Server():
         else:
             static_path = '../www'
 
-        self.results_dir = './www/results'
+        self.results_dir = 'www/results'
 
         self.last_logs = []
 
@@ -46,6 +47,7 @@ class Server():
         self.app.add_url_rule(
             '/match', 'match', self.match_route, methods=['POST'])
         self.app.add_url_rule("/logs", "logs", self.log_route, methods=["POST"])
+        self.app.add_url_rule("/screenshot/<result_id>", "screenshot/<result_id>", self.screenshot_route)
 
     def start(self):
         self.app.run(host=Config.HOST, port=Config.PORT, threaded=True)
@@ -179,3 +181,24 @@ class Server():
             response['hasResult'] = True
             response['b64'] = match_result
             return Response(json.dumps(response), mimetype='application/json')
+
+    def screenshot_route(self, result_id):
+        if not result_id:
+            return "No match-id given."
+
+        # Ensure correct paths when running the compiled binary created with PyInstaller. https://stackoverflow.com/a/42615559
+        if getattr(sys, 'frozen', False):
+            # If the application is run as a bundle, the PyInstaller bootloader
+            # extends the sys module by a flag frozen=True and sets the app 
+            # path into variable _MEIPASS'.
+            application_path = sys._MEIPASS
+        else:
+            # get the directory of main.py
+            application_path = os.path.dirname(os.path.abspath(__file__))
+            if platform.system() == "Windows":
+                application_path = application_path.rsplit('\\', 1)[0]
+            else:
+                application_path = application_path.rsplit('/', 1)[0]
+                
+        path = os.path.join(application_path, self.results_dir, "result-{}".format(result_id))
+        return send_from_directory(path, "screenshot.png")
