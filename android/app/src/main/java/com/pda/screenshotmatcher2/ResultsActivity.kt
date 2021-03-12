@@ -145,18 +145,23 @@ class ResultsActivity : AppCompatActivity() {
             ).show()
         } else {
             //Save full screenshot to gallery
-            MediaStore.Images.Media.insertImage(
-                contentResolver,
-                mFullScreenshot,
-                getString(R.string.full_screenshot_title_en),
-                getString(R.string.screenshot_description_en)
-            )
-            StudyLogger.hashMap["save_full"] = true
-            Toast.makeText(
-                this,
-                getText(R.string.result_activity_saved_full_en),
-                Toast.LENGTH_SHORT
-            ).show()
+            if (fullScreenshotDownloaded){
+                MediaStore.Images.Media.insertImage(
+                    contentResolver,
+                    mFullScreenshot,
+                    getString(R.string.full_screenshot_title_en),
+                    getString(R.string.screenshot_description_en)
+                )
+                StudyLogger.hashMap["save_full"] = true
+                Toast.makeText(
+                    this,
+                    getText(R.string.result_activity_saved_full_en),
+                    Toast.LENGTH_SHORT
+                ).show()
+            } else {
+                Toast.makeText(this,getText(R.string.http_download_full_error_en), Toast.LENGTH_LONG).show()
+                downloadFullScreenshotInThread()
+            }
         }
     }
 
@@ -220,18 +225,23 @@ class ResultsActivity : AppCompatActivity() {
             }
             startActivity(intent)
         } else {
-            //Full screenshot needs to be shared
-            StudyLogger.hashMap["share_full"] = true
-            //Start sharing
-            val contentUri =
-                getUriForFile(this, BuildConfig.APPLICATION_ID + ".fileprovider", mFullImageFile)
-            val intent = Intent().apply {
-                this.action = Intent.ACTION_SEND
-                this.putExtra(Intent.EXTRA_STREAM, contentUri)
-                this.type = "image/png"
-                this.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            if (fullScreenshotDownloaded){
+                //Full screenshot needs to be shared
+                StudyLogger.hashMap["share_full"] = true
+                //Start sharing
+                val contentUri =
+                    getUriForFile(this, BuildConfig.APPLICATION_ID + ".fileprovider", mFullImageFile)
+                val intent = Intent().apply {
+                    this.action = Intent.ACTION_SEND
+                    this.putExtra(Intent.EXTRA_STREAM, contentUri)
+                    this.type = "image/png"
+                    this.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                startActivity(intent)
+            } else{
+                Toast.makeText(this, getText(R.string.http_download_full_error_en), Toast.LENGTH_LONG).show()
+                downloadFullScreenshotInThread()
             }
-            startActivity(intent)
         }
     }
 
@@ -302,25 +312,34 @@ class ResultsActivity : AppCompatActivity() {
                     getExternalFilesDir(Environment.DIRECTORY_PICTURES),
                     lastDateTime + "_Full.png"
                 )
-                mFullScreenshot = BitmapFactory.decodeFile(mFullImageFile.absolutePath)
-                fullScreenshotDownloaded = true
-                //Set ImageView if no cropped screenshot available
-                if (displayFullScreenshotOnly || mPillNavigationState == 1) {
-                    mScreenshotImageView.setImageBitmap(mFullScreenshot)
-                } else if (waitingForFullScreenshot){
-                    //Full screenshot has been requested by the user pressing "save both", save downloaded screenshot to gallery
-                    MediaStore.Images.Media.insertImage(
-                        contentResolver,
-                        mFullScreenshot,
-                        getString(R.string.full_screenshot_title_en),
-                        getString(R.string.screenshot_description_en)
-                    )
-                    Toast.makeText(
-                        applicationContext,
-                        getText(R.string.result_activity_saved_both_en),
-                        Toast.LENGTH_SHORT
-                    ).show()
+                if (mFullImageFile.exists()){
+                    fullScreenshotDownloaded = true
+                    mFullScreenshot = BitmapFactory.decodeFile(mFullImageFile.absolutePath)
+                    fullScreenshotDownloaded = true
+                    //Set ImageView if no cropped screenshot available
+                    if (displayFullScreenshotOnly || mPillNavigationState == 1) {
+                        mScreenshotImageView.setImageBitmap(mFullScreenshot)
+                    } else if (waitingForFullScreenshot){
+                        //Full screenshot has been requested by the user pressing "save both", save downloaded screenshot to gallery
+                        MediaStore.Images.Media.insertImage(
+                            contentResolver,
+                            mFullScreenshot,
+                            getString(R.string.full_screenshot_title_en),
+                            getString(R.string.screenshot_description_en)
+                        )
+                        Toast.makeText(
+                            applicationContext,
+                            getText(R.string.result_activity_saved_both_en),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                } else {
+                    Toast.makeText(context,getText(R.string.http_download_full_error_en), Toast.LENGTH_LONG).show()
+                    if (mPillNavigationState == 1){
+                        mScreenshotImageView.setImageDrawable(getDrawable(R.drawable.ic_baseline_error_outline_128))
+                    }
                 }
+
             }
         }
     }
