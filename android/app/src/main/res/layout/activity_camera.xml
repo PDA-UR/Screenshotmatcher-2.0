@@ -28,7 +28,10 @@
                 android:background="@drawable/select_device_disconnected"
                 android:paddingHorizontal="10dp"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"></Button>
+                app:layout_constraintTop_toTopOf="parent"
+                android:clickable="true"
+                android:focusable="false"
+                android:focusableInTouchMode="false"></Button>
         </FrameLayout>
 
         <Button

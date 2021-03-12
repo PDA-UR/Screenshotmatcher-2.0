@@ -23,6 +23,7 @@ private const val LOG_DEST = "/logs"
 private const val MATCH_DEST = "/match"
 private const val SCREENSHOT_DEST = "/screenshot"
 private const val FEEDBACK_DEST = "/feedback"
+private const val RESULT_DEST = "/results/result-"
 var downloadID : Long = 0
 
 fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, context: Context){
@@ -45,7 +46,6 @@ fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, context: 
                     val b64ImageString = response.get("b64").toString()
                     if (b64ImageString.isNotEmpty()) {
                         val byteArray = Base64.decode(b64ImageString, Base64.DEFAULT)
-                        //downloadFullScreenshot(response.get("uid").toString(), "screenshot.png", serverURL, context)
                         if(activity is CameraActivity) {
                             activity.onMatchResult(
                                 matchID = response.get("uid").toString(),
@@ -62,7 +62,10 @@ fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, context: 
                 }
             }
         },
-        { error -> Log.d("TIMING", error.toString()) })
+        { error ->
+            Log.d("TIMING", error.toString())
+            Toast.makeText(context, activity.getText(R.string.http_cropped_screenshot_download_error), Toast.LENGTH_LONG).show()
+        })
 
     StudyLogger.hashMap["tc_http_request"] = System.currentTimeMillis()
     queue.add(jsonOR)
@@ -76,7 +79,6 @@ fun downloadFullScreenshot(matchID: String, filename : String, serverURL: String
     val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
     val request = DownloadManager.Request(uri)
     request.setDestinationInExternalFilesDir(context, Environment.DIRECTORY_PICTURES, filenameFull)
-
     Log.v("TIMING", "Download queued")
     downloadID = downloadManager.enqueue(request)
 }
