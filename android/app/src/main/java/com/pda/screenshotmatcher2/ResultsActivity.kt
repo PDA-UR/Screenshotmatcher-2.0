@@ -47,10 +47,6 @@ class ResultsActivity : AppCompatActivity() {
     private var displayFullScreenshotOnly: Boolean = false
     private var hasSharedImage: Boolean = false
 
-    private var fullScreenshotDownloaded = false
-    private var croppedScreenshotDownloaded = false
-    private var isWaitingForFullScreenshot = false
-
     // -1 = cropped page, 1 = full page
     private var mPillNavigationState: Int = -1
 
@@ -166,7 +162,6 @@ class ResultsActivity : AppCompatActivity() {
                 Toast.LENGTH_SHORT
             ).show()
         } else {
-<<<<<<< Updated upstream
             MediaStore.Images.Media.insertImage(
                 contentResolver,
                 mFullScreenshot,
@@ -179,30 +174,6 @@ class ResultsActivity : AppCompatActivity() {
                 getText(R.string.result_activity_saved_full_en),
                 Toast.LENGTH_SHORT
             ).show()
-=======
-            if(fullScreenshotDownloaded){
-                //Save full screenshot to gallery
-                MediaStore.Images.Media.insertImage(
-                    contentResolver,
-                    mFullScreenshot,
-                    getString(R.string.full_screenshot_title_en),
-                    getString(R.string.screenshot_description_en)
-                )
-                StudyLogger.hashMap["save_full"] = true
-                Toast.makeText(
-                    this,
-                    getText(R.string.result_activity_saved_full_en),
-                    Toast.LENGTH_SHORT
-                ).show()
-            } else {
-                Toast.makeText(
-                    applicationContext,
-                    getText(R.string.http_full_screenshot_download_error),
-                    Toast.LENGTH_SHORT
-                ).show()
-                downloadFullScreenshotInThread()
-            }
->>>>>>> Stashed changes
         }
     }
 
@@ -224,7 +195,6 @@ class ResultsActivity : AppCompatActivity() {
                 getString(R.string.cropped_screenshot_title_en),
                 getString(R.string.screenshot_description_en)
             )
-<<<<<<< Updated upstream
 
             MediaStore.Images.Media.insertImage(
                 contentResolver,
@@ -233,26 +203,6 @@ class ResultsActivity : AppCompatActivity() {
                 getString(R.string.screenshot_description_en)
             )
 
-=======
-            if (fullScreenshotDownloaded){
-                //Save full screenshot if it has been downloaded already
-                MediaStore.Images.Media.insertImage(
-                    contentResolver,
-                    mFullScreenshot,
-                    getString(R.string.full_screenshot_title_en),
-                    getString(R.string.screenshot_description_en)
-                )
-                Toast.makeText(
-                    this,
-                    getText(R.string.result_activity_saved_both_en),
-                    Toast.LENGTH_SHORT
-                ).show()
-            } else {
-                //Full screenshot needs to be downloaded, gets saved to gallery on download complete
-                isWaitingForFullScreenshot = true
-                downloadFullScreenshotInThread()
-            }
->>>>>>> Stashed changes
             StudyLogger.hashMap["save_match"] = true
             StudyLogger.hashMap["save_full"] = true
 
@@ -280,7 +230,6 @@ class ResultsActivity : AppCompatActivity() {
             }
             startActivity(intent)
         } else {
-<<<<<<< Updated upstream
             StudyLogger.hashMap["share_full"] = true
             val contentUri =
                 getUriForFile(this, BuildConfig.APPLICATION_ID + ".fileprovider", mFullImageFile)
@@ -289,31 +238,8 @@ class ResultsActivity : AppCompatActivity() {
                 this.putExtra(Intent.EXTRA_STREAM, contentUri)
                 this.type = "image/png"
                 this.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-=======
-            //Full screenshot needs to be shared
-            if (fullScreenshotDownloaded){
-                StudyLogger.hashMap["share_full"] = true
-                //Start sharing
-                val contentUri =
-                    getUriForFile(this, BuildConfig.APPLICATION_ID + ".fileprovider", mFullImageFile)
-                val intent = Intent().apply {
-                    this.action = Intent.ACTION_SEND
-                    this.putExtra(Intent.EXTRA_STREAM, contentUri)
-                    this.type = "image/png"
-                    this.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                }
-                startActivity(intent)
-            } else{
-                Toast.makeText(
-                    applicationContext,
-                    getText(R.string.http_full_screenshot_download_error),
-                    Toast.LENGTH_SHORT
-                ).show()
-                downloadFullScreenshotInThread()
->>>>>>> Stashed changes
             }
-
-
+            startActivity(intent)
         }
     }
 
@@ -368,70 +294,6 @@ class ResultsActivity : AppCompatActivity() {
         }
     }
 
-<<<<<<< Updated upstream
-=======
-    private fun downloadFullScreenshotInThread(){
-        Thread { downloadFullScreenshot(matchID, lastDateTime, mServerURL, applicationContext) }.start()
-    }
-
-    private val onDownloadComplete: BroadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
-            //Check if download is the one started before
-            if (downloadID == id) {
-                mFullImageFile = File(
-                    getExternalFilesDir(Environment.DIRECTORY_PICTURES),
-                    lastDateTime + "_Full.png"
-                )
-                if (mFullImageFile.exists()){
-                    mFullScreenshot = BitmapFactory.decodeFile(mFullImageFile.absolutePath)
-                    fullScreenshotDownloaded = true
-                    //Set ImageView if no cropped screenshot available
-                    if (displayFullScreenshotOnly || mPillNavigationState == 1) {
-                        mScreenshotImageView.setImageBitmap(mFullScreenshot)
-                    } else if (isWaitingForFullScreenshot){
-                        //Full screenshot has been requested by the user pressing "save both", save downloaded screenshot to gallery
-                        MediaStore.Images.Media.insertImage(
-                            contentResolver,
-                            mFullScreenshot,
-                            getString(R.string.full_screenshot_title_en),
-                            getString(R.string.screenshot_description_en)
-                        )
-                        Toast.makeText(
-                            applicationContext,
-                            getText(R.string.result_activity_saved_both_en),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                } else {
-                    Toast.makeText(
-                        applicationContext,
-                        getText(R.string.http_full_screenshot_download_error),
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    if (displayFullScreenshotOnly || mPillNavigationState == 1) {
-                        mScreenshotImageView.setImageDrawable(getDrawable(R.drawable.ic_baseline_error_outline_128))
-
-                    }
-                }
-            }
-        }
-    }
-
-    //full screenshot only mode = when the user clicks "full image" in the error fragment, no cropped screenshot available
-    private fun activateFullScreenshotOnlyMode(): Boolean {
-        downloadFullScreenshotInThread()
-        mImagePreviewPreviousButton.visibility = View.INVISIBLE
-        mPillNavigationButton1.setBackgroundColor(getColor(R.color.invisible))
-        mPillNavigationButton2.background = resources.getDrawable(R.drawable.pill_navigation_selected_item)
-        mImagePreviewNextButton.visibility = View.INVISIBLE
-        mShareButtonText.text = getString(R.string.result_activity_shareButtonText2_en)
-        mSaveOneButtonText.text = getString(R.string.result_activity_saveOneButtonText2_en)
-        mPillNavigationState *= -1
-        return true
-    }
-
->>>>>>> Stashed changes
     private fun goBackToCameraActivity() {
         if (!hasSharedImage){
             mFullImageFile.delete()
