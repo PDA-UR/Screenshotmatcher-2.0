@@ -27,4 +27,6 @@
     <string name="result_activity_only_full_available_en">Only full screenshot available</string>
     <string name="ff_submit_success_en">Feedback sent</string>
     <string name="ff_submit_failed_en">Failed to send feedback</string>
+    <string name="http_cropped_screenshot_download_error">Failed to download cropped screenshot from server</string>
+    <string name="http_full_screenshot_download_error">Failed to download full screenshot from server</string>
 </resources>
