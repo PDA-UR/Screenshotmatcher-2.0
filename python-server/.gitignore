@@ -17,6 +17,7 @@ Thumbs.db
 
 build
 dist
+.venv
 main.spec
 show_qr.spec
 ScreenshotMatcher.spec
