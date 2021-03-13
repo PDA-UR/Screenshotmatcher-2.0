@@ -43,9 +43,9 @@ def create_results_dir():
   main_dir = get_main_dir()
   print(main_dir)
   if not os.path.exists(main_dir + "/www"):
-    os.mkdir("www")
+    os.mkdir(main_dir + "/www")
   if not os.path.exists(main_dir + "/www/results"):
-    os.mkdir("www/results")
+    os.mkdir( main_dir + "/www/results")
 
 def allowed_file(filename):
   return '.' in filename and \
