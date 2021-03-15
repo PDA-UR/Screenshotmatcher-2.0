@@ -39,7 +39,6 @@ fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, matchingO
     }
     // keys: "algorithm", "ORB_nfeatures", "SURF_hessian_threshold"
     json.put("b64", b64Image)
-    json.put("ORB_nfeatures", 6000)
     val jsonOR = JsonObjectRequest(
         Request.Method.POST, serverURL + MATCH_DEST, json,
         { response ->
