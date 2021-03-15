@@ -37,7 +37,7 @@ class ResultsActivity : AppCompatActivity() {
     private lateinit var mSaveOneButtonText: TextView
     private lateinit var mRetakeImageButton: AppCompatButton
 
-    private lateinit var mFullImageFile: File
+    private var mFullImageFile: File? = null
     private lateinit var mCroppedImageFile: File
     private lateinit var mServerURL: String
     private lateinit var lastDateTime: String
@@ -230,7 +230,7 @@ class ResultsActivity : AppCompatActivity() {
                 StudyLogger.hashMap["share_full"] = true
                 //Start sharing
                 val contentUri =
-                    getUriForFile(this, BuildConfig.APPLICATION_ID + ".fileprovider", mFullImageFile)
+                    getUriForFile(this, BuildConfig.APPLICATION_ID + ".fileprovider", mFullImageFile!!)
                 val intent = Intent().apply {
                     this.action = Intent.ACTION_SEND
                     this.putExtra(Intent.EXTRA_STREAM, contentUri)
@@ -312,9 +312,9 @@ class ResultsActivity : AppCompatActivity() {
                     getExternalFilesDir(Environment.DIRECTORY_PICTURES),
                     lastDateTime + "_Full.png"
                 )
-                if (mFullImageFile.exists()){
+                if (mFullImageFile!!.exists()){
                     fullScreenshotDownloaded = true
-                    mFullScreenshot = BitmapFactory.decodeFile(mFullImageFile.absolutePath)
+                    mFullScreenshot = BitmapFactory.decodeFile(mFullImageFile!!.absolutePath)
                     fullScreenshotDownloaded = true
                     //Set ImageView if no cropped screenshot available
                     if (displayFullScreenshotOnly || mPillNavigationState == 1) {
@@ -359,7 +359,7 @@ class ResultsActivity : AppCompatActivity() {
 
     private fun goBackToCameraActivity() {
         if (!hasSharedImage) {
-            mFullImageFile.delete()
+            mFullImageFile?.delete()
         }
         unregisterReceiver(onDownloadComplete)
         Log.v("TEST", StudyLogger.hashMap.toString())
