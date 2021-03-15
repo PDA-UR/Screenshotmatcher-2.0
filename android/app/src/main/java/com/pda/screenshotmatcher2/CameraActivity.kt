@@ -410,7 +410,7 @@ class CameraActivity : AppCompatActivity() {
             StudyLogger.hashMap["long_side"] = IMG_TARGET_SIZE
             val greyImg = rescale(mBitmap, IMG_TARGET_SIZE)
             Log.v("TIMING", "Image rescaled.")
-            sendBitmap(greyImg, mServerURL, this, this)
+            sendBitmap(greyImg, mServerURL, this)
         }
     }
 
