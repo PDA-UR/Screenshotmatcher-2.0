@@ -26,7 +26,7 @@ private const val FEEDBACK_DEST = "/feedback"
 private const val RESULT_DEST = "/results/result-"
 var downloadID : Long = 0
 
-fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, context: Context){
+fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, matchingOptions: HashMap<Any?,Any?>? = null){
     Log.d("DEBB", serverURL+ MATCH_DEST)
     val baos = ByteArrayOutputStream()
     bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
@@ -34,7 +34,12 @@ fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, context: 
 
     val queue = Volley.newRequestQueue(activity.applicationContext)
     val json = JSONObject()
+    matchingOptions?.forEach{ (key, value) ->
+        json.put(key.toString(), value.toString())
+    }
+    // keys: "algorithm", "ORB_nfeatures", "SURF_hessian_threshold"
     json.put("b64", b64Image)
+    json.put("ORB_nfeatures", 6000)
     val jsonOR = JsonObjectRequest(
         Request.Method.POST, serverURL + MATCH_DEST, json,
         { response ->

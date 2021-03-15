@@ -133,7 +133,7 @@ class Server():
         b64String = r_json.get("b64")
         log.value_pairs["st_photo_received"] = round(time.time() * 1000)
         print("{}:\t b64 string with size {} get".format(time.time(), sys.getsizeof(b64String)))
-
+        
         if b64String is None:
             return {"error" : "no base64 string attached."}
 
@@ -146,16 +146,21 @@ class Server():
         match_dir = self.results_dir + '/result-' + uid
         os.mkdir(match_dir)
 
-        # Start matcher
+        # Create Matcher instance
         start_time = time.perf_counter()
-        print("{}:\t Creating matcher...".format(time.time()))
         matcher = Matcher(uid, b64String, log)
-        print("{}:\t Matcher created. Starting algo...".format(time.time()))
-        t = time.time()
-        match_result = matcher.match(algorithm=Config.CURRENT_ALGORITHM)
-        print("{}:\t Matching algo finished".format(time.time()))
+        # Override default values if options are given
+        if r_json.get("algorithm") :
+            matcher.algorithm = r_json.get("algorithm")
+        if r_json.get("ORB_nfeatures"):
+            matcher.ORB_nfeatures =  r_json.get("ORB_nfeatures")
+        if r_json.get("SURF_hessian_threshold"):
+            matcher.SURF_hessian_threshold = r_json.get("SURF_hessian_threshold")
 
-        print("Matching took {} ms".format(time.time()-t))
+        # Start matcher
+        match_result = matcher.match()
+    
+        print("Matching took {} ms".format(time.perf_counter()-t_start))
         end_time = time.perf_counter()
 
         # Send data to server for logging

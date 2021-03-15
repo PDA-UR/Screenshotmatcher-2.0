@@ -40,6 +40,10 @@ class Matcher():
     self.match_dir = './www/results/result-' + match_uid
 
     self.b64_string = b64_string
+    self.algorithm = Config.CURRENT_ALGORITHM
+    self.ORB_nfeatures = 2000
+    self.SURF_hessian_threshold = 3500
+
     self.log = log
 
     if create_screenshot:
@@ -57,7 +61,7 @@ class Matcher():
   def formatTimeDiff(self, start, end):
     return round( (end - start) * 1000, 2 )
 
-  def match(self, algorithm='ORB'):
+  def match(self):
     start_time = time.perf_counter()
 
     # Load pictures
@@ -74,9 +78,9 @@ class Matcher():
 
     self.log.value_pairs["st_matching_start"] = round(time.time() * 1000)
     # Provisional switch statement
-    if algorithm == 'SURF':
+    if self.algorithm == 'SURF':
       match_result = self.algorithm_SURF(photo, screen, screen_colored)
-    elif algorithm == 'ORB':
+    elif self.algorithm == 'ORB':
       match_result = self.algorithm_ORB(photo, screen, screen_colored)
     else:
       match_result = self.algorithm_SURF(photo, screen, screen_colored)
@@ -87,13 +91,13 @@ class Matcher():
 
     return match_result
 
-  def algorithm_SURF(self, photo, screen, screen_colored, hessianThreshold = 3500, descMatcher = 1):
+  def algorithm_SURF(self, photo, screen, screen_colored, descMatcher = 1):
     self.log.value_pairs["sv_algorithm"] = "SURF"
-    self.log.value_pairs["sv_hessian_threshold"] = hessianThreshold
+    self.log.value_pairs["sv_hessian_threshold"] = self.SURF_hessian_threshold
     t1 = time.perf_counter()
 
     # Init algorithm
-    surf = SURF_create(hessianThreshold)
+    surf = SURF_create(self.SURF_hessian_threshold)
     surf.setUpright(True)
 
     t2 = time.perf_counter()
@@ -208,13 +212,13 @@ class Matcher():
     return b64_string
 
 
-  def algorithm_ORB(self, photo, screen, screen_colored, nfeatures = 2000, descriptor_matcher_name = 'BruteForce-Hamming'):
+  def algorithm_ORB(self, photo, screen, screen_colored, descriptor_matcher_name = 'BruteForce-Hamming'):
     self.log.value_pairs["sv_algorithm"] = "ORB"
-    self.log.value_pairs["sv_nfeatures"] = nfeatures
+    self.log.value_pairs["sv_nfeatures"] = self.ORB_nfeatures
     t1 = time.perf_counter()
 
     # Init algorithm
-    orb = ORB_create(nfeatures)
+    orb = ORB_create(self.ORB_nfeatures)
 
     t2 = time.perf_counter()
 
