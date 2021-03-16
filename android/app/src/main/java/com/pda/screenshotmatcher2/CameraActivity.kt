@@ -8,23 +8,21 @@ import android.content.res.Configuration
 import android.graphics.*
 import android.hardware.camera2.*
 import android.media.ImageReader
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
 import android.util.Size
-import android.view.KeyEvent
-import android.view.Surface
-import android.view.TextureView
-import android.view.View
+import android.view.*
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ListView
 import android.widget.TextView
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentTransaction
-import java.io.File
 import java.util.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
@@ -84,13 +82,28 @@ class CameraActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera)
-        supportActionBar?.hide()
         verifyPermissions(this)
         getServerURL()
         getUserID()
         initViews()
-
+        hideStatusAndActionBars()
         setViewListeners()
+    }
+
+    private fun hideStatusAndActionBars() {
+        supportActionBar?.hide()
+        when(Build.VERSION.SDK_INT){
+             in 0 .. 15 -> {
+                 requestWindowFeature(Window.FEATURE_NO_TITLE);
+                 window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                     WindowManager.LayoutParams.FLAG_FULLSCREEN);
+             }
+            in 16 .. 29 -> {
+                val decorView = window.decorView
+                val uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN
+                decorView.systemUiVisibility = uiOptions
+            }
+        }
     }
 
     private fun checkForFragment() {
@@ -517,11 +530,4 @@ class CameraActivity : AppCompatActivity() {
         backgroundDarkening.visibility = View.VISIBLE
     }
 
-    private fun configureViewsForOrientationChange(){
-        val orientation = resources.configuration.orientation
-        if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-        } else {
-            // In portrait
-        }
-    }
 }
