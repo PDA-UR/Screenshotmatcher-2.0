@@ -8,6 +8,7 @@
     android:background="@drawable/fragment_background"
     android:orientation="vertical"
     android:padding="10dp"
+    android:tag="errorFragment"
     tools:context=".ErrorFragment">
 
     <TextView
