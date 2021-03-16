@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -129,4 +130,12 @@ fun getDeviceName(): String {
     } else {
         "$manufacturer $model"
     }
+}
+
+fun rotateBitmapAndAdjustRatio(bitmap: Bitmap, deg: Float): Bitmap{
+    val width = bitmap.width
+    val height = bitmap.height
+    var mBitmap = Bitmap.createScaledBitmap(bitmap, height, width, false)
+    mBitmap = Bitmap.createBitmap(mBitmap, 0, 0, height, width, Matrix().apply { postRotate(deg) }, true)
+    return mBitmap
 }

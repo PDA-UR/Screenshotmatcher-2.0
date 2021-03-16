@@ -82,6 +82,7 @@ class FeedbackFragment : Fragment() {
                 removeThisFragment(true)
             }
         }
+        mFragmentBackground.visibility = View.VISIBLE
         mTextInputField = activity?.findViewById(R.id.ff_text_input)!!
         mSendFeedbackButton = activity?.findViewById(R.id.ff_send_feedback_button)!!
         mSendFeedbackButton.setOnClickListener {

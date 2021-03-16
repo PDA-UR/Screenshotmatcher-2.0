@@ -11,64 +11,73 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <FrameLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/frameLayout2"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            app:layout_constraintVertical_weight="1"
-            app:layout_constraintHeight_max="75dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toTopOf="@id/camera_activity_frameLayout">
+            android:layout_width="0dp"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintWidth_max="75dp"
+            android:layout_height="match_parent"
+
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/camera_activity_frameLayout"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
             <FrameLayout
                 android:id="@+id/camera_activity_select_frame"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_margin="5dp">
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_margin="5dp"
+                app:layout_constraintDimensionRatio="1:1"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
 
                 <ImageButton
                     android:id="@+id/select_device_button"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="@drawable/select_device_disconnected"></ImageButton>
+                    android:background="@drawable/select_device_disconnected"
+                    android:src="@drawable/ic_baseline_link_24"></ImageButton>
+
                 <TextView
                     android:id="@+id/camera_activity_select_device_text"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:gravity="center_vertical"
-                    android:textSize="15dp"
-                    android:layout_marginLeft="5dp"
-                    android:layout_marginRight="5dp">
-                </TextView>
+                    android:text=""
+                    android:visibility="invisible"></TextView>
             </FrameLayout>
-        </FrameLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <ImageButton
-            android:id="@+id/capture_button"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:background="@drawable/round_button"
-            android:maxHeight="150dp"
-            android:minHeight="100dp"
-            android:src="@drawable/ic_baseline_photo_camera_24"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintVertical_weight="2"
-            app:layout_constraintTop_toBottomOf="@id/camera_activity_frameLayout"></ImageButton>
+
+
+
+            <ImageButton
+                android:id="@+id/capture_button"
+                android:layout_width="0dp"
+                app:layout_constraintHorizontal_weight="2"
+                android:layout_height="match_parent"
+                android:background="@drawable/round_button"
+                android:src="@drawable/ic_baseline_photo_camera_24"
+                android:text="@string/capture_button_text_en"
+                android:textColor="@color/white"
+                app:layout_constraintWidth_max="150dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/camera_activity_frameLayout"
+                app:layout_constraintTop_toTopOf="parent"></ImageButton>
+
+
 
         <FrameLayout
             android:id="@+id/camera_activity_frameLayout"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            app:layout_constraintDimensionRatio="3:4"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/frameLayout2"
-            app:layout_constraintBottom_toTopOf="@id/capture_button"
-
-            >
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintDimensionRatio="4:3"
+            app:layout_constraintStart_toEndOf="@id/frameLayout2"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/capture_button">
 
             <ListView
                 android:id="@+id/select_device_list"
@@ -94,9 +103,9 @@
 
     <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/fragment_container_view"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
         android:layout_margin="10dp"
         android:clickable="true"
         android:elevation="15dp"
@@ -107,9 +116,9 @@
 
     <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/feedback_fragment_container_view"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
         android:layout_margin="10dp"
         android:clickable="true"
         android:elevation="10dp"
