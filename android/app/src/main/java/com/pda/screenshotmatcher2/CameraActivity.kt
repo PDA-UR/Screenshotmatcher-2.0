@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.graphics.*
 import android.hardware.camera2.*
 import android.media.ImageReader
@@ -11,16 +12,19 @@ import android.os.Bundle
 import android.os.Handler
 import android.util.Log
 import android.util.Size
+import android.view.KeyEvent
 import android.view.Surface
 import android.view.TextureView
 import android.view.View
-import android.widget.Button
 import android.widget.FrameLayout
+import android.widget.ImageButton
 import android.widget.ListView
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentTransaction
+import java.io.File
 import java.util.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
@@ -67,10 +71,11 @@ class CameraActivity : AppCompatActivity() {
     private var surfaceTextureWidth: Int = 0
 
     //Other UI Views
-    private lateinit var mSelectDeviceButton: Button
+    private lateinit var mSelectDeviceButton: ImageButton
     private lateinit var mSelectDeviceList: ListView
-    private lateinit var mCaptureButton: Button
+    private lateinit var mCaptureButton: ImageButton
     private lateinit var backgroundDarkening: FrameLayout
+    private lateinit var mSelectDeviceButtonText: TextView
 
     private var mServerURL: String = ""
     private var mUserID: String = ""
@@ -84,16 +89,30 @@ class CameraActivity : AppCompatActivity() {
         getServerURL()
         getUserID()
         initViews()
+
         setViewListeners()
+    }
+
+    private fun checkForFragment() {
+        val ef: ErrorFragment? =
+            supportFragmentManager.findFragmentByTag("errorFragment") as ErrorFragment?
+        val ff: FeedbackFragment? =
+            supportFragmentManager.findFragmentByTag("feedbackFragment") as FeedbackFragment?
+        if (ef != null && ef.isAdded || ff != null && ff.isAdded) {
+           backgroundDarkening.visibility = View.VISIBLE
+        } else{
+            backgroundDarkening.visibility = View.INVISIBLE
+        }
     }
 
     private fun initViews() {
         mTextureView = findViewById(R.id.preview_view)
         mCaptureButton = findViewById(R.id.capture_button)
         mSelectDeviceButton = findViewById(R.id.select_device_button)
-        mSelectDeviceButton.text = getString(R.string.select_device_button_notConnected_en)
         mSelectDeviceButton.background =
             resources.getDrawable(R.drawable.select_device_disconnected)
+        mSelectDeviceButtonText = findViewById(R.id.camera_activity_select_device_text)
+        mSelectDeviceButtonText.text = getText(R.string.select_device_button_notConnected_en)
         mSelectDeviceList = findViewById(R.id.select_device_list)
         backgroundDarkening = findViewById(R.id.ca_dark_background)
         backgroundDarkening.setOnClickListener { Log.d("bg", "background clicked") }
@@ -141,6 +160,15 @@ class CameraActivity : AppCompatActivity() {
                 mSelectDeviceList.visibility = View.VISIBLE
             }
         }
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+            StudyLogger.hashMap["client_id"] = mUserID
+            StudyLogger.hashMap["tc_button_pressed"] = System.currentTimeMillis()
+            captureImageWithPreviewExtraction()
+        }
+        return true
     }
 
     //Callback for camera changes
@@ -375,6 +403,7 @@ class CameraActivity : AppCompatActivity() {
         }
     }
 
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -404,7 +433,18 @@ class CameraActivity : AppCompatActivity() {
     private fun captureImageWithPreviewExtraction() {
         Log.v("TIMING", "Button pressed")
         startTime = System.currentTimeMillis()
-        val mBitmap: Bitmap? = mTextureView.bitmap
+        var mBitmap: Bitmap? = mTextureView.bitmap
+
+        val orientation = windowManager.defaultDisplay.rotation
+        if (orientation != Surface.ROTATION_0 && mBitmap != null) {
+            Log.d("CA", "Start rotate")
+            when(orientation){
+                Surface.ROTATION_90 -> mBitmap = rotateBitmapAndAdjustRatio(mBitmap, -90F)
+                Surface.ROTATION_270 -> mBitmap = rotateBitmapAndAdjustRatio(mBitmap, 90F)
+            }
+            Log.d("CA", "End rotate")
+        }
+
         if (mBitmap != null) {
             StudyLogger.hashMap["tc_image_captured"] = System.currentTimeMillis()
             StudyLogger.hashMap["long_side"] = IMG_TARGET_SIZE
@@ -430,17 +470,17 @@ class CameraActivity : AppCompatActivity() {
         Thread {
             Log.v("TEST", "discovering server...")
             mServerURL = discoverServerOnNetwork(this, 49050, "")
-            onServerURLget(mServerURL)
+
         }.start()
     }
 
-    private fun onServerURLget(serverURL: String) {
+    public fun onServerURLget(serverURL: String) {
         Thread {
             Log.v("TIMING", "Got URL")
             runOnUiThread {
                 mSelectDeviceButton.background =
                     resources.getDrawable(R.drawable.select_device_connected)
-                mSelectDeviceButton.text = serverURL
+                mSelectDeviceButtonText.text = serverURL
             }
         }.start()
     }
@@ -471,10 +511,17 @@ class CameraActivity : AppCompatActivity() {
 
         this.supportFragmentManager
             .beginTransaction()
-            .add(R.id.fragment_container_view, errorFragment)
+            .add(R.id.fragment_container_view, errorFragment, "ErrorFragment")
             .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
             .commit()
-
         backgroundDarkening.visibility = View.VISIBLE
+    }
+
+    private fun configureViewsForOrientationChange(){
+        val orientation = resources.configuration.orientation
+        if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        } else {
+            // In portrait
+        }
     }
 }

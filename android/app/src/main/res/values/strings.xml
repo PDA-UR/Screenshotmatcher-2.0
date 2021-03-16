@@ -28,4 +28,6 @@
     <string name="ff_submit_success_en">Feedback sent</string>
     <string name="ff_submit_failed_en">Failed to send feedback</string>
     <string name="http_download_full_error_en">Downloading full screenshot from server failed</string>
+    <string name="select_device_button_notConnected_landscape_en">D\ni\ns\nc\no\nn\nn\ne\nc\nt\ne\nd</string>
+    <string name="select_device_button_connected_en">connected</string>
 </resources>
