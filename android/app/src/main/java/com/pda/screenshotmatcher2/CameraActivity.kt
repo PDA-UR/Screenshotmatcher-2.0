@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.content.res.Configuration
 import android.graphics.*
 import android.hardware.camera2.*
 import android.media.ImageReader
@@ -18,7 +17,6 @@ import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ListView
 import android.widget.TextView
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.view.isVisible
@@ -103,18 +101,6 @@ class CameraActivity : AppCompatActivity() {
                 val uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN
                 decorView.systemUiVisibility = uiOptions
             }
-        }
-    }
-
-    private fun checkForFragment() {
-        val ef: ErrorFragment? =
-            supportFragmentManager.findFragmentByTag("errorFragment") as ErrorFragment?
-        val ff: FeedbackFragment? =
-            supportFragmentManager.findFragmentByTag("feedbackFragment") as FeedbackFragment?
-        if (ef != null && ef.isAdded || ff != null && ff.isAdded) {
-           backgroundDarkening.visibility = View.VISIBLE
-        } else{
-            backgroundDarkening.visibility = View.INVISIBLE
         }
     }
 
