@@ -1,0 +1,12 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory app:title="@string/settings_algorithm_header_en">
+        <SwitchPreferenceCompat
+            app:title="@string/settings_algorithm_toggle"
+            android:summary="@string/settings_algorithm_summary"
+            android:key="@string/settings_algorithm_key"
+            android:defaultValue="true"/>
+    </PreferenceCategory>
+
+</PreferenceScreen>

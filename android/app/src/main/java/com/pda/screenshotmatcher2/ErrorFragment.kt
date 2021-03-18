@@ -50,6 +50,7 @@ class ErrorFragment : Fragment() {
         mFullImageButton.setOnClickListener { openResultsActivity() }
         mFragmentBackground = activity?.findViewById(R.id.ca_dark_background)!!
         mFragmentBackground.setOnClickListener { removeThisFragment(true) }
+        mFragmentBackground.visibility = View.VISIBLE
     }
 
     private fun openResultsActivity() {
@@ -69,7 +70,7 @@ class ErrorFragment : Fragment() {
 
         activity?.supportFragmentManager
             ?.beginTransaction()
-            ?.replace(R.id.feedback_fragment_container_view, feedbackFragment)
+            ?.replace(R.id.feedback_fragment_container_view, feedbackFragment, "feedbackFragment")
             ?.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
             ?.commit()
         removeThisFragment(false)

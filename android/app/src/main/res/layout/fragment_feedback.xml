@@ -7,12 +7,15 @@
     tools:context=".FeedbackFragment"
     android:id="@+id/feedbackFragment"
     android:background="@drawable/fragment_background"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:tag="feedbackFragment"
+    android:minWidth="300dp">
 
     <LinearLayout
         android:id="@+id/ff_linearLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="4"
         android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -23,7 +26,8 @@
         <TextView
             android:id="@+id/ef_no_match_text_view"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="3"
             android:layout_gravity="center"
             android:text="@string/feedback_en"
             android:textSize="50dp"
@@ -32,7 +36,8 @@
         <TextView
             android:id="@+id/textView"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="2"
             android:text="@string/ff_comment_en"
             android:textSize="20dp"
             android:clickable="true"
@@ -43,16 +48,18 @@
             android:id="@+id/ff_text_input"
             android:layout_width="match_parent"
             android:background="@drawable/ff_text_input_background"
-            android:layout_height="200dp"></EditText>
+            android:layout_height="0dp"
+            android:layout_weight="6"></EditText>
 
     </LinearLayout>
 
     <Button
         android:id="@+id/ff_send_feedback_button"
         android:layout_width="match_parent"
-        android:layout_height="75dp"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:textAllCaps="false"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="10dp"
         android:background="@drawable/fragment_feedback_button_background"
         android:text="@string/ff_submit_feedback_en"
         android:textSize="30dp"
