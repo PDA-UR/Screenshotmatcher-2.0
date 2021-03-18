@@ -31,6 +31,8 @@ fun discoverServerOnNetwork(context: Context, port: Int = 49050, message: String
     // expected answer from server: "192.168.0.45:99887"
     val serverURL = PROTOCOL + String(packetR.data, 0, packetR.length)
     Log.v("TEST", serverURL)
+    val activity: CameraActivity = context as CameraActivity
+    activity.onServerURLget(serverURL)
     return serverURL
 }
 
