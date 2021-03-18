@@ -10,6 +10,7 @@ import android.media.ImageReader
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.provider.Settings
 import android.util.Log
 import android.util.Size
 import android.view.*
@@ -72,6 +73,7 @@ class CameraActivity : AppCompatActivity() {
     private lateinit var mCaptureButton: ImageButton
     private lateinit var backgroundDarkening: FrameLayout
     private lateinit var mSelectDeviceButtonText: TextView
+    private lateinit var mSettingsButton: ImageButton
 
     private var mServerURL: String = ""
     private var mUserID: String = ""
@@ -115,7 +117,10 @@ class CameraActivity : AppCompatActivity() {
         mSelectDeviceList = findViewById(R.id.select_device_list)
         backgroundDarkening = findViewById(R.id.ca_dark_background)
         backgroundDarkening.setOnClickListener { Log.d("bg", "background clicked") }
+        mSettingsButton = findViewById(R.id.camera_activity_settings_button)
+        mSettingsButton.setOnClickListener { openSettings() }
     }
+
 
     private fun setViewListeners() {
         mTextureView.surfaceTextureListener =
@@ -515,5 +520,18 @@ class CameraActivity : AppCompatActivity() {
             .commit()
         backgroundDarkening.visibility = View.VISIBLE
     }
+
+    private fun openSettings() {
+        val settingsFragment = SettingsFragment()
+
+        this.supportFragmentManager
+            .beginTransaction()
+            .add(R.id.settings_fragment_container_view, settingsFragment, "SettingsFragment")
+            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+            .commit()
+        backgroundDarkening.visibility = View.VISIBLE
+    }
+
+
 
 }
