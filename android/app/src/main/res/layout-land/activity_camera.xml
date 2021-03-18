@@ -47,6 +47,25 @@
                     android:text=""
                     android:visibility="invisible"></TextView>
             </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/camera_activity_settings_frame"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_margin="5dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintDimensionRatio="1:1"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent">
+
+                <ImageButton
+                    android:id="@+id/camera_activity_settings_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/round_button"
+                    android:src="@drawable/ic_baseline_settings_24"></ImageButton>
+
+            </FrameLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
 
@@ -120,6 +139,20 @@
         android:layout_height="match_parent"
         android:layout_gravity="center"
         android:layout_margin="10dp"
+        android:clickable="true"
+        android:elevation="10dp"
+        android:outlineProvider="bounds"
+        android:outlineSpotShadowColor="@color/black"
+        android:scaleType="fitXY"
+        android:visibility="invisible" />
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/settings_fragment_container_view"
+        android:layout_width="400dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_margin="10dp"
+        app:cardCornerRadius="15dp"
         android:clickable="true"
         android:elevation="10dp"
         android:outlineProvider="bounds"
