@@ -368,41 +368,79 @@ class CameraActivity : AppCompatActivity() {
         textureViewHeight: Int, maxWidth: Int, maxHeight: Int, aspectRatio: Size
     ): Size? {
 
-        // resolutions > preview Surface
-        val bigEnough: MutableList<Size> = ArrayList()
-        // resolutions < preview Surface
-        val notBigEnough: MutableList<Size> = ArrayList()
+
+        var keyWidth: String = "previewWidthPortrait"
+        var keyHeight: String = "previewHeightPortrait"
+
+        var keyWidthView: String = "ViewPreviewWidthPortrait"
+        var keyHeightView: String = "ViewPreviewHeightPortrait"
+
+        val orientation = windowManager.defaultDisplay.rotation
+        if (orientation == Surface.ROTATION_90 || orientation == Surface.ROTATION_270) {
+            Log.d("CA", "Landscape")
+            keyWidth = "previewHeightPortrait"
+            keyHeight = "previewWidthPortrait"
+            keyWidthView = "ViewPreviewWidthPortrait"
+            keyHeightView = "ViewPreviewHeightPortrait"
+        }
+
+        if (!::sp.isInitialized) {
+            setupSharedPref()
+        }
+        val mSavedWidth: Int = sp.getInt(keyHeight, 0)
+        val mSavedHeight: Int = sp.getInt(keyWidth, 0)
 
         val w = aspectRatio.width
         val h = aspectRatio.height
-        for (option in choices) {
-            Log.d("CAMERA", "Checking option $option")
-            if (option.width <= maxWidth && option.height <= maxHeight && option.height == option.width * h / w
-            ) {
-                if (option.width >= textureViewWidth &&
-                    option.height >= textureViewHeight
+        val mSavedWidthOfView: Int = sp.getInt(keyWidthView, 0)
+        val mSavedHeightOfView: Int = sp.getInt(keyHeightView, 0)
+
+        if ((mSavedWidth != 0 && mSavedHeight != 0) && (mSavedWidthOfView == w && mSavedHeightOfView == h)) {
+            Log.d("CA", "Using old width")
+            return Size(mSavedWidth, mSavedHeight)
+        } else {
+            sp.edit().putInt(keyWidthView, w).apply()
+            sp.edit().putInt(keyHeightView, h).apply()
+            // resolutions > preview Surface
+            val bigEnough: MutableList<Size> = ArrayList()
+            // resolutions < preview Surface
+            val notBigEnough: MutableList<Size> = ArrayList()
+
+            for (option in choices) {
+                Log.d("CAMERA", "Checking option $option")
+                if (option.width <= maxWidth && option.height <= maxHeight && option.height == option.width * h / w
                 ) {
-                    bigEnough.add(option)
-                    Log.d("CAMERA", "Added $option to big resolutions")
-                } else {
-                    notBigEnough.add(option)
-                    Log.d("CAMERA", "Added $option to small resolutions")
+                    if (option.width >= textureViewWidth &&
+                        option.height >= textureViewHeight
+                    ) {
+                        bigEnough.add(option)
+                        Log.d("CAMERA", "Added $option to big resolutions")
+                    } else {
+                        notBigEnough.add(option)
+                        Log.d("CAMERA", "Added $option to small resolutions")
+                    }
+                }
+            }
+
+            return when {
+                bigEnough.size > 0 -> {
+                    sp.edit().putInt(keyWidth, Collections.min(bigEnough, CompareSizesByArea()).width).apply()
+                    sp.edit().putInt(keyHeight, Collections.min(bigEnough, CompareSizesByArea()).height).apply()
+                    Collections.min(bigEnough, CompareSizesByArea())
+                }
+                notBigEnough.size > 0 -> {
+                    sp.edit().putInt(keyWidth, Collections.max(notBigEnough, CompareSizesByArea()).width).apply()
+                    sp.edit().putInt(keyHeight, Collections.max(notBigEnough, CompareSizesByArea()).height).apply()
+                    Collections.max(notBigEnough, CompareSizesByArea())
+                }
+                else -> {
+                    Log.e("CAMERA", "No suitable preview size")
+                    choices[0]
                 }
             }
         }
 
-        return when {
-            bigEnough.size > 0 -> {
-                Collections.min(bigEnough, CompareSizesByArea())
-            }
-            notBigEnough.size > 0 -> {
-                Collections.max(notBigEnough, CompareSizesByArea())
-            }
-            else -> {
-                Log.e("CAMERA", "No suitable preview size")
-                choices[0]
-            }
-        }
+
     }
 
     internal class CompareSizesByArea : Comparator<Size?> {
