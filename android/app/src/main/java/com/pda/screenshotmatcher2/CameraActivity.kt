@@ -3,6 +3,7 @@ package com.pda.screenshotmatcher2
 import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.graphics.*
 import android.hardware.camera2.*
@@ -10,7 +11,6 @@ import android.media.ImageReader
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
-import android.provider.Settings
 import android.util.Log
 import android.util.Size
 import android.view.*
@@ -22,9 +22,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentTransaction
+import androidx.preference.PreferenceManager
 import java.util.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
+import kotlin.collections.HashMap
 
 
 class CameraActivity : AppCompatActivity() {
@@ -79,6 +81,10 @@ class CameraActivity : AppCompatActivity() {
     private var mUserID: String = ""
     private var startTime: Long = 0
 
+    //Shared preferences
+    private lateinit var sp: SharedPreferences
+    private lateinit var MATCHING_MODE_PREF_KEY: String
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera)
@@ -88,7 +94,10 @@ class CameraActivity : AppCompatActivity() {
         initViews()
         hideStatusAndActionBars()
         setViewListeners()
+        setupSharedPref()
     }
+
+
 
     private fun hideStatusAndActionBars() {
         supportActionBar?.hide()
@@ -454,9 +463,12 @@ class CameraActivity : AppCompatActivity() {
             StudyLogger.hashMap["long_side"] = IMG_TARGET_SIZE
             val greyImg = rescale(mBitmap, IMG_TARGET_SIZE)
             Log.v("TIMING", "Image rescaled.")
-            sendBitmap(greyImg, mServerURL, this)
+            var matchingOptions: HashMap<Any?,Any?>? = getMatchingOptionsFromPref()
+            sendBitmap(greyImg, mServerURL, this, matchingOptions)
         }
     }
+
+
 
     private fun getUserID() {
         val sharedPreferences =
@@ -532,6 +544,22 @@ class CameraActivity : AppCompatActivity() {
         backgroundDarkening.visibility = View.VISIBLE
     }
 
+    private fun setupSharedPref() {
+        sp = PreferenceManager.getDefaultSharedPreferences(this)
+        MATCHING_MODE_PREF_KEY = getString(R.string.settings_algorithm_key)
+        var fastMatchingMode: Boolean = sp.getBoolean(MATCHING_MODE_PREF_KEY, true)
+        Log.d("CA", "Mode is {${fastMatchingMode.toString()}}")
+    }
 
+    private fun getMatchingOptionsFromPref(): HashMap<Any?, Any?>? {
+        var matchingMode: HashMap<Any?, Any?>? = HashMap()
+        var fastMatchingMode: Boolean = sp.getBoolean(MATCHING_MODE_PREF_KEY, true)
+        if (fastMatchingMode){
+            matchingMode?.set(getString(R.string.algorithm_key_server), getString(R.string.algorithm_fast_mode_name_server))
+        } else{
+            matchingMode?.set(getString(R.string.algorithm_key_server), getString(R.string.algorithm_accurate_mode_name_server))
+        }
+        return matchingMode
+    }
 
 }
