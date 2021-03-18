@@ -12,7 +12,6 @@ import androidx.preference.PreferenceFragmentCompat
 
 class SettingsFragment : PreferenceFragmentCompat() {
 
-    lateinit var SETTINGS_SHARED_PREFERENCES_FILE_NAME: String
     lateinit var mFragmentBackground: FrameLayout
     lateinit var containerView: CardView
 

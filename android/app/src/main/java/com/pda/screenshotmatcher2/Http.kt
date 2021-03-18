@@ -36,6 +36,7 @@ fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, matchingO
     val json = JSONObject()
     matchingOptions?.forEach{ (key, value) ->
         json.put(key.toString(), value.toString())
+        Log.d("key", "$value")
     }
     // keys: "algorithm", "ORB_nfeatures", "SURF_hessian_threshold"
     json.put("b64", b64Image)
