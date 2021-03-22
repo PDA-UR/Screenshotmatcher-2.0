@@ -523,18 +523,18 @@ class CameraActivity : AppCompatActivity() {
     private fun getServerURL() {
         Thread {
             Log.v("TEST", "discovering server...")
-            mServerURL = discoverServersOnNetwork(this, 49050, "")[0]   //TODO: properly use the entire list
+            mServerURL = discoverServersOnNetwork(this, 49050, "")[0].first   //TODO: properly use the entire list
 
         }.start()
     }
 
-    fun onServerURLsGet(servers: List<String>) {
+    fun onServerURLsGet(servers: List<Pair<String,String>>) {
         Thread {
             Log.v("TIMING", "Got URL")
             runOnUiThread {
                 mSelectDeviceButton.background =
                     resources.getDrawable(R.drawable.select_device_connected)
-                mSelectDeviceButtonText.text = servers[0]   // TODO: properly use the entire list
+                mSelectDeviceButtonText.text = servers[0].first   // TODO: properly use the entire list
             }
         }.start()
     }

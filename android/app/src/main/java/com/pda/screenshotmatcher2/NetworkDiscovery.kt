@@ -10,7 +10,8 @@ import java.net.*
 const val PROTOCOL = "http://"
 const val MAX_SERVERS = 5
 
-fun discoverServersOnNetwork(context: Context, port: Int = 49050, message: String = "screenshot matcher client LF server") : List<String> {
+// returns List(address, hostname)
+fun discoverServersOnNetwork(context: Context, port: Int = 49050, message: String = "screenshot matcher client LF server") : List<Pair<String, String>> {
     val s = DatagramSocket().also {
         it.broadcast = true
         it.reuseAddress = true
@@ -22,15 +23,17 @@ fun discoverServersOnNetwork(context: Context, port: Int = 49050, message: Strin
     val bcAddress = getBroadcastAddress(context) ?: return emptyList()
     val packetS = DatagramPacket(bufS, bufS.size, bcAddress, port)
     val packetR = DatagramPacket(bufR, bufR.size)
-    val serverList = mutableListOf<String>()
+    val serverList = mutableListOf<Pair<String, String>>()
 
     s.send(packetS)
     // try to get answers from every server on the LAN
+    // expected answer from server: "192.168.0.45:49049|Desktop-5QFF67"
     for (i in 1..MAX_SERVERS){
         try {
             s.receive(packetR)  // receive will block here, until soTimeout gets reached
+            val payload = String(packetR.data, 0, packetR.length).split('|')
             serverList.add(
-                PROTOCOL + String(packetR.data, 0, packetR.length)
+                Pair(PROTOCOL + payload[0], payload[1])
             )
         }
         catch(e: SocketTimeoutException) {
@@ -39,9 +42,11 @@ fun discoverServersOnNetwork(context: Context, port: Int = 49050, message: Strin
     }
     s.close()
 
-    // expected answer from server: "192.168.0.45:99887"
     val activity: CameraActivity = context as CameraActivity
     activity.onServerURLsGet(serverList)  // call function on main thread
+    serverList.forEach {
+        Log.d("UDP", it.second)
+    }
     return serverList
 }
 
