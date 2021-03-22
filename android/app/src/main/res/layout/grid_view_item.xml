@@ -2,18 +2,32 @@
 <FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/grid_view_item_frame"
-    android:layout_width="200dp"
+    android:layout_width="match_parent"
     android:layout_height="150dp">
     <ImageView
         android:id="@+id/grid_view_item_first_image"
-        android:layout_width="175dp"
-        android:layout_height="125dp"
-        android:layout_gravity="center_horizontal|left">
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:foreground="@drawable/image_view_frame"
+        android:elevation="5dp"
+        android:outlineProvider="bounds"
+        android:outlineSpotShadowColor="@color/black"
+        android:scaleType="fitXY"
+        android:layout_margin="10dp"
+        android:layout_gravity="center_horizontal"
+        android:visibility="invisible">
     </ImageView>
     <ImageView
         android:id="@+id/grid_view_item_second_image"
-        android:layout_width="175dp"
-        android:layout_height="125dp"
-        android:layout_gravity="center_horizontal|right">
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:foreground="@drawable/image_view_frame"
+        android:elevation="5dp"
+        android:outlineProvider="bounds"
+        android:layout_margin="10dp"
+        android:outlineSpotShadowColor="@color/black"
+        android:scaleType="fitXY"
+        android:layout_gravity="center_horizontal"
+        android:visibility="invisible">
     </ImageView>
 </FrameLayout>

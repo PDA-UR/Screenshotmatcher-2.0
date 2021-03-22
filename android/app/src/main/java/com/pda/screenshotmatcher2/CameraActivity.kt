@@ -10,6 +10,7 @@ import android.hardware.camera2.*
 import android.media.ImageReader
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.os.Handler
 import android.util.Log
 import android.util.Size
@@ -23,10 +24,13 @@ import androidx.core.app.ActivityCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentTransaction
 import androidx.preference.PreferenceManager
+import java.io.File
 import java.util.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
+import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
+import kotlin.concurrent.thread
 
 
 class CameraActivity : AppCompatActivity() {
@@ -73,7 +77,7 @@ class CameraActivity : AppCompatActivity() {
     private lateinit var mSelectDeviceButton: ImageButton
     private lateinit var mSelectDeviceList: ListView
     private lateinit var mCaptureButton: ImageButton
-    private lateinit var backgroundDarkening: FrameLayout
+    private lateinit var mFragmentDarkBackground: FrameLayout
     private lateinit var mSelectDeviceButtonText: TextView
     private lateinit var mSettingsButton: ImageButton
     private lateinit var mGalleryButton: ImageButton
@@ -86,6 +90,11 @@ class CameraActivity : AppCompatActivity() {
     private lateinit var sp: SharedPreferences
     private lateinit var MATCHING_MODE_PREF_KEY: String
 
+    //Old images gallery
+    lateinit var imageDirectory: File
+    lateinit var files: Array<File>
+    public lateinit var imageArray: ArrayList<ArrayList<File>>
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera)
@@ -96,9 +105,10 @@ class CameraActivity : AppCompatActivity() {
         hideStatusAndActionBars()
         setViewListeners()
         setupSharedPref()
+        if(!this::imageArray.isInitialized){
+            thread { fillUpImageList() }
+        }
     }
-
-
 
     private fun hideStatusAndActionBars() {
         supportActionBar?.hide()
@@ -125,8 +135,8 @@ class CameraActivity : AppCompatActivity() {
         mSelectDeviceButtonText = findViewById(R.id.camera_activity_select_device_text)
         mSelectDeviceButtonText.text = getText(R.string.select_device_button_notConnected_en)
         mSelectDeviceList = findViewById(R.id.select_device_list)
-        backgroundDarkening = findViewById(R.id.ca_dark_background)
-        backgroundDarkening.setOnClickListener { Log.d("bg", "background clicked") }
+        mFragmentDarkBackground = findViewById(R.id.ca_dark_background)
+        mFragmentDarkBackground.setOnClickListener { Log.d("bg", "background clicked") }
         mSettingsButton = findViewById(R.id.camera_activity_settings_button)
         mSettingsButton.setOnClickListener { openSettings() }
         mGalleryButton = findViewById(R.id.camera_activity_gallery_button)
@@ -571,7 +581,7 @@ class CameraActivity : AppCompatActivity() {
             .add(R.id.fragment_container_view, errorFragment, "ErrorFragment")
             .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
             .commit()
-        backgroundDarkening.visibility = View.VISIBLE
+        mFragmentDarkBackground.visibility = View.VISIBLE
     }
 
     private fun openSettings() {
@@ -582,7 +592,7 @@ class CameraActivity : AppCompatActivity() {
             .add(R.id.settings_fragment_container_view, settingsFragment, "SettingsFragment")
             .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
             .commit()
-        backgroundDarkening.visibility = View.VISIBLE
+        mFragmentDarkBackground.visibility = View.VISIBLE
     }
 
     private fun setupSharedPref() {
@@ -611,7 +621,68 @@ class CameraActivity : AppCompatActivity() {
             .add(R.id.fragment_container_view, galleryFragment, "GalleryFragment")
             .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
             .commit()
-        backgroundDarkening.visibility = View.VISIBLE
+        mFragmentDarkBackground.visibility = View.VISIBLE
+    }
+
+    private fun fillUpImageList() {
+        imageDirectory = this.getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
+        files = imageDirectory.listFiles()
+        files.sortDescending()
+        imageArray = ArrayList()
+
+        files.forEach outer@{ file ->
+            if (imageArray.isNotEmpty()){
+                imageArray.forEach inner@{ item ->
+                    if(fileBelongsToImageArrayItem(file, item)){
+                        item.add(file)
+                        return@outer
+                    }
+                }
+
+                var fileCouple: ArrayList<File> = ArrayList()
+                fileCouple.add(file)
+                imageArray.add(fileCouple)
+
+            } else {
+                var fileCouple: ArrayList<File> = ArrayList()
+                fileCouple.add(file)
+                imageArray.add(fileCouple)
+            }
+        }
+        var countSingle = 0
+        var countPair = 1
+        imageArray.forEach {
+            if (it.size == 1){
+                countSingle++
+            } else{
+                countPair++
+            }
+        }
+        Log.d("CA", "Single: $countSingle, Pair: $countPair")
+    }
+
+    private fun fileBelongsToImageArrayItem(file: File, item: ArrayList<File>): Boolean {
+        //Item has already 2 entries
+        var filename: String = file.name.split("_".toRegex()).first()
+        val itemName: String = item[0].name.split("_".toRegex()).first()
+
+        Log.d("GF", "$filename and $itemName")
+
+        if(item.size == 2){
+            Log.d("GF", "full list")
+            return false
+        }
+
+        return filename == itemName
+    }
+
+    public fun openPreviewFragment(firstImage: File?, secondImage: File?){
+        val previewFragment = GalleryPreviewFragment()
+        this.supportFragmentManager
+            .beginTransaction()
+            .add(R.id.gallery_fragment_body_layout, previewFragment, "PreviewFragment")
+            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+            .commit()
     }
 
 }
