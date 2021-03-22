@@ -98,6 +98,16 @@
                 android:id="@+id/preview_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
+            <ImageButton
+                android:id="@+id/camera_activity_gallery_button"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_baseline_image_24"
+                android:background="@drawable/round_button_transparent_bg"
+                android:layout_gravity="bottom"
+                android:layout_margin="10dp">
+
+            </ImageButton>
 
 
         </FrameLayout>
