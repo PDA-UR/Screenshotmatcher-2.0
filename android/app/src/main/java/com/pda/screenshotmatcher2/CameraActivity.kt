@@ -76,6 +76,7 @@ class CameraActivity : AppCompatActivity() {
     private lateinit var backgroundDarkening: FrameLayout
     private lateinit var mSelectDeviceButtonText: TextView
     private lateinit var mSettingsButton: ImageButton
+    private lateinit var mGalleryButton: ImageButton
 
     private var mServerURL: String = ""
     private var mUserID: String = ""
@@ -128,6 +129,8 @@ class CameraActivity : AppCompatActivity() {
         backgroundDarkening.setOnClickListener { Log.d("bg", "background clicked") }
         mSettingsButton = findViewById(R.id.camera_activity_settings_button)
         mSettingsButton.setOnClickListener { openSettings() }
+        mGalleryButton = findViewById(R.id.camera_activity_gallery_button)
+        mGalleryButton.setOnClickListener { openGallery() }
     }
 
 
@@ -598,6 +601,17 @@ class CameraActivity : AppCompatActivity() {
             matchingMode?.set(getString(R.string.algorithm_key_server), getString(R.string.algorithm_accurate_mode_name_server))
         }
         return matchingMode
+    }
+
+    private fun openGallery(){
+        val galleryFragment = GalleryFragment()
+
+        this.supportFragmentManager
+            .beginTransaction()
+            .add(R.id.fragment_container_view, galleryFragment, "GalleryFragment")
+            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+            .commit()
+        backgroundDarkening.visibility = View.VISIBLE
     }
 
 }

@@ -37,4 +37,6 @@
     <string name="algorithm_key_server" translatable="false">algorithm</string>
     <string name="algorithm_fast_mode_name_server" translatable="false">ORB</string>
     <string name="algorithm_accurate_mode_name_server" translatable="false">SURF</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
