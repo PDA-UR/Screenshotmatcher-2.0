@@ -133,6 +133,7 @@
         android:scaleType="fitXY"
         android:visibility="invisible" />
 
+
     <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/feedback_fragment_container_view"
         android:layout_width="match_parent"
