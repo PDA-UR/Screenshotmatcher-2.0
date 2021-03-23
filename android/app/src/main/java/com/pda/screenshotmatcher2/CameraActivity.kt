@@ -38,6 +38,8 @@ class CameraActivity : AppCompatActivity() {
     private val MAX_PREVIEW_HEIGHT = 1080
     private val IMG_TARGET_SIZE = 512
 
+
+
     //Physical camera
     private lateinit var mCameraId: String
 
@@ -678,6 +680,12 @@ class CameraActivity : AppCompatActivity() {
 
     public fun openPreviewFragment(firstImage: File?, secondImage: File?){
         val previewFragment = GalleryPreviewFragment()
+
+        val bundle = Bundle()
+        bundle.putSerializable(FIRST_IMAGE_KEY, firstImage)
+        bundle.putSerializable(SECOND_IMAGE_KEY, secondImage)
+        previewFragment.arguments = bundle
+
         this.supportFragmentManager
             .beginTransaction()
             .add(R.id.gallery_fragment_body_layout, previewFragment, "PreviewFragment")
