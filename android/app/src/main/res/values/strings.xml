@@ -40,4 +40,5 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="gallery_en">Gallery</string>
+    <string name="preview_fragment_only_one_available_en">Only one image is available</string>
 </resources>
