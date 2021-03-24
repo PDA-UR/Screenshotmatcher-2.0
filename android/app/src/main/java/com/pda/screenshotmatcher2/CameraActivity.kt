@@ -710,10 +710,7 @@ class CameraActivity : AppCompatActivity() {
         var filename: String = file.name.split("_".toRegex()).first()
         val itemName: String = item[0].name.split("_".toRegex()).first()
 
-        Log.d("GF", "$filename and $itemName")
-
         if (item.size == 2) {
-            Log.d("GF", "full list")
             return false
         }
 
