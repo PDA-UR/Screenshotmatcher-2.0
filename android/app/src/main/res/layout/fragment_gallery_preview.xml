@@ -4,11 +4,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/pf_cardView"
     android:layout_width="match_parent"
-    android:layout_height="400dp"
+    android:layout_height="match_parent"
     android:layout_margin="10dp"
     android:padding="5dp"
     android:elevation="17dp"
     app:cardCornerRadius="15dp"
+    android:layout_gravity="center"
     android:clickable="true"
     tools:context=".GalleryPreviewFragment">
         <LinearLayout
@@ -54,6 +55,7 @@
                     android:layout_height="match_parent"
                     android:layout_gravity="start|center"
                     android:background="#00000000"
+                    android:visibility="invisible"
                     android:src="@drawable/ic_baseline_arrow_back_ios_new_48"
                     android:elevation="16dp"/>
 
@@ -62,6 +64,7 @@
                     android:layout_width="50dp"
                     android:layout_height="match_parent"
                     android:layout_gravity="end|center"
+                    android:visibility="invisible"
                     android:background="#00000000"
                     android:src="@drawable/ic_baseline_arrow_forward_ios_48"
                     android:elevation="16dp"/>
@@ -82,17 +85,18 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="4"
+                android:layout_height="wrap_content"
+                android:minHeight="75dp"
                 android:background="@color/white"
                 android:orientation="horizontal"
-                android:padding="5dp"
+                android:paddingBottom="10dp"
                 android:baselineAligned="false">
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
+                    android:gravity="center_vertical"
                     android:orientation="vertical">
 
                     <androidx.appcompat.widget.AppCompatImageButton
@@ -114,6 +118,7 @@
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
+                    android:gravity="center_vertical"
                     android:orientation="vertical">
 
                     <androidx.appcompat.widget.AppCompatImageButton
@@ -135,6 +140,7 @@
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
+                    android:gravity="center_vertical"
                     android:orientation="vertical">
 
                     <androidx.appcompat.widget.AppCompatImageButton
