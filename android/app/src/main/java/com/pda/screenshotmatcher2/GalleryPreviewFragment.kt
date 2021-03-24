@@ -19,7 +19,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import java.io.File
 
-
 const val FIRST_IMAGE_KEY: String = "FIRST_IMAGE"
 const val SECOND_IMAGE_KEY: String = "SECOND_IMAGE"
 
@@ -70,12 +69,12 @@ class GalleryPreviewFragment : Fragment() {
             val retrievedFile: File? = bundle.getSerializable(FIRST_IMAGE_KEY) as File?
             when (retrievedFile?.absolutePath?.split("_".toRegex())?.last()) {
                 "Full.png" -> {
-                    Log.d("PF", retrievedFile.absolutePath.split("_".toRegex())?.last()!!)
+                    Log.d("PF", retrievedFile.absolutePath.split("_".toRegex()).last())
                     mFullImageFile = retrievedFile
                     mPillNavigationState = 1
                 }
                 "Cropped.png" -> {
-                    Log.d("PF", retrievedFile.absolutePath.split("_".toRegex())?.last()!!)
+                    Log.d("PF", retrievedFile.absolutePath.split("_".toRegex()).last())
                     mCroppedImageFile = retrievedFile
                     mPillNavigationState = -1
                 }
@@ -117,8 +116,10 @@ class GalleryPreviewFragment : Fragment() {
                 mPillNavigationButton2.setBackgroundColor(requireActivity().getColor(R.color.invisible))
                 mPillNavigationButton1.background =
                     resources.getDrawable(R.drawable.pill_navigation_selected_item)
-                mImagePreviewPreviousButton.visibility = View.INVISIBLE
-                mImagePreviewNextButton.visibility = View.VISIBLE
+                if (numberOfAvailableImages == 2) {
+                    mImagePreviewNextButton.visibility = View.VISIBLE
+                    mImagePreviewPreviousButton.visibility = View.INVISIBLE
+                }
                 mShareButtonText.text = getString(R.string.result_activity_shareButtonText1_en)
                 mSaveOneButtonText.text =
                     getString(R.string.result_activity_saveOneButtonText1_en)
@@ -129,8 +130,11 @@ class GalleryPreviewFragment : Fragment() {
                 mPillNavigationButton1.setBackgroundColor(requireActivity().getColor(R.color.invisible))
                 mPillNavigationButton2.background =
                     resources.getDrawable(R.drawable.pill_navigation_selected_item)
-                mImagePreviewPreviousButton.visibility = View.VISIBLE
-                mImagePreviewNextButton.visibility = View.INVISIBLE
+                if (numberOfAvailableImages == 2) {
+                    mImagePreviewPreviousButton.visibility = View.VISIBLE
+                    mImagePreviewNextButton.visibility = View.INVISIBLE
+                }
+
                 mShareButtonText.text = getString(R.string.result_activity_shareButtonText2_en)
                 mSaveOneButtonText.text = getString(R.string.result_activity_saveOneButtonText2_en)
                 setImage()
@@ -150,13 +154,14 @@ class GalleryPreviewFragment : Fragment() {
     }
 
     private fun saveCurrentPreviewImage() {
+        Log.d("GF", "Saving preview")
         when (mPillNavigationState) {
             -1 -> {
                 if (mCroppedImageFile != null) {
                     MediaStore.Images.Media.insertImage(
                         requireContext().contentResolver,
                         mCroppedImageFile?.absolutePath,
-                        getString(R.string.cropped_screenshot_title_en),
+                        mCroppedImageFile?.name,
                         getString(R.string.screenshot_description_en)
                     )
                     Toast.makeText(
@@ -171,7 +176,7 @@ class GalleryPreviewFragment : Fragment() {
                     MediaStore.Images.Media.insertImage(
                         requireContext().contentResolver,
                         mFullImageFile?.absolutePath,
-                        getString(R.string.full_screenshot_title_en),
+                        mFullImageFile?.name,
                         getString(R.string.screenshot_description_en)
                     )
                     Toast.makeText(
@@ -189,13 +194,13 @@ class GalleryPreviewFragment : Fragment() {
             MediaStore.Images.Media.insertImage(
                 requireContext().contentResolver,
                 mCroppedImageFile?.absolutePath,
-                getString(R.string.cropped_screenshot_title_en),
+                mCroppedImageFile?.name,
                 getString(R.string.screenshot_description_en)
             )
             MediaStore.Images.Media.insertImage(
                 requireContext().contentResolver,
                 mFullImageFile?.absolutePath,
-                getString(R.string.full_screenshot_title_en),
+                mFullImageFile?.name,
                 getString(R.string.screenshot_description_en)
             )
             Toast.makeText(
@@ -254,9 +259,7 @@ class GalleryPreviewFragment : Fragment() {
         mPillNavigationButton1 = activity?.findViewById(R.id.pf_pillNavigation_button1)!!
         mPillNavigationButton2 = activity?.findViewById(R.id.pf_pillNavigation_button2)!!
         mImagePreviewPreviousButton = activity?.findViewById(R.id.pf_imagePreview_previousButton)!!
-        mImagePreviewPreviousButton.visibility = View.INVISIBLE
         mImagePreviewNextButton = activity?.findViewById(R.id.pf_imagePreview_nextButton)!!
-        mImagePreviewNextButton.visibility = View.VISIBLE
         mScreenshotImageView = activity?.findViewById(R.id.pf_imagePreview_imageView)!!
         mShareButton = activity?.findViewById(R.id.pf_shareButton)!!
         mSaveBothButton = activity?.findViewById(R.id.pf_saveBothButton)!!

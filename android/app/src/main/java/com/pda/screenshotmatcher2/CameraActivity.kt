@@ -1,6 +1,7 @@
 package com.pda.screenshotmatcher2
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -37,8 +38,6 @@ class CameraActivity : AppCompatActivity() {
     private val MAX_PREVIEW_WIDTH = 1920
     private val MAX_PREVIEW_HEIGHT = 1080
     private val IMG_TARGET_SIZE = 512
-
-
 
     //Physical camera
     private lateinit var mCameraId: String
@@ -95,7 +94,7 @@ class CameraActivity : AppCompatActivity() {
     //Old images gallery
     lateinit var imageDirectory: File
     lateinit var files: Array<File>
-    public lateinit var imageArray: ArrayList<ArrayList<File>>
+    lateinit var imageArray: ArrayList<ArrayList<File>>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -107,20 +106,38 @@ class CameraActivity : AppCompatActivity() {
         hideStatusAndActionBars()
         setViewListeners()
         setupSharedPref()
-        if(!this::imageArray.isInitialized){
+        if (!this::imageArray.isInitialized) {
             thread { fillUpImageList() }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        when (requestCode) {
+            RESULT_ACTIVITY_REQUEST_CODE -> {
+                when (resultCode) {
+                    Activity.RESULT_OK -> {
+                        var resultData: ArrayList<File> = data?.getSerializableExtra(
+                            RESULT_ACTIVITY_RESULT_CODE
+                        ) as ArrayList<File>
+                        imageArray.add(0, resultData)
+                    }
+                }
+            }
         }
     }
 
     private fun hideStatusAndActionBars() {
         supportActionBar?.hide()
-        when(Build.VERSION.SDK_INT){
-             in 0 .. 15 -> {
-                 requestWindowFeature(Window.FEATURE_NO_TITLE);
-                 window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                     WindowManager.LayoutParams.FLAG_FULLSCREEN);
-             }
-            in 16 .. 29 -> {
+        when (Build.VERSION.SDK_INT) {
+            in 0..15 -> {
+                requestWindowFeature(Window.FEATURE_NO_TITLE)
+                window.setFlags(
+                    WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                    WindowManager.LayoutParams.FLAG_FULLSCREEN
+                )
+            }
+            in 16..29 -> {
                 val decorView = window.decorView
                 val uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN
                 decorView.systemUiVisibility = uiOptions
@@ -129,63 +146,71 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun initViews() {
-        mTextureView = findViewById(R.id.preview_view)
-        mCaptureButton = findViewById(R.id.capture_button)
-        mSelectDeviceButton = findViewById(R.id.select_device_button)
-        mSelectDeviceButton.background =
-            resources.getDrawable(R.drawable.select_device_disconnected)
-        mSelectDeviceButtonText = findViewById(R.id.camera_activity_select_device_text)
-        mSelectDeviceButtonText.text = getText(R.string.select_device_button_notConnected_en)
-        mSelectDeviceList = findViewById(R.id.select_device_list)
-        mFragmentDarkBackground = findViewById(R.id.ca_dark_background)
-        mFragmentDarkBackground.setOnClickListener { Log.d("bg", "background clicked") }
-        mSettingsButton = findViewById(R.id.camera_activity_settings_button)
-        mSettingsButton.setOnClickListener { openSettings() }
-        mGalleryButton = findViewById(R.id.camera_activity_gallery_button)
-        mGalleryButton.setOnClickListener { openGallery() }
+        if (!::mTextureView.isInitialized){
+            mTextureView = findViewById(R.id.preview_view)
+            mCaptureButton = findViewById(R.id.capture_button)
+            mSelectDeviceButton = findViewById(R.id.select_device_button)
+            mSelectDeviceButton.background =
+                resources.getDrawable(R.drawable.select_device_disconnected)
+            mSelectDeviceButtonText = findViewById(R.id.camera_activity_select_device_text)
+            mSelectDeviceButtonText.text = getText(R.string.select_device_button_notConnected_en)
+            mSelectDeviceList = findViewById(R.id.select_device_list)
+            mFragmentDarkBackground = findViewById(R.id.ca_dark_background)
+            mFragmentDarkBackground.setOnClickListener { Log.d("bg", "background clicked") }
+            mSettingsButton = findViewById(R.id.camera_activity_settings_button)
+            mSettingsButton.setOnClickListener { openSettings() }
+            mGalleryButton = findViewById(R.id.camera_activity_gallery_button)
+            mGalleryButton.setOnClickListener { openGallery() }
+        }
     }
 
-
     private fun setViewListeners() {
-        mTextureView.surfaceTextureListener =
-            object : TextureView.SurfaceTextureListener {
-                override fun onSurfaceTextureAvailable(
-                    texture: SurfaceTexture,
-                    width: Int,
-                    height: Int
-                ) {
-                    surfaceTextureWidth = width
-                    surfaceTextureHeight = height
-                    openCamera(width, height)
+        if (!mTextureView.hasOnClickListeners()){
+            mTextureView.surfaceTextureListener =
+                object : TextureView.SurfaceTextureListener {
+                    override fun onSurfaceTextureAvailable(
+                        texture: SurfaceTexture,
+                        width: Int,
+                        height: Int
+                    ) {
+                        surfaceTextureWidth = width
+                        surfaceTextureHeight = height
+                        openCamera(width, height)
+                    }
+
+                    override fun onSurfaceTextureSizeChanged(
+                        texture: SurfaceTexture,
+                        width: Int,
+                        height: Int
+                    ) {
+                        configureTransform(width, height)
+                    }
+
+                    override fun onSurfaceTextureDestroyed(texture: SurfaceTexture): Boolean {
+                        return true
+                    }
+
+                    override fun onSurfaceTextureUpdated(texture: SurfaceTexture) {}
                 }
-
-                override fun onSurfaceTextureSizeChanged(
-                    texture: SurfaceTexture,
-                    width: Int,
-                    height: Int
-                ) {
-                    configureTransform(width, height)
-                }
-
-                override fun onSurfaceTextureDestroyed(texture: SurfaceTexture): Boolean {
-                    return true
-                }
-
-                override fun onSurfaceTextureUpdated(texture: SurfaceTexture) {}
-            }
-
-        mCaptureButton.setOnClickListener {
-            StudyLogger.hashMap["client_id"] = mUserID
-            StudyLogger.hashMap["tc_button_pressed"] = System.currentTimeMillis()
-            captureImageWithPreviewExtraction()
         }
 
-        mSelectDeviceButton.setOnClickListener {
-            if (mSelectDeviceList.isVisible) {
-                mSelectDeviceList.visibility = View.INVISIBLE
-                getServerURL()
-            } else {
-                mSelectDeviceList.visibility = View.VISIBLE
+        if (!mCaptureButton.hasOnClickListeners()){
+            mCaptureButton.setOnClickListener {
+                StudyLogger.hashMap["client_id"] = mUserID
+                StudyLogger.hashMap["tc_button_pressed"] = System.currentTimeMillis()
+                captureImageWithPreviewExtraction()
+            }
+        }
+
+
+        if (!mSelectDeviceButton.hasOnClickListeners()){
+            mSelectDeviceButton.setOnClickListener {
+                if (mSelectDeviceList.isVisible) {
+                    mSelectDeviceList.visibility = View.INVISIBLE
+                    getServerURL()
+                } else {
+                    mSelectDeviceList.visibility = View.VISIBLE
+                }
             }
         }
     }
@@ -439,13 +464,22 @@ class CameraActivity : AppCompatActivity() {
 
             return when {
                 bigEnough.size > 0 -> {
-                    sp.edit().putInt(keyWidth, Collections.min(bigEnough, CompareSizesByArea()).width).apply()
-                    sp.edit().putInt(keyHeight, Collections.min(bigEnough, CompareSizesByArea()).height).apply()
+                    sp.edit()
+                        .putInt(keyWidth, Collections.min(bigEnough, CompareSizesByArea()).width)
+                        .apply()
+                    sp.edit()
+                        .putInt(keyHeight, Collections.min(bigEnough, CompareSizesByArea()).height)
+                        .apply()
                     Collections.min(bigEnough, CompareSizesByArea())
                 }
                 notBigEnough.size > 0 -> {
-                    sp.edit().putInt(keyWidth, Collections.max(notBigEnough, CompareSizesByArea()).width).apply()
-                    sp.edit().putInt(keyHeight, Collections.max(notBigEnough, CompareSizesByArea()).height).apply()
+                    sp.edit()
+                        .putInt(keyWidth, Collections.max(notBigEnough, CompareSizesByArea()).width)
+                        .apply()
+                    sp.edit().putInt(
+                        keyHeight,
+                        Collections.max(notBigEnough, CompareSizesByArea()).height
+                    ).apply()
                     Collections.max(notBigEnough, CompareSizesByArea())
                 }
                 else -> {
@@ -504,7 +538,7 @@ class CameraActivity : AppCompatActivity() {
         val orientation = windowManager.defaultDisplay.rotation
         if (orientation != Surface.ROTATION_0 && mBitmap != null) {
             Log.d("CA", "Start rotate")
-            when(orientation){
+            when (orientation) {
                 Surface.ROTATION_90 -> mBitmap = rotateBitmapAndAdjustRatio(mBitmap, -90F)
                 Surface.ROTATION_270 -> mBitmap = rotateBitmapAndAdjustRatio(mBitmap, 90F)
             }
@@ -516,11 +550,10 @@ class CameraActivity : AppCompatActivity() {
             StudyLogger.hashMap["long_side"] = IMG_TARGET_SIZE
             val greyImg = rescale(mBitmap, IMG_TARGET_SIZE)
             Log.v("TIMING", "Image rescaled.")
-            var matchingOptions: HashMap<Any?,Any?>? = getMatchingOptionsFromPref()
+            var matchingOptions: HashMap<Any?, Any?>? = getMatchingOptionsFromPref()
             sendBitmap(greyImg, mServerURL, this, matchingOptions)
         }
     }
-
 
 
     private fun getUserID() {
@@ -543,7 +576,7 @@ class CameraActivity : AppCompatActivity() {
         }.start()
     }
 
-    public fun onServerURLget(serverURL: String) {
+    fun onServerURLget(serverURL: String) {
         Thread {
             Log.v("TIMING", "Got URL")
             runOnUiThread {
@@ -561,7 +594,7 @@ class CameraActivity : AppCompatActivity() {
             putExtra("ServerURL", mServerURL)
 //            putExtra("DownloadID", downloadID)
         }
-        startActivity(intent)
+        startActivityForResult(intent, RESULT_ACTIVITY_REQUEST_CODE)
     }
 
     fun onMatchResult(matchID: String, img: ByteArray) {
@@ -597,27 +630,8 @@ class CameraActivity : AppCompatActivity() {
         mFragmentDarkBackground.visibility = View.VISIBLE
     }
 
-    private fun setupSharedPref() {
-        sp = PreferenceManager.getDefaultSharedPreferences(this)
-        MATCHING_MODE_PREF_KEY = getString(R.string.settings_algorithm_key)
-        var fastMatchingMode: Boolean = sp.getBoolean(MATCHING_MODE_PREF_KEY, true)
-        Log.d("CA", "Mode is {${fastMatchingMode.toString()}}")
-    }
-
-    private fun getMatchingOptionsFromPref(): HashMap<Any?, Any?>? {
-        var matchingMode: HashMap<Any?, Any?>? = HashMap()
-        var fastMatchingMode: Boolean = sp.getBoolean(MATCHING_MODE_PREF_KEY, true)
-        if (fastMatchingMode){
-            matchingMode?.set(getString(R.string.algorithm_key_server), getString(R.string.algorithm_fast_mode_name_server))
-        } else{
-            matchingMode?.set(getString(R.string.algorithm_key_server), getString(R.string.algorithm_accurate_mode_name_server))
-        }
-        return matchingMode
-    }
-
-    private fun openGallery(){
+    private fun openGallery() {
         val galleryFragment = GalleryFragment()
-
         this.supportFragmentManager
             .beginTransaction()
             .add(R.id.fragment_container_view, galleryFragment, "GalleryFragment")
@@ -626,59 +640,7 @@ class CameraActivity : AppCompatActivity() {
         mFragmentDarkBackground.visibility = View.VISIBLE
     }
 
-    private fun fillUpImageList() {
-        imageDirectory = this.getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
-        files = imageDirectory.listFiles()
-        files.sortDescending()
-        imageArray = ArrayList()
-
-        files.forEach outer@{ file ->
-            if (imageArray.isNotEmpty()){
-                imageArray.forEach inner@{ item ->
-                    if(fileBelongsToImageArrayItem(file, item)){
-                        item.add(file)
-                        return@outer
-                    }
-                }
-
-                var fileCouple: ArrayList<File> = ArrayList()
-                fileCouple.add(file)
-                imageArray.add(fileCouple)
-
-            } else {
-                var fileCouple: ArrayList<File> = ArrayList()
-                fileCouple.add(file)
-                imageArray.add(fileCouple)
-            }
-        }
-        var countSingle = 0
-        var countPair = 1
-        imageArray.forEach {
-            if (it.size == 1){
-                countSingle++
-            } else{
-                countPair++
-            }
-        }
-        Log.d("CA", "Single: $countSingle, Pair: $countPair")
-    }
-
-    private fun fileBelongsToImageArrayItem(file: File, item: ArrayList<File>): Boolean {
-        //Item has already 2 entries
-        var filename: String = file.name.split("_".toRegex()).first()
-        val itemName: String = item[0].name.split("_".toRegex()).first()
-
-        Log.d("GF", "$filename and $itemName")
-
-        if(item.size == 2){
-            Log.d("GF", "full list")
-            return false
-        }
-
-        return filename == itemName
-    }
-
-    public fun openPreviewFragment(firstImage: File?, secondImage: File?){
+    fun openPreviewFragment(firstImage: File?, secondImage: File?) {
         val previewFragment = GalleryPreviewFragment()
 
         val bundle = Bundle()
@@ -691,6 +653,71 @@ class CameraActivity : AppCompatActivity() {
             .add(R.id.gallery_fragment_body_layout, previewFragment, "PreviewFragment")
             .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
             .commit()
+    }
+
+    private fun setupSharedPref() {
+        if(!::sp.isInitialized){
+            sp = PreferenceManager.getDefaultSharedPreferences(this)
+            MATCHING_MODE_PREF_KEY = getString(R.string.settings_algorithm_key)
+        }
+    }
+
+    private fun getMatchingOptionsFromPref(): HashMap<Any?, Any?>? {
+        var matchingMode: HashMap<Any?, Any?>? = HashMap()
+        var fastMatchingMode: Boolean = sp.getBoolean(MATCHING_MODE_PREF_KEY, true)
+        if (fastMatchingMode) {
+            matchingMode?.set(
+                getString(R.string.algorithm_key_server),
+                getString(R.string.algorithm_fast_mode_name_server)
+            )
+        } else {
+            matchingMode?.set(
+                getString(R.string.algorithm_key_server),
+                getString(R.string.algorithm_accurate_mode_name_server)
+            )
+        }
+        return matchingMode
+    }
+
+    private fun fillUpImageList() {
+        imageDirectory = this.getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
+        files = imageDirectory.listFiles()
+        files.sortByDescending { it.name }
+        imageArray = ArrayList()
+
+
+        files.forEach outer@{ file ->
+            if (imageArray.isNotEmpty()) {
+                imageArray.forEach inner@{ item ->
+                    if (fileBelongsToImageArrayItem(file, item)) {
+                        if (file.name.split("_").last() == "Cropped.png") {
+                            item.add(file)
+                        } else {
+                            item.add(0, file)
+                        }
+                        return@outer
+                    }
+                }
+            }
+            var fileCouple: ArrayList<File> = ArrayList()
+            fileCouple.add(file)
+            imageArray.add(fileCouple)
+        }
+    }
+
+    private fun fileBelongsToImageArrayItem(file: File, item: ArrayList<File>): Boolean {
+        //Item has already 2 entries
+        var filename: String = file.name.split("_".toRegex()).first()
+        val itemName: String = item[0].name.split("_".toRegex()).first()
+
+        Log.d("GF", "$filename and $itemName")
+
+        if (item.size == 2) {
+            Log.d("GF", "full list")
+            return false
+        }
+
+        return filename == itemName
     }
 
 }

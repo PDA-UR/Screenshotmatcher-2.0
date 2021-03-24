@@ -103,10 +103,9 @@
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:src="@drawable/ic_baseline_image_24"
-                android:background="@drawable/round_button_transparent_bg"
+                android:background="@drawable/round_button"
                 android:layout_gravity="bottom"
                 android:layout_margin="10dp">
-
             </ImageButton>
 
 

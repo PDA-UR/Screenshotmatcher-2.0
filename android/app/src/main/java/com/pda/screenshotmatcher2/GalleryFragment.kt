@@ -1,9 +1,6 @@
 package com.pda.screenshotmatcher2
 
-import android.icu.text.Edits
 import android.os.Bundle
-import android.os.Environment
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,15 +9,14 @@ import android.widget.GridView
 import android.widget.ImageButton
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
-import java.io.File
-import kotlin.concurrent.thread
 
 class GalleryFragment : Fragment() {
     //Views
-    lateinit var containerView: FrameLayout
-    lateinit var mFragmentBackground: FrameLayout
-    lateinit var mBackButton: ImageButton
-    lateinit var mGridView: GridView
+    private lateinit var containerView: FrameLayout
+    private lateinit var mFragmentBackground: FrameLayout
+    private lateinit var mBackButton: ImageButton
+    private lateinit var mGridView: GridView
+    private lateinit var adapter: GridBaseAdapter
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,7 +44,7 @@ class GalleryFragment : Fragment() {
         mFragmentBackground.setOnClickListener { removeThisFragment(true) }
         mFragmentBackground.visibility = View.VISIBLE
         mGridView = activity?.findViewById(R.id.gallery_fragment_gridview)!!
-        val adapter = GridBaseAdapter(requireContext())
+        adapter = GridBaseAdapter(requireContext())
         mGridView.adapter = adapter
         mBackButton = activity?.findViewById(R.id.gallery_fragment_back_button)!!
         mBackButton.setOnClickListener {
