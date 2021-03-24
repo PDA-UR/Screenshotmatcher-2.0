@@ -4,23 +4,23 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/gallery_fragment_full_layout"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
+    android:background="@drawable/fragment_background"
     android:maxHeight="600dp"
-    tools:context=".GalleryFragment"
-    android:background="@drawable/fragment_background">
+    tools:context=".GalleryFragment">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/gallery_fragment_header_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:elevation="15dp"
         android:background="@drawable/fragment_header_background"
+        android:elevation="15dp"
         android:outlineProvider="bounds"
         android:outlineSpotShadowColor="@color/black"
-        android:scaleType="fitXY">
+        android:scaleType="fitXY"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/gallery_fragment_back_button"
@@ -30,7 +30,7 @@
             android:background="@drawable/back_button_round_background"
             android:src="@drawable/ic_baseline_keyboard_arrow_left_48"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -44,45 +44,42 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <GridView
+        android:id="@+id/gallery_fragment_gridview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/gallery_fragment_gridview"
-        android:numColumns="2"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="2dp"
         android:horizontalSpacing="10dp"
+        android:numColumns="2"
         android:verticalSpacing="10dp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_max="500dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/gallery_fragment_header_layout"
-        android:layout_marginRight="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginBottom="2dp"
-        app:layout_constraintHeight_max="500dp" />
+        app:layout_constraintTop_toBottomOf="@+id/gallery_fragment_header_layout" />
+
     <FrameLayout
         android:id="@+id/gallery_fragment_preview_background"
         android:layout_width="match_parent"
-        android:layout_height="600dp"
+        android:layout_height="0dp"
         android:background="@color/fragmentBackground"
         android:elevation="16dp"
         android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"></FrameLayout>
+
     <FrameLayout
         android:id="@+id/gallery_fragment_body_layout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_height="match_parent"
         android:elevation="17dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        android:foregroundGravity="center"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHeight_max="400dp"
         app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginRight="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginBottom="2dp"
-        app:layout_constraintHeight_max="500dp">
-    </FrameLayout>
-
-
+        app:layout_constraintWidth_max="400dp"></FrameLayout>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

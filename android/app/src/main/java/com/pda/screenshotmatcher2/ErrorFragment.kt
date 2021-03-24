@@ -57,7 +57,8 @@ class ErrorFragment : Fragment() {
         val intent = Intent(activity, ResultsActivity::class.java)
         intent.putExtra("matchID", uid)
         intent.putExtra("ServerURL", url)
-        startActivity(intent)
+        Log.d("RESULT", "Putting code $RESULT_ACTIVITY_REQUEST_CODE")
+        activity?.startActivityForResult(intent, RESULT_ACTIVITY_REQUEST_CODE)
     }
 
     private fun openFeedbackFragment() {
