@@ -41,4 +41,5 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="gallery_en">Gallery</string>
     <string name="preview_fragment_only_one_available_en">Only one image is available</string>
+    <string name="camera_activity_select_device_back_text_en">Back</string>
 </resources>

@@ -18,11 +18,9 @@ import android.util.Size
 import android.view.*
 import android.widget.FrameLayout
 import android.widget.ImageButton
-import android.widget.ListView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentTransaction
 import androidx.preference.PreferenceManager
 import java.io.File
@@ -76,14 +74,18 @@ class CameraActivity : AppCompatActivity() {
 
     //Other UI Views
     private lateinit var mSelectDeviceButton: ImageButton
-    private lateinit var mSelectDeviceList: ListView
     private lateinit var mCaptureButton: ImageButton
+    private lateinit var mCaptureButtonListener: View.OnClickListener
     private lateinit var mFragmentDarkBackground: FrameLayout
     private lateinit var mSelectDeviceButtonText: TextView
+    private lateinit var mSelectDeviceButtonListener: View.OnClickListener
+    private lateinit var mBackButtonText: TextView
     private lateinit var mSettingsButton: ImageButton
     private lateinit var mGalleryButton: ImageButton
 
     private var mServerURL: String = ""
+    private lateinit var mServerUrlList: List<Pair<String, String>>
+    private var currentServerUrlListIndex: Int = 0
     private var mUserID: String = ""
     private var startTime: Long = 0
 
@@ -154,7 +156,6 @@ class CameraActivity : AppCompatActivity() {
                 resources.getDrawable(R.drawable.select_device_disconnected)
             mSelectDeviceButtonText = findViewById(R.id.camera_activity_select_device_text)
             mSelectDeviceButtonText.text = getText(R.string.select_device_button_notConnected_en)
-            mSelectDeviceList = findViewById(R.id.select_device_list)
             mFragmentDarkBackground = findViewById(R.id.ca_dark_background)
             mFragmentDarkBackground.setOnClickListener { Log.d("bg", "background clicked") }
             mSettingsButton = findViewById(R.id.camera_activity_settings_button)
@@ -195,25 +196,23 @@ class CameraActivity : AppCompatActivity() {
         }
 
         if (!mCaptureButton.hasOnClickListeners()){
-            mCaptureButton.setOnClickListener {
+            mCaptureButtonListener = View.OnClickListener {
                 StudyLogger.hashMap["client_id"] = mUserID
                 StudyLogger.hashMap["tc_button_pressed"] = System.currentTimeMillis()
                 captureImageWithPreviewExtraction()
             }
+            mCaptureButton.setOnClickListener(mCaptureButtonListener)
         }
 
 
         if (!mSelectDeviceButton.hasOnClickListeners()){
-            mSelectDeviceButton.setOnClickListener {
-                if (mSelectDeviceList.isVisible) {
-                    mSelectDeviceList.visibility = View.INVISIBLE
-                    getServerURL()
-                } else {
-                    mSelectDeviceList.visibility = View.VISIBLE
-                }
+            mSelectDeviceButtonListener = View.OnClickListener {
+                openSelectDeviceFragment()
             }
+            mSelectDeviceButton.setOnClickListener(mSelectDeviceButtonListener)
         }
     }
+
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
@@ -571,8 +570,9 @@ class CameraActivity : AppCompatActivity() {
     private fun getServerURL() {
         Thread {
             Log.v("TEST", "discovering server...")
-            mServerURL = discoverServersOnNetwork(this, 49050, "")[0].first   //TODO: properly use the entire list
-
+            Log.d("DISC", discoverServersOnNetwork(this, 49050, "").toString())
+            mServerUrlList = discoverServersOnNetwork(this, 49050, "")
+            mServerURL = mServerUrlList[0].first
         }.start()
     }
 
@@ -582,7 +582,7 @@ class CameraActivity : AppCompatActivity() {
             runOnUiThread {
                 mSelectDeviceButton.background =
                     resources.getDrawable(R.drawable.select_device_connected)
-                mSelectDeviceButtonText.text = servers[0].first   // TODO: properly use the entire list
+                mSelectDeviceButtonText.text = servers[0].second
             }
         }.start()
     }
@@ -601,14 +601,35 @@ class CameraActivity : AppCompatActivity() {
         startResultsActivity(matchID, img)
     }
 
+    private fun openSelectDeviceFragment() {
+        mSettingsButton.visibility = View.INVISIBLE
+        mCaptureButton.setImageResource(0)
+        mBackButtonText = findViewById(R.id.capture_button_text)
+        mBackButtonText.visibility = View.VISIBLE
+
+        Log.d("FRAG", "opening fragment")
+        val selectDeviceFragment = SelectDeviceFragment()
+        this.supportFragmentManager
+            .beginTransaction()
+            .add(R.id.camera_activity_frameLayout, selectDeviceFragment, "SelectDeviceFragment")
+            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+            .commit()
+    }
+
+    public fun onSelectDeviceFragmentClosed() {
+        mCaptureButton.setImageResource(R.drawable.ic_baseline_photo_camera_24)
+        mBackButtonText.visibility = View.INVISIBLE
+        mCaptureButton.setOnClickListener(mCaptureButtonListener)
+        mSelectDeviceButton.setOnClickListener(mSelectDeviceButtonListener)
+        mSettingsButton.visibility = View.VISIBLE
+    }
+
 
     fun openErrorFragment(uid: String, url: String) {
-        Log.d("FRAG", "opening fragment")
         val errorFragment = ErrorFragment()
-
         val bundle = Bundle()
         bundle.putString(UID_KEY, uid)
-        bundle.putString(URL_KEY, url)
+        bundle.putString(URL_KEY, mServerURL)
         errorFragment.arguments = bundle
 
         this.supportFragmentManager
@@ -616,7 +637,6 @@ class CameraActivity : AppCompatActivity() {
             .add(R.id.fragment_container_view, errorFragment, "ErrorFragment")
             .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
             .commit()
-        mFragmentDarkBackground.visibility = View.VISIBLE
     }
 
     private fun openSettings() {
@@ -715,6 +735,21 @@ class CameraActivity : AppCompatActivity() {
         }
 
         return filename == itemName
+    }
+
+    public fun getServerUrlList(): List<Pair<String, String>> {
+        return mServerUrlList
+    }
+
+    public fun getServerUrlListIndex(): Int {
+        return currentServerUrlListIndex
+    }
+
+    public fun setServerUrl(index: Int){
+        Log.d("CA", "position $index")
+        currentServerUrlListIndex = index
+        mServerURL = mServerUrlList[index].first
+        mSelectDeviceButtonText.text = mServerUrlList[index].second
     }
 
 }
