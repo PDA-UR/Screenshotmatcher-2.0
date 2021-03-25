@@ -36,6 +36,9 @@ fun discoverServersOnNetwork(context: Context, port: Int = 49050, message: Strin
             serverList.add(
                 Pair(PROTOCOL + payload[0], payload[1])
             )
+            serverList.add(
+                Pair(PROTOCOL + payload[0], payload[1])
+            )
         }
         catch(e: SocketTimeoutException) {
             break
