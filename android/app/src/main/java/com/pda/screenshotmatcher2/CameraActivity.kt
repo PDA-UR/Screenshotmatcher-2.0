@@ -30,6 +30,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import kotlin.concurrent.thread
+import kotlin.jvm.Throws
 
 
 class CameraActivity : AppCompatActivity() {
@@ -51,9 +52,6 @@ class CameraActivity : AppCompatActivity() {
 
     //size of preview
     private lateinit var mPreviewSize: Size
-
-    //Handler for background tasks
-    private lateinit var mBackgroundHandler: Handler
 
     //Handles still image capture
     private lateinit var mImageReader: ImageReader
@@ -102,12 +100,14 @@ class CameraActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera)
         verifyPermissions(this)
-        getServerURL()
+        setupSharedPref()
+        if(!::mServerUrlList.isInitialized){
+            getServerURL()
+        }
         getUserID()
         initViews()
         hideStatusAndActionBars()
         setViewListeners()
-        setupSharedPref()
         if (!this::imageArray.isInitialized) {
             thread { fillUpImageList() }
         }
@@ -162,6 +162,7 @@ class CameraActivity : AppCompatActivity() {
             mSettingsButton.setOnClickListener { openSettings() }
             mGalleryButton = findViewById(R.id.camera_activity_gallery_button)
             mGalleryButton.setOnClickListener { openGallery() }
+            mBackButtonText = findViewById(R.id.capture_button_text)
         }
     }
 
@@ -569,22 +570,26 @@ class CameraActivity : AppCompatActivity() {
 
     private fun getServerURL() {
         Thread {
-            Log.v("TEST", "discovering server...")
-            Log.d("DISC", discoverServersOnNetwork(this, 49050, "").toString())
             mServerUrlList = discoverServersOnNetwork(this, 49050, "")
-            mServerURL = mServerUrlList[0].first
         }.start()
     }
 
     fun onServerURLsGet(servers: List<Pair<String,String>>) {
-        Thread {
             Log.v("TIMING", "Got URL")
+            if (servers.isNotEmpty()){
+                mServerUrlList = servers
+                mServerURL = mServerUrlList[currentServerUrlListIndex].first
             runOnUiThread {
                 mSelectDeviceButton.background =
                     resources.getDrawable(R.drawable.select_device_connected)
-                mSelectDeviceButtonText.text = servers[0].second
+                mSelectDeviceButtonText.text = servers[currentServerUrlListIndex].second
             }
-        }.start()
+        } else {
+                Thread {
+                    Thread.sleep(100)
+                    mServerUrlList = discoverServersOnNetwork(this, 49050, "")
+                }.start()
+            }
     }
 
     private fun startResultsActivity(matchID: String, img: ByteArray) {
@@ -604,7 +609,6 @@ class CameraActivity : AppCompatActivity() {
     private fun openSelectDeviceFragment() {
         mSettingsButton.visibility = View.INVISIBLE
         mCaptureButton.setImageResource(0)
-        mBackButtonText = findViewById(R.id.capture_button_text)
         mBackButtonText.visibility = View.VISIBLE
 
         Log.d("FRAG", "opening fragment")
@@ -737,16 +741,14 @@ class CameraActivity : AppCompatActivity() {
         return filename == itemName
     }
 
-    public fun getServerUrlList(): List<Pair<String, String>> {
-        return mServerUrlList
-    }
-
-    public fun getServerUrlListIndex(): Int {
-        return currentServerUrlListIndex
+    public fun getServerUrlList(): List<Pair<String, String>>? {
+        if (::mServerUrlList.isInitialized){
+            return mServerUrlList
+        }
+        else return  null
     }
 
     public fun setServerUrl(index: Int){
-        Log.d("CA", "position $index")
         currentServerUrlListIndex = index
         mServerURL = mServerUrlList[index].first
         mSelectDeviceButtonText.text = mServerUrlList[index].second
