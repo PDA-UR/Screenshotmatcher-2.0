@@ -8,5 +8,5 @@
     android:padding="10dip"
     android:textSize="25dip"
     android:textColor="@color/white"
-    android:textStyle="bold" >
+    android:textStyle="bold">
 </TextView>

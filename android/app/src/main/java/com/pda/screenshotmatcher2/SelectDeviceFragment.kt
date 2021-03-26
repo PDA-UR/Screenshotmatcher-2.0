@@ -7,7 +7,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.core.view.get
 import androidx.fragment.app.FragmentTransaction
+import kotlin.concurrent.thread
 
 class SelectDeviceFragment : Fragment() {
 
@@ -15,6 +17,7 @@ class SelectDeviceFragment : Fragment() {
     private lateinit var mSelectDeviceButton: ImageButton
     private lateinit var mBackButton: ImageButton
     private lateinit var mListView: ListView
+    private lateinit var adapter: ArrayAdapter<String>
     private var mServerList: ArrayList<String> = ArrayList()
 
     private lateinit var lastSelectedItem: TextView
@@ -42,7 +45,17 @@ class SelectDeviceFragment : Fragment() {
     private fun initServerList() {
         ca = requireActivity() as CameraActivity
         val l = ca.getServerUrlList()
-        l.forEach { mServerList.add(it.second) }
+        if (l != null){
+            l?.forEach { mServerList.add(it.second) }
+        } else {
+            thread {
+                Thread.sleep(100)
+                initServerList()
+                if (::adapter.isInitialized){
+                    requireActivity().runOnUiThread {  adapter.notifyDataSetChanged() }
+                }
+            }.start()
+        }
     }
 
     private fun initViews() {
@@ -51,19 +64,16 @@ class SelectDeviceFragment : Fragment() {
         mBackButton = activity?.findViewById(R.id.capture_button)!!
         mBackButton.setOnClickListener { removeThisFragment() }
         mListView = activity?.findViewById(R.id.select_device_fragment_list)!!
-        var adapter = ArrayAdapter(requireContext(), R.layout.select_device_list_item, mServerList)
+        adapter = ArrayAdapter(requireContext(), R.layout.select_device_list_item, mServerList)
         mListView.adapter = adapter
-
-        Log.d("SF", mListView.getItemAtPosition(ca.getServerUrlListIndex()) as String)
-
-        mListView.onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
+                mListView.onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
             if (::lastSelectedItem.isInitialized){
                 lastSelectedItem.setTextColor(resources.getColor(R.color.white))
             }
-            lastSelectedItem = view as TextView
-            val itemView: TextView = view
-            itemView.setTextColor(resources.getColor(R.color.connected_green))
-            ca.setServerUrl(position)
+                lastSelectedItem = view as TextView
+                val itemView: TextView = view
+                itemView.setTextColor(resources.getColor(R.color.connected_green))
+                ca.setServerUrl(position)
         }
     }
 
