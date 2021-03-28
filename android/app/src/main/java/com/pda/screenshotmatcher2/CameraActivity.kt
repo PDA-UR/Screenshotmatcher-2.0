@@ -19,6 +19,7 @@ import android.view.*
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.TextView
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.FragmentTransaction
@@ -27,6 +28,8 @@ import java.io.File
 import java.util.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
+import java.util.stream.Collectors
+import java.util.stream.Stream
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import kotlin.concurrent.thread
@@ -96,22 +99,57 @@ class CameraActivity : AppCompatActivity() {
     lateinit var files: Array<File>
     lateinit var imageArray: ArrayList<ArrayList<File>>
 
+    @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera)
         verifyPermissions(this)
         setupSharedPref()
+        getUserID()
+
+        hideStatusAndActionBars()
+        initViews()
+        setViewListeners()
+
+        if (savedInstanceState != null){
+            restoreFromSavedInstance(savedInstanceState)
+        }
         if(!::mServerUrlList.isInitialized){
             getServerURL()
         }
-        getUserID()
-        initViews()
-        hideStatusAndActionBars()
-        setViewListeners()
         if (!this::imageArray.isInitialized) {
             thread { fillUpImageList() }
         }
     }
+
+    private fun restoreFromSavedInstance(savedInstanceState: Bundle) {
+        imageArray = savedInstanceState.getSerializable("image_list") as ArrayList<ArrayList<File>>
+        currentServerUrlListIndex = savedInstanceState.getInt("index")
+        var urlList = savedInstanceState.getStringArrayList("server_url_list")
+        var nameList = savedInstanceState.getStringArrayList("server_name_list")
+        var l = mutableListOf<Pair<String, String>>()
+        for (i in 0 until urlList?.size!!){
+            l.add(Pair(PROTOCOL + urlList[i], nameList?.get(i)) as Pair<String, String>)
+        }
+        onServerURLsGet(l)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt("index", currentServerUrlListIndex)
+        outState.putSerializable("image_list", imageArray)
+
+        var serverUrlList: ArrayList<String> = ArrayList()
+        var serverNameList: ArrayList<String> = ArrayList()
+
+        mServerUrlList.forEach {
+            serverNameList.add(it.second)
+            serverUrlList.add(it.first)
+        }
+        outState.putStringArrayList("server_url_list", serverUrlList)
+        outState.putStringArrayList("server_name_list", serverNameList)
+    }
+
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
