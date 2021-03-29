@@ -36,9 +36,6 @@ fun discoverServersOnNetwork(context: Context, port: Int = 49050, message: Strin
             serverList.add(
                 Pair(PROTOCOL + payload[0], payload[1])
             )
-            serverList.add(
-                Pair(PROTOCOL + "hi there", "12345")
-            )
         }
         catch(e: SocketTimeoutException) {
             break
@@ -48,9 +45,6 @@ fun discoverServersOnNetwork(context: Context, port: Int = 49050, message: Strin
 
     val activity: CameraActivity = context as CameraActivity
     activity.onServerURLsGet(serverList)  // call function on main thread
-    serverList.forEach {
-        Log.d("UDP", it.second)
-    }
     return serverList
 }
 
