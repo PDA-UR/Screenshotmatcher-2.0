@@ -43,7 +43,6 @@ fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, matchingO
     val jsonOR = JsonObjectRequest(
         Request.Method.POST, serverURL + MATCH_DEST, json,
         { response ->
-            Log.v("TIMING", "Got response.")
             StudyLogger.hashMap["tc_http_response"] = System.currentTimeMillis()
             StudyLogger.hashMap["match_id"] = response.get("uid").toString()
             if (response.get("hasResult").toString() != "false") {
@@ -64,11 +63,11 @@ fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, matchingO
                 }
             } else{
                 if(activity is CameraActivity) {
-                    activity.openErrorFragment(response.get("uid").toString(), serverURL)
+                    activity.openErrorFragment(response.get("uid").toString())
                 }
             }
         },
-        { error -> Log.d("TIMING", error.toString()) })
+        { _ -> })
 
     StudyLogger.hashMap["tc_http_request"] = System.currentTimeMillis()
     queue.add(jsonOR)
@@ -76,14 +75,11 @@ fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, matchingO
 
 fun downloadFullScreenshot(matchID: String, filename : String, serverURL: String, context: Context) {
     val uri: Uri = Uri.parse("$serverURL$SCREENSHOT_DEST/$matchID")
-    Log.v("TEST", uri.toString())
-    Log.v("TIMING", "Adding result file download to queue")
     val filenameFull = "${filename}_Full.png"
     val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
     val request = DownloadManager.Request(uri)
     request.setDestinationInExternalFilesDir(context, Environment.DIRECTORY_PICTURES, filenameFull)
 
-    Log.v("TIMING", "Download queued")
     downloadID = downloadManager.enqueue(request)
 }
 
@@ -92,8 +88,7 @@ fun sendLog(serverURL: String, context: Context){
     val queue = Volley.newRequestQueue(context)
     val json = JSONObject(StudyLogger.hashMap)
     val jsonObjectRequest = JsonObjectRequest(Request.Method.POST, serverURL + LOG_DEST, json,
-        { response ->
-            Log.v("HTTP", "Log sent.")
+        { _ ->
         },
         { error ->
             error.printStackTrace()

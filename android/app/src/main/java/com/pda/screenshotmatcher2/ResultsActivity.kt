@@ -388,21 +388,16 @@ class ResultsActivity : AppCompatActivity() {
         val intent = Intent()
         var resultData: ArrayList<File> = ArrayList()
         if (!hasSharedImage) {
-            Log.d("RESULT", "not putting intent")
             mFullImageFile?.delete()
             if (::mCroppedImageFile.isInitialized) {
                 mCroppedImageFile.delete()
             }
             setResult(Activity.RESULT_CANCELED, intent)
         } else {
-            Log.d("RESULT", "putting intent")
             if (::mCroppedImageFile.isInitialized) {
-                if (mCroppedImageFile != null) {
-                    resultData.add(mCroppedImageFile)
-                }
+                resultData.add(mCroppedImageFile)
             }
             if (mFullImageFile != null) {
-                Log.d("RESULT", "adding full")
                 resultData.add(mFullImageFile!!)
             }
             intent.putExtra(RESULT_ACTIVITY_RESULT_CODE, resultData)

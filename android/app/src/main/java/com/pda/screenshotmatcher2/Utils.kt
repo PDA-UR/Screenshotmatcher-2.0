@@ -68,8 +68,6 @@ fun saveB64ToInternalFile(b64String: String, context: Context){
     val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
     val targetDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
     val file = File(targetDir, filename)
-    Log.v("TESTING", targetDir.toString())
-    Log.v("TESTING", file.toString())
     try {
         val out = FileOutputStream(file)
         bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)

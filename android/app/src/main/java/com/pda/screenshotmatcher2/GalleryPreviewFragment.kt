@@ -69,12 +69,10 @@ class GalleryPreviewFragment : Fragment() {
             val retrievedFile: File? = bundle.getSerializable(FIRST_IMAGE_KEY) as File?
             when (retrievedFile?.absolutePath?.split("_".toRegex())?.last()) {
                 "Full.png" -> {
-                    Log.d("PF", retrievedFile.absolutePath.split("_".toRegex()).last())
                     mFullImageFile = retrievedFile
                     mPillNavigationState = 1
                 }
                 "Cropped.png" -> {
-                    Log.d("PF", retrievedFile.absolutePath.split("_".toRegex()).last())
                     mCroppedImageFile = retrievedFile
                     mPillNavigationState = -1
                 }
@@ -154,7 +152,6 @@ class GalleryPreviewFragment : Fragment() {
     }
 
     private fun saveCurrentPreviewImage() {
-        Log.d("GF", "Saving preview")
         when (mPillNavigationState) {
             -1 -> {
                 if (mCroppedImageFile != null) {

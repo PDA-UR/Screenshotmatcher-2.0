@@ -42,7 +42,7 @@ class FeedbackFragment : Fragment() {
     ): View? {
         // Inflate the layout for this fragment
         containerView = container as FrameLayout
-        containerView?.visibility = View.VISIBLE
+        containerView.visibility = View.VISIBLE
         return inflater.inflate(R.layout.fragment_feedback, container, false)
     }
 
