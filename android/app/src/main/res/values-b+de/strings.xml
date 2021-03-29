@@ -11,9 +11,9 @@
     <string name="result_activity_saveOneButtonText1_en">Speichern</string>
     <string name="result_activity_shareButtonText2_en">Teilen</string>
     <string name="result_activity_saveOneButtonText2_en">Speichern</string>
-    <string name="result_activity_saved_cropped_en">Speichern</string>
-    <string name="result_activity_saved_full_en">Speichern</string>
-    <string name="result_activity_saved_both_en">Beide speichern</string>
+    <string name="result_activity_saved_cropped_en">Ausschnitt gespeichert</string>
+    <string name="result_activity_saved_full_en">Volles Bild gespeichert</string>
+    <string name="result_activity_saved_both_en">Beide Bilder gespeichert</string>
     <string name="screenshot_description_en">Mit ScreenshotMatcher erstellt</string>
     <string name="cropped_screenshot_title_en">cropped_screenshot</string>
     <string name="full_screenshot_title_en">full_screenshot</string>

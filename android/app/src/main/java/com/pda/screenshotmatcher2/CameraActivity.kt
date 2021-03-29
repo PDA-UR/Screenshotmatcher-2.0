@@ -12,13 +12,13 @@ import android.media.ImageReader
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
-import android.os.Handler
 import android.util.Log
 import android.util.Size
 import android.view.*
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.TextView
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -28,12 +28,9 @@ import java.io.File
 import java.util.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
-import java.util.stream.Collectors
-import java.util.stream.Stream
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import kotlin.concurrent.thread
-import kotlin.jvm.Throws
 
 
 class CameraActivity : AppCompatActivity() {
@@ -69,7 +66,6 @@ class CameraActivity : AppCompatActivity() {
     private var mCameraOpenCloseLock: Semaphore = Semaphore(1)
 
     //Permission ID
-    private val REQUEST_CAMERA_PERMISSION: Int = 1
     private var surfaceTextureHeight: Int = 0
     private var surfaceTextureWidth: Int = 0
 
@@ -102,19 +98,18 @@ class CameraActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        hideStatusAndActionBars()
         setContentView(R.layout.activity_camera)
         verifyPermissions(this)
         setupSharedPref()
         getUserID()
-
-        hideStatusAndActionBars()
         initViews()
         setViewListeners()
 
-        if (savedInstanceState != null){
+        if (savedInstanceState != null) {
             restoreFromSavedInstance(savedInstanceState)
         }
-        if(!::mServerUrlList.isInitialized){
+        if (!::mServerUrlList.isInitialized) {
             getServerURL()
         }
         if (!this::imageArray.isInitialized) {
@@ -123,31 +118,31 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun restoreFromSavedInstance(savedInstanceState: Bundle) {
-        imageArray = savedInstanceState.getSerializable("image_list") as ArrayList<ArrayList<File>>
-        currentServerUrlListIndex = savedInstanceState.getInt("index")
-        var urlList = savedInstanceState.getStringArrayList("server_url_list")
-        var nameList = savedInstanceState.getStringArrayList("server_name_list")
+        imageArray = savedInstanceState.getSerializable(getString(R.string.ca_saved_instance_image_list_key)) as ArrayList<ArrayList<File>>
+        currentServerUrlListIndex = savedInstanceState.getInt(getString(R.string.ca_saved_instance_index_key))
+        var urlList = savedInstanceState.getStringArrayList(getString(R.string.ca_saved_instance_url_list_key))
+        var hostList = savedInstanceState.getStringArrayList(getString(R.string.ca_saved_instance_host_list_key))
         var l = mutableListOf<Pair<String, String>>()
-        for (i in 0 until urlList?.size!!){
-            l.add(Pair(PROTOCOL + urlList[i], nameList?.get(i)) as Pair<String, String>)
+        for (i in 0 until urlList?.size!!) {
+            l.add(Pair(PROTOCOL + urlList[i], hostList?.get(i)) as Pair<String, String>)
         }
         onServerURLsGet(l)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putInt("index", currentServerUrlListIndex)
-        outState.putSerializable("image_list", imageArray)
+        outState.putInt(getString(R.string.ca_saved_instance_index_key), currentServerUrlListIndex)
+        outState.putSerializable(getString(R.string.ca_saved_instance_image_list_key), imageArray)
 
         var serverUrlList: ArrayList<String> = ArrayList()
-        var serverNameList: ArrayList<String> = ArrayList()
+        var serverHostList: ArrayList<String> = ArrayList()
 
         mServerUrlList.forEach {
-            serverNameList.add(it.second)
+            serverHostList.add(it.second)
             serverUrlList.add(it.first)
         }
-        outState.putStringArrayList("server_url_list", serverUrlList)
-        outState.putStringArrayList("server_name_list", serverNameList)
+        outState.putStringArrayList(getString(R.string.ca_saved_instance_url_list_key), serverUrlList)
+        outState.putStringArrayList(getString(R.string.ca_saved_instance_host_list_key), serverHostList)
     }
 
 
@@ -186,7 +181,7 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun initViews() {
-        if (!::mTextureView.isInitialized){
+        if (!::mTextureView.isInitialized) {
             mTextureView = findViewById(R.id.preview_view)
             mCaptureButton = findViewById(R.id.capture_button)
             mSelectDeviceButton = findViewById(R.id.select_device_button)
@@ -195,7 +190,6 @@ class CameraActivity : AppCompatActivity() {
             mSelectDeviceButtonText = findViewById(R.id.camera_activity_select_device_text)
             mSelectDeviceButtonText.text = getText(R.string.select_device_button_notConnected_en)
             mFragmentDarkBackground = findViewById(R.id.ca_dark_background)
-            mFragmentDarkBackground.setOnClickListener { Log.d("bg", "background clicked") }
             mSettingsButton = findViewById(R.id.camera_activity_settings_button)
             mSettingsButton.setOnClickListener { openSettings() }
             mGalleryButton = findViewById(R.id.camera_activity_gallery_button)
@@ -205,7 +199,7 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun setViewListeners() {
-        if (!mTextureView.hasOnClickListeners()){
+        if (!mTextureView.hasOnClickListeners()) {
             mTextureView.surfaceTextureListener =
                 object : TextureView.SurfaceTextureListener {
                     override fun onSurfaceTextureAvailable(
@@ -234,7 +228,7 @@ class CameraActivity : AppCompatActivity() {
                 }
         }
 
-        if (!mCaptureButton.hasOnClickListeners()){
+        if (!mCaptureButton.hasOnClickListeners()) {
             mCaptureButtonListener = View.OnClickListener {
                 StudyLogger.hashMap["client_id"] = mUserID
                 StudyLogger.hashMap["tc_button_pressed"] = System.currentTimeMillis()
@@ -244,7 +238,7 @@ class CameraActivity : AppCompatActivity() {
         }
 
 
-        if (!mSelectDeviceButton.hasOnClickListeners()){
+        if (!mSelectDeviceButton.hasOnClickListeners()) {
             mSelectDeviceButtonListener = View.OnClickListener {
                 openSelectDeviceFragment()
             }
@@ -265,7 +259,6 @@ class CameraActivity : AppCompatActivity() {
     //Callback for camera changes
     private val mStateCallback: CameraDevice.StateCallback = object : CameraDevice.StateCallback() {
         override fun onOpened(cameraDevice: CameraDevice) {
-            Log.d("CAMERA", "Camera opened")
             mCameraOpenCloseLock.release()
             mCameraDevice = cameraDevice
             createCameraPreviewSession()
@@ -298,7 +291,6 @@ class CameraActivity : AppCompatActivity() {
         }
         try {
             if (!mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
-                throw RuntimeException("Camera lock opening timeout")
             }
 
             manager.openCamera(mCameraId, mStateCallback, null)
@@ -336,7 +328,6 @@ class CameraActivity : AppCompatActivity() {
                                 mPreviewRequest,
                                 null, null
                             )
-                            Log.d("CAMERA", "Start Preview with size: $mPreviewSize")
                             StudyLogger.hashMap["preview_width"] = mPreviewSize.width
                             StudyLogger.hashMap["preview_height"] = mPreviewSize.height
                         } catch (e: CameraAccessException) {
@@ -347,7 +338,6 @@ class CameraActivity : AppCompatActivity() {
                     override fun onConfigureFailed(
                         cameraCaptureSession: CameraCaptureSession
                     ) {
-                        Log.d("CAMERA", "camera config Failed")
                     }
                 }, null
             )
@@ -411,7 +401,6 @@ class CameraActivity : AppCompatActivity() {
         } catch (e: CameraAccessException) {
             e.printStackTrace()
         } catch (e: NullPointerException) {
-            Log.d("CAMERA", "Camera2 API unavailable")
         }
     }
 
@@ -447,19 +436,18 @@ class CameraActivity : AppCompatActivity() {
     ): Size? {
 
 
-        var keyWidth: String = "previewWidthPortrait"
-        var keyHeight: String = "previewHeightPortrait"
+        var keyWidth: String = getString(R.string.ca_pref_preview_width)
+        var keyHeight: String = getString(R.string.ca_pref_preview_height)
 
-        var keyWidthView: String = "ViewPreviewWidthPortrait"
-        var keyHeightView: String = "ViewPreviewHeightPortrait"
+        var keyWidthView: String = getString(R.string.ca_pref_surface_view_width)
+        var keyHeightView: String = getString(R.string.ca_pref_surface_view_height)
 
         val orientation = windowManager.defaultDisplay.rotation
         if (orientation == Surface.ROTATION_90 || orientation == Surface.ROTATION_270) {
-            Log.d("CA", "Landscape")
-            keyWidth = "previewHeightPortrait"
-            keyHeight = "previewWidthPortrait"
-            keyWidthView = "ViewPreviewWidthPortrait"
-            keyHeightView = "ViewPreviewHeightPortrait"
+            keyWidth = getString(R.string.ca_pref_preview_height)
+            keyHeight = getString(R.string.ca_pref_preview_width)
+            keyWidthView = getString(R.string.ca_pref_preview_height)
+            keyHeightView = getString(R.string.ca_pref_surface_view_width)
         }
 
         if (!::sp.isInitialized) {
@@ -474,7 +462,6 @@ class CameraActivity : AppCompatActivity() {
         val mSavedHeightOfView: Int = sp.getInt(keyHeightView, 0)
 
         if ((mSavedWidth != 0 && mSavedHeight != 0) && (mSavedWidthOfView == w && mSavedHeightOfView == h)) {
-            Log.d("CA", "Using old width")
             return Size(mSavedWidth, mSavedHeight)
         } else {
             sp.edit().putInt(keyWidthView, w).apply()
@@ -485,17 +472,14 @@ class CameraActivity : AppCompatActivity() {
             val notBigEnough: MutableList<Size> = ArrayList()
 
             for (option in choices) {
-                Log.d("CAMERA", "Checking option $option")
                 if (option.width <= maxWidth && option.height <= maxHeight && option.height == option.width * h / w
                 ) {
                     if (option.width >= textureViewWidth &&
                         option.height >= textureViewHeight
                     ) {
                         bigEnough.add(option)
-                        Log.d("CAMERA", "Added $option to big resolutions")
                     } else {
                         notBigEnough.add(option)
-                        Log.d("CAMERA", "Added $option to small resolutions")
                     }
                 }
             }
@@ -521,7 +505,6 @@ class CameraActivity : AppCompatActivity() {
                     Collections.max(notBigEnough, CompareSizesByArea())
                 }
                 else -> {
-                    Log.e("CAMERA", "No suitable preview size")
                     choices[0]
                 }
             }
@@ -548,20 +531,15 @@ class CameraActivity : AppCompatActivity() {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        Log.d("CAMERA", "Permission Callback Code $requestCode")
         when (requestCode) {
             1 -> {
                 if (grantResults.isNotEmpty()
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED
                 ) {
-                    for (permission in permissions) {
-                        Log.d("CAMERA", "GOT permission $permission")
-                    }
-                    Log.d("CAMERA", "Got Permissions")
                     openCamera(surfaceTextureHeight, surfaceTextureWidth)
-
                 } else {
-                    Log.d("CAMERA", "No permission")
+                    Toast.makeText(this,getString(R.string.permission_request_en), Toast.LENGTH_LONG).show()
+                    verifyPermissions(this)
                 }
             }
         }
@@ -569,25 +547,20 @@ class CameraActivity : AppCompatActivity() {
 
     //Capture an image by simply saving the current frame of the Texture View
     private fun captureImageWithPreviewExtraction() {
-        Log.v("TIMING", "Button pressed")
         startTime = System.currentTimeMillis()
         var mBitmap: Bitmap? = mTextureView.bitmap
-
         val orientation = windowManager.defaultDisplay.rotation
         if (orientation != Surface.ROTATION_0 && mBitmap != null) {
-            Log.d("CA", "Start rotate")
             when (orientation) {
                 Surface.ROTATION_90 -> mBitmap = rotateBitmapAndAdjustRatio(mBitmap, -90F)
                 Surface.ROTATION_270 -> mBitmap = rotateBitmapAndAdjustRatio(mBitmap, 90F)
             }
-            Log.d("CA", "End rotate")
         }
 
         if (mBitmap != null) {
             StudyLogger.hashMap["tc_image_captured"] = System.currentTimeMillis()
             StudyLogger.hashMap["long_side"] = IMG_TARGET_SIZE
             val greyImg = rescale(mBitmap, IMG_TARGET_SIZE)
-            Log.v("TIMING", "Image rescaled.")
             var matchingOptions: HashMap<Any?, Any?>? = getMatchingOptionsFromPref()
             sendBitmap(greyImg, mServerURL, this, matchingOptions)
         }
@@ -603,7 +576,6 @@ class CameraActivity : AppCompatActivity() {
             mUserID = (1..20).map { allowedChars.random() }.joinToString("")
             sharedPreferences.edit().putString("uid", mUserID).apply()
         }
-        Log.v("TEST", mUserID)
     }
 
     private fun getServerURL() {
@@ -612,22 +584,21 @@ class CameraActivity : AppCompatActivity() {
         }.start()
     }
 
-    fun onServerURLsGet(servers: List<Pair<String,String>>) {
-            Log.v("TIMING", "Got URL")
-            if (servers.isNotEmpty()){
-                mServerUrlList = servers
-                mServerURL = mServerUrlList[currentServerUrlListIndex].first
+    fun onServerURLsGet(servers: List<Pair<String, String>>) {
+        if (servers.isNotEmpty()) {
+            mServerUrlList = servers
+            mServerURL = mServerUrlList[currentServerUrlListIndex].first
             runOnUiThread {
                 mSelectDeviceButton.background =
                     resources.getDrawable(R.drawable.select_device_connected)
                 mSelectDeviceButtonText.text = servers[currentServerUrlListIndex].second
             }
         } else {
-                Thread {
-                    Thread.sleep(100)
-                    mServerUrlList = discoverServersOnNetwork(this, 49050, "")
-                }.start()
-            }
+            Thread {
+                Thread.sleep(100)
+                mServerUrlList = discoverServersOnNetwork(this, 49050, "")
+            }.start()
+        }
     }
 
     private fun startResultsActivity(matchID: String, img: ByteArray) {
@@ -649,7 +620,6 @@ class CameraActivity : AppCompatActivity() {
         mCaptureButton.setImageResource(0)
         mBackButtonText.visibility = View.VISIBLE
 
-        Log.d("FRAG", "opening fragment")
         val selectDeviceFragment = SelectDeviceFragment()
         this.supportFragmentManager
             .beginTransaction()
@@ -658,7 +628,7 @@ class CameraActivity : AppCompatActivity() {
             .commit()
     }
 
-    public fun onSelectDeviceFragmentClosed() {
+    fun onSelectDeviceFragmentClosed() {
         mCaptureButton.setImageResource(R.drawable.ic_baseline_photo_camera_24)
         mBackButtonText.visibility = View.INVISIBLE
         mCaptureButton.setOnClickListener(mCaptureButtonListener)
@@ -667,7 +637,7 @@ class CameraActivity : AppCompatActivity() {
     }
 
 
-    fun openErrorFragment(uid: String, url: String) {
+    fun openErrorFragment(uid: String) {
         val errorFragment = ErrorFragment()
         val bundle = Bundle()
         bundle.putString(UID_KEY, uid)
@@ -718,7 +688,7 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun setupSharedPref() {
-        if(!::sp.isInitialized){
+        if (!::sp.isInitialized) {
             sp = PreferenceManager.getDefaultSharedPreferences(this)
             MATCHING_MODE_PREF_KEY = getString(R.string.settings_algorithm_key)
         }
@@ -779,14 +749,13 @@ class CameraActivity : AppCompatActivity() {
         return filename == itemName
     }
 
-    public fun getServerUrlList(): List<Pair<String, String>>? {
-        if (::mServerUrlList.isInitialized){
+    fun getServerUrlList(): List<Pair<String, String>>? {
+        if (::mServerUrlList.isInitialized) {
             return mServerUrlList
-        }
-        else return  null
+        } else return null
     }
 
-    public fun setServerUrl(index: Int){
+    fun setServerUrl(index: Int) {
         currentServerUrlListIndex = index
         mServerURL = mServerUrlList[index].first
         mSelectDeviceButtonText.text = mServerUrlList[index].second

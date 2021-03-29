@@ -46,7 +46,7 @@ class SelectDeviceFragment : Fragment() {
         ca = requireActivity() as CameraActivity
         val l = ca.getServerUrlList()
         if (l != null){
-            l?.forEach { mServerList.add(it.second) }
+            l.forEach { mServerList.add(it.second) }
         } else {
             thread {
                 Thread.sleep(100)
@@ -66,7 +66,7 @@ class SelectDeviceFragment : Fragment() {
         mListView = activity?.findViewById(R.id.select_device_fragment_list)!!
         adapter = ArrayAdapter(requireContext(), R.layout.select_device_list_item, mServerList)
         mListView.adapter = adapter
-                mListView.onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
+                mListView.onItemClickListener = AdapterView.OnItemClickListener { _, view, position, _ ->
             if (::lastSelectedItem.isInitialized){
                 lastSelectedItem.setTextColor(resources.getColor(R.color.white))
             }

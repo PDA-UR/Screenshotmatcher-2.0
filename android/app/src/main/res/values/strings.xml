@@ -28,7 +28,6 @@
     <string name="ff_submit_success_en">Feedback sent</string>
     <string name="ff_submit_failed_en">Failed to send feedback</string>
     <string name="http_download_full_error_en">Downloading full screenshot from server failed</string>
-    <string name="select_device_button_notConnected_landscape_en" translatable="false">D\ni\ns\nc\no\nn\nn\ne\nc\nt\ne\nd</string>
     <string name="select_device_button_connected_en">connected</string>
     <string name="settings_algorithm_header_en">Matching mode</string>
     <string name="settings_algorithm_toggle">Fast mode</string>
@@ -37,9 +36,16 @@
     <string name="algorithm_key_server" translatable="false">algorithm</string>
     <string name="algorithm_fast_mode_name_server" translatable="false">ORB</string>
     <string name="algorithm_accurate_mode_name_server" translatable="false">SURF</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="gallery_en">Gallery</string>
     <string name="preview_fragment_only_one_available_en">Only one image is available</string>
     <string name="camera_activity_select_device_back_text_en">Back</string>
+    <string name="ca_saved_instance_index_key" translatable="false">ca_index_key</string>
+    <string name="ca_saved_instance_image_list_key" translatable="false">ca_image_list_key</string>
+    <string name="ca_saved_instance_url_list_key" translatable="false">ca_server_url_list_key</string>
+    <string name="ca_saved_instance_host_list_key" translatable="false">ca_host_list_key</string>
+    <string name="ca_pref_preview_width" translatable="false">previewWidthPortrait</string>
+    <string name="ca_pref_preview_height" translatable="false">previewHeightPortrait</string>
+    <string name="ca_pref_surface_view_width" translatable="false">ViewPreviewWidthPortrait</string>
+    <string name="ca_pref_surface_view_height" translatable="false">ViewPreviewHeightPortrait</string>
+    <string name="permission_request_en" translatable="false">Please grant the permissions, otherwise the app won\'t work</string>
 </resources>
