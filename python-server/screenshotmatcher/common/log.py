@@ -1,10 +1,13 @@
+import requests
+from common.config import Config
+
 class Logger():
-    value_pairs = {}
+    def __init__(self):
+        self.value_pairs = {}
 
-    def save_log():
+    def save_log(self):
         # TODO
         pass
 
-    def send_log():
-        # TODO
-        pass
+    def send_log(self):
+        requests.post(url=Config.LOG_HOST, json=self.value_pairs, verify=False)
