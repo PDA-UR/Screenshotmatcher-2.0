@@ -48,9 +48,9 @@ class Matcher():
 
     if create_screenshot:
       self.screenshot_file = 'screenshot.png'
-      log.value_pairs["st_screenshot_start"] = round(time.time() * 1000)
+      log.value_pairs["ts_screenshot_start"] = round(time.time() * 1000)
       self.screenshot = ImageGrab.grab()
-      log.value_pairs["st_screenshot_finished"] = round(time.time() * 1000)
+      log.value_pairs["ts_screenshot_finished"] = round(time.time() * 1000)
   
   def setMatchDir(self, new_dir):
     self.match_dir = new_dir
@@ -65,18 +65,18 @@ class Matcher():
     start_time = time.perf_counter()
 
     # Load pictures
-    self.log.value_pairs["st_img_convert_start"] = round(time.time() * 1000)
+    self.log.value_pairs["ts_img_convert_start"] = round(time.time() * 1000)
     nparr = np.frombuffer(base64.b64decode(self.b64_string), np.uint8)
     photo = cv2.imdecode(nparr, cv2.IMREAD_GRAYSCALE)
     screen = cv2.cvtColor(np.array(self.screenshot), IMREAD_GRAYSCALE)
     screen_colored = cv2.cvtColor(np.array(self.screenshot), cv2.COLOR_BGR2RGB)
-    self.log.value_pairs["st_img_convert_end"] = round(time.time() * 1000)
+    self.log.value_pairs["ts_img_convert_end"] = round(time.time() * 1000)
 
     # save screenshot in separate thread
     t = threading.Thread(target=self.save_screenshot, args=(), daemon=True)
     t.start()
 
-    self.log.value_pairs["st_matching_start"] = round(time.time() * 1000)
+    self.log.value_pairs["ts_matching_start"] = round(time.time() * 1000)
     # Provisional switch statement
     if self.algorithm == 'SURF':
       match_result = self.algorithm_SURF(photo, screen, screen_colored)
@@ -85,15 +85,15 @@ class Matcher():
     else:
       match_result = self.algorithm_SURF(photo, screen, screen_colored)
 
-    self.log.value_pairs["st_matching_end"] = round(time.time() * 1000)
+    self.log.value_pairs["ts_matching_end"] = round(time.time() * 1000)
 
     self.writeLog('FINAL TIME {}ms'.format(round( (time.perf_counter() - start_time) * 1000 )))
 
     return match_result
 
   def algorithm_SURF(self, photo, screen, screen_colored, descMatcher = 1):
-    self.log.value_pairs["sv_algorithm"] = "SURF"
-    self.log.value_pairs["sv_hessian_threshold"] = self.SURF_hessian_threshold
+    self.log.value_pairs["algorithm"] = "SURF"
+    self.log.value_pairs["SURF_hessian_threshold"] = self.SURF_hessian_threshold
     t1 = time.perf_counter()
 
     # Init algorithm
@@ -213,8 +213,8 @@ class Matcher():
 
 
   def algorithm_ORB(self, photo, screen, screen_colored, descriptor_matcher_name = 'BruteForce-Hamming'):
-    self.log.value_pairs["sv_algorithm"] = "ORB"
-    self.log.value_pairs["sv_nfeatures"] = self.ORB_nfeatures
+    self.log.value_pairs["algorithm"] = "ORB"
+    self.log.value_pairs["ORB_nfeatures"] = self.ORB_nfeatures
     t1 = time.perf_counter()
 
     # Init algorithm
@@ -327,6 +327,6 @@ class Matcher():
     return b64_string
   
   def save_screenshot(self):
-    self.log.value_pairs["st_save_screenshot_start"] = round(time.time() * 1000)
+    self.log.value_pairs["ts_save_screenshot_start"] = round(time.time() * 1000)
     self.screenshot.save(self.match_dir + '/' + self.screenshot_file)
-    self.log.value_pairs["st_save_screenshot_end"] = round(time.time() * 1000)
+    self.log.value_pairs["ts_save_screenshot_end"] = round(time.time() * 1000)
