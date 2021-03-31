@@ -53,6 +53,7 @@ class FeedbackFragment : Fragment() {
 
     fun onFeedbackPosted(){
         removeThisFragment(true)
+        StudyLogger.hashMap["feedback_sent"] = true
         Toast.makeText(context, getText(R.string.ff_submit_success_en), Toast.LENGTH_LONG).show()
     }
 

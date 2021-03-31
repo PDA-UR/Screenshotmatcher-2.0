@@ -75,9 +75,11 @@ class Server():
             if phone_log.get("match_id") == log.value_pairs.get("match_uid"):
                 for key,value in phone_log.items():
                     log.value_pairs[key] = value
+                log.value_pairs.pop("match_uid", None)  # remove duplicate match_id entry
+                log.send_log()
                 self.last_logs.remove(log)
-        # TODO: send log to central server
-        return "ok"
+                return "ok"
+        return "log does not match any match_id"
 
     def feedback_route(self):
         r_json = request.json
@@ -128,10 +130,10 @@ class Server():
 
         t_start = time.perf_counter()
         print("{}:\t request get".format(int(time.time()* 1000)))
-        log.value_pairs["st_request_received"] = round(time.time() * 1000)
+        log.value_pairs["ts_request_received"] = round(time.time() * 1000)
         r_json = request.json
         b64String = r_json.get("b64")
-        log.value_pairs["st_photo_received"] = round(time.time() * 1000)
+        log.value_pairs["ts_photo_received"] = round(time.time() * 1000)
         print("{}:\t b64 string with size {} get".format(time.time(), sys.getsizeof(b64String)))
         
         if b64String is None:
