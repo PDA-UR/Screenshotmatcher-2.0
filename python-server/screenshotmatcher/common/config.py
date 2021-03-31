@@ -26,6 +26,7 @@ class Config():
   CURRENT_VERSION = 'v1.1.0'
   ICON_PATH = 'gui/icon.png'
   HOST = common.utils.getCurrentIPAddress()
+  LOG_HOST = "https://127.0.0.1:49051"
   PORT = 49049
   PORT_DISCOVERY = 49050
   SERVICE_URL = 'http://{}:{}'.format(HOST, PORT)
