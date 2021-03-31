@@ -179,7 +179,7 @@ class Server():
         print("Time until response: {}\n".format(time.perf_counter() - t_start))
 
         response = {'uid': uid}
-        log.value_pairs["st_response_sent"] = round(time.time() * 1000)
+        log.value_pairs["ts_response_sent"] = round(time.time() * 1000)
         if not match_result:
             log.value_pairs["match_success"] = False
             print(log.value_pairs)
