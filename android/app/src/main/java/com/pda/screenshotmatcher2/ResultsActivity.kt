@@ -405,15 +405,11 @@ class ResultsActivity : AppCompatActivity() {
         }
 
         unregisterReceiver(onDownloadComplete)
-        sendLog(mServerURL, this)
-        StudyLogger.hashMap.clear()
-        //TODO: send log data to server
         finish()
     }
 
     override fun onStop() {
         super.onStop()
-        //TODO: send log data to server
         sendLog(mServerURL, this)
         StudyLogger.hashMap.clear()
     }

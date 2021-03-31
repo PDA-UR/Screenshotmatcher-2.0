@@ -58,6 +58,7 @@ class ErrorFragment : Fragment() {
         intent.putExtra("matchID", uid)
         intent.putExtra("ServerURL", url)
         activity?.startActivityForResult(intent, RESULT_ACTIVITY_REQUEST_CODE)
+        removeThisFragment()
     }
 
     private fun openFeedbackFragment() {
@@ -92,5 +93,11 @@ class ErrorFragment : Fragment() {
         }
         activity?.supportFragmentManager?.beginTransaction()?.remove(this)
             ?.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)?.commit()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        sendLog(url, requireContext())
+        StudyLogger.hashMap.clear()
     }
 }
