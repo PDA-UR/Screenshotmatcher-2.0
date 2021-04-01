@@ -85,6 +85,7 @@ class CameraActivity : AppCompatActivity() {
     private var currentServerUrlListIndex: Int = 0
     private var mUserID: String = ""
     private var startTime: Long = 0
+    private var isCapturing: Boolean = false
 
     //Shared preferences
     private lateinit var sp: SharedPreferences
@@ -124,7 +125,7 @@ class CameraActivity : AppCompatActivity() {
         var hostList = savedInstanceState.getStringArrayList(getString(R.string.ca_saved_instance_host_list_key))
         var l = mutableListOf<Pair<String, String>>()
         for (i in 0 until urlList?.size!!) {
-            l.add(Pair(PROTOCOL + urlList[i], hostList?.get(i)) as Pair<String, String>)
+            l.add(Pair(urlList[i], hostList?.get(i)) as Pair<String, String>)
         }
         onServerURLsGet(l)
     }
@@ -229,10 +230,14 @@ class CameraActivity : AppCompatActivity() {
         }
 
         if (!mCaptureButton.hasOnClickListeners()) {
-            mCaptureButtonListener = View.OnClickListener {
-                StudyLogger.hashMap["client_id"] = mUserID
-                StudyLogger.hashMap["tc_button_pressed"] = System.currentTimeMillis()
-                captureImageWithPreviewExtraction()
+            if (!this::mCaptureButtonListener.isInitialized){
+                mCaptureButtonListener = View.OnClickListener {
+                    if (!isCapturing){
+                        StudyLogger.hashMap["client_id"] = mUserID
+                        StudyLogger.hashMap["tc_button_pressed"] = System.currentTimeMillis()
+                        captureImageWithPreviewExtraction()
+                    }
+                }
             }
             mCaptureButton.setOnClickListener(mCaptureButtonListener)
         }
@@ -547,6 +552,7 @@ class CameraActivity : AppCompatActivity() {
 
     //Capture an image by simply saving the current frame of the Texture View
     private fun captureImageWithPreviewExtraction() {
+        isCapturing = true
         startTime = System.currentTimeMillis()
         var mBitmap: Bitmap? = mTextureView.bitmap
         val orientation = windowManager.defaultDisplay.rotation
@@ -612,6 +618,7 @@ class CameraActivity : AppCompatActivity() {
     }
 
     fun onMatchResult(matchID: String, img: ByteArray) {
+        isCapturing = false
         startResultsActivity(matchID, img)
     }
 
@@ -638,6 +645,7 @@ class CameraActivity : AppCompatActivity() {
 
 
     fun openErrorFragment(uid: String) {
+        isCapturing = false
         val errorFragment = ErrorFragment()
         val bundle = Bundle()
         bundle.putString(UID_KEY, uid)
