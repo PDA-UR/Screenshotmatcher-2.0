@@ -1,0 +1,286 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:2:1-44:12
+INJECTED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:2:1-44:12
+INJECTED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:2:1-44:12
+INJECTED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:2:1-44:12
+MERGED from [androidx.fragment:fragment-ktx:1.2.5] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/9b7297e797b2cba498323a2fc1cd456f/jetified-fragment-ktx-1.2.5/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.activity:activity-ktx:1.1.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/167187429665cbb2a7a8daa14441e446/jetified-activity-ktx-1.1.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.core:core-ktx:1.3.2] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/5b6d3e953e83c0f55880e431442d87ef/jetified-core-ktx-1.3.2/AndroidManifest.xml:2:1-9:12
+MERGED from [androidx.lifecycle:lifecycle-livedata-core-ktx:2.2.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/db78261d37612f2c98a7a5bd6a38b834/jetified-lifecycle-livedata-core-ktx-2.2.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.2.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/4a38fd40dad1e79487ddbc28413f4038/jetified-lifecycle-viewmodel-ktx-2.2.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.lifecycle:lifecycle-runtime-ktx:2.2.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/d64a8188cba2a1a877f6c635efa9d0ec/jetified-lifecycle-runtime-ktx-2.2.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.preference:preference:1.1.1] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/b3996c0310011937721d0b3872b0fc4e/preference-1.1.1/AndroidManifest.xml:17:1-24:12
+MERGED from [com.github.bumptech.glide:glide:4.12.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/536b73ef6e38c33313651d25a0935b11/jetified-glide-4.12.0/AndroidManifest.xml:2:1-12:12
+MERGED from [com.google.android.material:material:1.3.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/1e35180f46140cb6767ab7b7fd708bff/material-1.3.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.constraintlayout:constraintlayout:2.0.4] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/31ac098d93a2a0ddf2e84d89031f5da7/constraintlayout-2.0.4/AndroidManifest.xml:2:1-11:12
+MERGED from [androidx.appcompat:appcompat:1.2.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/2ce7175a607f1aae5fbba536e8c002c1/appcompat-1.2.0/AndroidManifest.xml:17:1-24:12
+MERGED from [com.android.volley:volley:1.1.1] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/31106ca2665fba1fc6416cf9d8fe7be6/jetified-volley-1.1.1/AndroidManifest.xml:2:1-11:12
+MERGED from [androidx.legacy:legacy-support-v4:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/f8737351b005499b1d3d4c8e66712e73/legacy-support-v4-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.viewpager2:viewpager2:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/ff109ff37bd5fe483f187b037275bc82/jetified-viewpager2-1.0.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.fragment:fragment:1.2.5] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/9a9d4605112f6e773ee28ffcaf15217f/fragment-1.2.5/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.appcompat:appcompat-resources:1.2.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/26f962049858705d4260213e3a2a9bfc/jetified-appcompat-resources-1.2.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.legacy:legacy-support-core-ui:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/68fa0d48c47539c041f625279d7f4958/legacy-support-core-ui-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.drawerlayout:drawerlayout:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/0e4159b14ef289064109c1331e65df55/drawerlayout-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.coordinatorlayout:coordinatorlayout:1.1.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/7a809eef369d13c83d5b9b863ba77aae/coordinatorlayout-1.1.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.dynamicanimation:dynamicanimation:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/d49a9759f41c587988a825e8dc7a27ed/dynamicanimation-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.transition:transition:1.2.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/c0ff7ff5f75527da873d5706547ce78c/transition-1.2.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/76471f586d566bf3ffe762c4dad2b743/vectordrawable-animated-1.1.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/49f76c92c0c102db5507391e9c84cc0f/vectordrawable-1.1.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.media:media:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/85125bbc7287fba053ffd541295e82da/media-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.legacy:legacy-support-core-utils:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/59a8e6ae22528e95e5da8456899e73f8/legacy-support-core-utils-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.viewpager:viewpager:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/44705e494f9e3dbe535ed64a1a332fed/viewpager-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.loader:loader:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/0d557e6b5bfccacae04657a900296d61/loader-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.activity:activity:1.1.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/0a579ac25ce159de149e17d07c3c71a0/jetified-activity-1.1.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.recyclerview:recyclerview:1.1.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/fd41a667a067a85718256afa2871308c/recyclerview-1.1.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.slidingpanelayout:slidingpanelayout:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/d6db6eb2b293e42ff9d51cc69e08a2ed/slidingpanelayout-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.customview:customview:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/23f41ed945a5095d5a101feac3f06268/customview-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.swiperefreshlayout:swiperefreshlayout:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/8ca5ea6ac3d33c45e3aaa0e277506bcd/swiperefreshlayout-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.asynclayoutinflater:asynclayoutinflater:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/336a4002419a4a1f53f35860ac0a2a92/asynclayoutinflater-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.core:core:1.3.2] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/0288a8aab631773614f54c3f4d4ca2e2/core-1.3.2/AndroidManifest.xml:17:1-26:12
+MERGED from [com.github.bumptech.glide:gifdecoder:4.12.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/933edadb385250eba0b93836f8f12456/jetified-gifdecoder-4.12.0/AndroidManifest.xml:2:1-11:12
+MERGED from [androidx.exifinterface:exifinterface:1.2.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/e8082247b9cce2f3e5d098dac491cee2/exifinterface-1.2.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/b7b1f6519bc009335b55b56a137a0fe7/cursoradapter-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.cardview:cardview:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/b0dd6791cae7cf7d12abc2795c0845bd/cardview-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/de534ec502b5897f37cd0656f012af8b/versionedparcelable-1.1.0/AndroidManifest.xml:17:1-27:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.2.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/2812379b013f2ebaa2b5ae83033056c0/jetified-lifecycle-viewmodel-savedstate-2.2.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.2.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/811307f60e43295c797b464f20ee0487/lifecycle-viewmodel-2.2.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.documentfile:documentfile:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/2d5bd593b577b4388261994fb6e33e67/documentfile-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/8689f2da0688900b5c61388180c1c3cd/localbroadcastmanager-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.print:print:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/84c98cb070dd75a88e229c1f9ebb7b22/print-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.interpolator:interpolator:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/c453ae57944e0c881698300b976bdf91/interpolator-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-runtime:2.2.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/7fa9fc8ef52ff3e1e226b34daba8a82c/lifecycle-runtime-2.2.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.savedstate:savedstate:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/2c0e139366c26ad50a15508f7085a3d4/jetified-savedstate-1.0.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/052bd579326855443da117db8c9c787b/lifecycle-livedata-2.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.2.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/83d67681881fce5c9ccaa940a2e1b25a/lifecycle-livedata-core-2.2.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.arch.core:core-runtime:2.1.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/57a211e14f13f64258f86cc5a1e0acf9/core-runtime-2.1.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.annotation:annotation-experimental:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/65fa869a3d2398e881633f29543be79b/jetified-annotation-experimental-1.0.0/AndroidManifest.xml:17:1-24:12
+INJECTED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:2:1-44:12
+INJECTED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:2:1-44:12
+INJECTED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:2:1-44:12
+	package
+		ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:4:5-41
+		INJECTED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml
+		INJECTED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml
+	android:versionName
+		INJECTED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml
+		ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:2:1-44:12
+		INJECTED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml
+	xmlns:tools
+		ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:3:5-51
+	android:versionCode
+		INJECTED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml
+		ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:2:1-44:12
+		INJECTED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml
+	xmlns:android
+		ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:2:11-69
+uses-permission#android.permission.WRITE_EXTERNAL_STORAGE
+ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:6:5-81
+	android:name
+		ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:6:22-78
+uses-permission#android.permission.ACCESS_WIFI_STATE
+ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:7:5-76
+	android:name
+		ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:7:22-73
+uses-permission#android.permission.READ_EXTERNAL_STORAGE
+ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:8:5-80
+	android:name
+		ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:8:22-77
+uses-permission#android.permission.INTERNET
+ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:9:5-67
+	android:name
+		ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:9:22-64
+uses-permission#android.permission.CAMERA
+ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:10:5-65
+	android:name
+		ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:10:22-62
+application
+ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:12:5-42:19
+MERGED from [com.github.bumptech.glide:glide:4.12.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/536b73ef6e38c33313651d25a0935b11/jetified-glide-4.12.0/AndroidManifest.xml:10:5-20
+MERGED from [com.github.bumptech.glide:glide:4.12.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/536b73ef6e38c33313651d25a0935b11/jetified-glide-4.12.0/AndroidManifest.xml:10:5-20
+MERGED from [com.google.android.material:material:1.3.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/1e35180f46140cb6767ab7b7fd708bff/material-1.3.0/AndroidManifest.xml:22:5-20
+MERGED from [com.google.android.material:material:1.3.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/1e35180f46140cb6767ab7b7fd708bff/material-1.3.0/AndroidManifest.xml:22:5-20
+MERGED from [androidx.constraintlayout:constraintlayout:2.0.4] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/31ac098d93a2a0ddf2e84d89031f5da7/constraintlayout-2.0.4/AndroidManifest.xml:9:5-20
+MERGED from [androidx.constraintlayout:constraintlayout:2.0.4] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/31ac098d93a2a0ddf2e84d89031f5da7/constraintlayout-2.0.4/AndroidManifest.xml:9:5-20
+MERGED from [com.android.volley:volley:1.1.1] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/31106ca2665fba1fc6416cf9d8fe7be6/jetified-volley-1.1.1/AndroidManifest.xml:9:5-20
+MERGED from [com.android.volley:volley:1.1.1] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/31106ca2665fba1fc6416cf9d8fe7be6/jetified-volley-1.1.1/AndroidManifest.xml:9:5-20
+MERGED from [androidx.core:core:1.3.2] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/0288a8aab631773614f54c3f4d4ca2e2/core-1.3.2/AndroidManifest.xml:24:5-89
+MERGED from [androidx.core:core:1.3.2] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/0288a8aab631773614f54c3f4d4ca2e2/core-1.3.2/AndroidManifest.xml:24:5-89
+MERGED from [com.github.bumptech.glide:gifdecoder:4.12.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/933edadb385250eba0b93836f8f12456/jetified-gifdecoder-4.12.0/AndroidManifest.xml:9:5-20
+MERGED from [com.github.bumptech.glide:gifdecoder:4.12.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/933edadb385250eba0b93836f8f12456/jetified-gifdecoder-4.12.0/AndroidManifest.xml:9:5-20
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/de534ec502b5897f37cd0656f012af8b/versionedparcelable-1.1.0/AndroidManifest.xml:24:5-25:19
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/de534ec502b5897f37cd0656f012af8b/versionedparcelable-1.1.0/AndroidManifest.xml:24:5-25:19
+	android:appComponentFactory
+		ADDED from [androidx.core:core:1.3.2] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/0288a8aab631773614f54c3f4d4ca2e2/core-1.3.2/AndroidManifest.xml:24:18-86
+	android:supportsRtl
+		ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:19:9-35
+	android:label
+		ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:16:9-41
+	android:hardwareAccelerated
+		ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:14:9-43
+	android:roundIcon
+		ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:18:9-54
+	tools:targetApi
+		ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:21:9-28
+	android:icon
+		ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:15:9-43
+	android:allowBackup
+		ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:13:9-35
+	android:theme
+		ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:20:9-65
+	android:networkSecurityConfig
+		ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:17:9-69
+activity#com.pda.screenshotmatcher2.ResultsActivity
+ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:23:9-26:20
+	android:screenOrientation
+		ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:25:13-49
+	android:configChanges
+		ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:24:13-48
+	android:name
+		ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:23:19-50
+activity#com.pda.screenshotmatcher2.CameraActivity
+ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:27:9-32:20
+	android:name
+		ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:27:19-49
+intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
+ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:28:13-31:29
+action#android.intent.action.MAIN
+ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:29:17-68
+	android:name
+		ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:29:25-66
+category#android.intent.category.LAUNCHER
+ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:30:17-77
+	android:name
+		ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:30:27-74
+provider#androidx.core.content.FileProvider
+ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:33:9-41:20
+	android:grantUriPermissions
+		ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:36:13-47
+	android:authorities
+		ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:35:13-74
+	android:exported
+		ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:37:13-37
+	android:name
+		ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:34:13-62
+meta-data#android.support.FILE_PROVIDER_PATHS
+ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:38:13-40:53
+	android:resource
+		ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:40:17-50
+	android:name
+		ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml:39:17-67
+uses-sdk
+INJECTED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml
+INJECTED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml
+MERGED from [androidx.fragment:fragment-ktx:1.2.5] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/9b7297e797b2cba498323a2fc1cd456f/jetified-fragment-ktx-1.2.5/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.fragment:fragment-ktx:1.2.5] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/9b7297e797b2cba498323a2fc1cd456f/jetified-fragment-ktx-1.2.5/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.activity:activity-ktx:1.1.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/167187429665cbb2a7a8daa14441e446/jetified-activity-ktx-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.activity:activity-ktx:1.1.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/167187429665cbb2a7a8daa14441e446/jetified-activity-ktx-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.core:core-ktx:1.3.2] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/5b6d3e953e83c0f55880e431442d87ef/jetified-core-ktx-1.3.2/AndroidManifest.xml:5:5-7:41
+MERGED from [androidx.core:core-ktx:1.3.2] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/5b6d3e953e83c0f55880e431442d87ef/jetified-core-ktx-1.3.2/AndroidManifest.xml:5:5-7:41
+MERGED from [androidx.lifecycle:lifecycle-livedata-core-ktx:2.2.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/db78261d37612f2c98a7a5bd6a38b834/jetified-lifecycle-livedata-core-ktx-2.2.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.lifecycle:lifecycle-livedata-core-ktx:2.2.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/db78261d37612f2c98a7a5bd6a38b834/jetified-lifecycle-livedata-core-ktx-2.2.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.2.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/4a38fd40dad1e79487ddbc28413f4038/jetified-lifecycle-viewmodel-ktx-2.2.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.2.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/4a38fd40dad1e79487ddbc28413f4038/jetified-lifecycle-viewmodel-ktx-2.2.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.lifecycle:lifecycle-runtime-ktx:2.2.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/d64a8188cba2a1a877f6c635efa9d0ec/jetified-lifecycle-runtime-ktx-2.2.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.lifecycle:lifecycle-runtime-ktx:2.2.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/d64a8188cba2a1a877f6c635efa9d0ec/jetified-lifecycle-runtime-ktx-2.2.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.preference:preference:1.1.1] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/b3996c0310011937721d0b3872b0fc4e/preference-1.1.1/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.preference:preference:1.1.1] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/b3996c0310011937721d0b3872b0fc4e/preference-1.1.1/AndroidManifest.xml:20:5-22:41
+MERGED from [com.github.bumptech.glide:glide:4.12.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/536b73ef6e38c33313651d25a0935b11/jetified-glide-4.12.0/AndroidManifest.xml:6:5-8:41
+MERGED from [com.github.bumptech.glide:glide:4.12.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/536b73ef6e38c33313651d25a0935b11/jetified-glide-4.12.0/AndroidManifest.xml:6:5-8:41
+MERGED from [com.google.android.material:material:1.3.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/1e35180f46140cb6767ab7b7fd708bff/material-1.3.0/AndroidManifest.xml:20:5-44
+MERGED from [com.google.android.material:material:1.3.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/1e35180f46140cb6767ab7b7fd708bff/material-1.3.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.constraintlayout:constraintlayout:2.0.4] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/31ac098d93a2a0ddf2e84d89031f5da7/constraintlayout-2.0.4/AndroidManifest.xml:5:5-7:41
+MERGED from [androidx.constraintlayout:constraintlayout:2.0.4] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/31ac098d93a2a0ddf2e84d89031f5da7/constraintlayout-2.0.4/AndroidManifest.xml:5:5-7:41
+MERGED from [androidx.appcompat:appcompat:1.2.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/2ce7175a607f1aae5fbba536e8c002c1/appcompat-1.2.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.appcompat:appcompat:1.2.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/2ce7175a607f1aae5fbba536e8c002c1/appcompat-1.2.0/AndroidManifest.xml:20:5-22:41
+MERGED from [com.android.volley:volley:1.1.1] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/31106ca2665fba1fc6416cf9d8fe7be6/jetified-volley-1.1.1/AndroidManifest.xml:7:5-43
+MERGED from [com.android.volley:volley:1.1.1] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/31106ca2665fba1fc6416cf9d8fe7be6/jetified-volley-1.1.1/AndroidManifest.xml:7:5-43
+MERGED from [androidx.legacy:legacy-support-v4:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/f8737351b005499b1d3d4c8e66712e73/legacy-support-v4-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.legacy:legacy-support-v4:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/f8737351b005499b1d3d4c8e66712e73/legacy-support-v4-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.viewpager2:viewpager2:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/ff109ff37bd5fe483f187b037275bc82/jetified-viewpager2-1.0.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.viewpager2:viewpager2:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/ff109ff37bd5fe483f187b037275bc82/jetified-viewpager2-1.0.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.fragment:fragment:1.2.5] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/9a9d4605112f6e773ee28ffcaf15217f/fragment-1.2.5/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.fragment:fragment:1.2.5] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/9a9d4605112f6e773ee28ffcaf15217f/fragment-1.2.5/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.appcompat:appcompat-resources:1.2.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/26f962049858705d4260213e3a2a9bfc/jetified-appcompat-resources-1.2.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.appcompat:appcompat-resources:1.2.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/26f962049858705d4260213e3a2a9bfc/jetified-appcompat-resources-1.2.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.legacy:legacy-support-core-ui:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/68fa0d48c47539c041f625279d7f4958/legacy-support-core-ui-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.legacy:legacy-support-core-ui:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/68fa0d48c47539c041f625279d7f4958/legacy-support-core-ui-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.drawerlayout:drawerlayout:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/0e4159b14ef289064109c1331e65df55/drawerlayout-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.drawerlayout:drawerlayout:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/0e4159b14ef289064109c1331e65df55/drawerlayout-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.coordinatorlayout:coordinatorlayout:1.1.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/7a809eef369d13c83d5b9b863ba77aae/coordinatorlayout-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.coordinatorlayout:coordinatorlayout:1.1.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/7a809eef369d13c83d5b9b863ba77aae/coordinatorlayout-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.dynamicanimation:dynamicanimation:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/d49a9759f41c587988a825e8dc7a27ed/dynamicanimation-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.dynamicanimation:dynamicanimation:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/d49a9759f41c587988a825e8dc7a27ed/dynamicanimation-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.transition:transition:1.2.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/c0ff7ff5f75527da873d5706547ce78c/transition-1.2.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.transition:transition:1.2.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/c0ff7ff5f75527da873d5706547ce78c/transition-1.2.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/76471f586d566bf3ffe762c4dad2b743/vectordrawable-animated-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/76471f586d566bf3ffe762c4dad2b743/vectordrawable-animated-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/49f76c92c0c102db5507391e9c84cc0f/vectordrawable-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/49f76c92c0c102db5507391e9c84cc0f/vectordrawable-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.media:media:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/85125bbc7287fba053ffd541295e82da/media-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.media:media:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/85125bbc7287fba053ffd541295e82da/media-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.legacy:legacy-support-core-utils:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/59a8e6ae22528e95e5da8456899e73f8/legacy-support-core-utils-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.legacy:legacy-support-core-utils:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/59a8e6ae22528e95e5da8456899e73f8/legacy-support-core-utils-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.viewpager:viewpager:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/44705e494f9e3dbe535ed64a1a332fed/viewpager-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.viewpager:viewpager:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/44705e494f9e3dbe535ed64a1a332fed/viewpager-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.loader:loader:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/0d557e6b5bfccacae04657a900296d61/loader-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.loader:loader:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/0d557e6b5bfccacae04657a900296d61/loader-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.activity:activity:1.1.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/0a579ac25ce159de149e17d07c3c71a0/jetified-activity-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.activity:activity:1.1.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/0a579ac25ce159de149e17d07c3c71a0/jetified-activity-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.recyclerview:recyclerview:1.1.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/fd41a667a067a85718256afa2871308c/recyclerview-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.recyclerview:recyclerview:1.1.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/fd41a667a067a85718256afa2871308c/recyclerview-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.slidingpanelayout:slidingpanelayout:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/d6db6eb2b293e42ff9d51cc69e08a2ed/slidingpanelayout-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.slidingpanelayout:slidingpanelayout:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/d6db6eb2b293e42ff9d51cc69e08a2ed/slidingpanelayout-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.customview:customview:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/23f41ed945a5095d5a101feac3f06268/customview-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.customview:customview:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/23f41ed945a5095d5a101feac3f06268/customview-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.swiperefreshlayout:swiperefreshlayout:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/8ca5ea6ac3d33c45e3aaa0e277506bcd/swiperefreshlayout-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.swiperefreshlayout:swiperefreshlayout:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/8ca5ea6ac3d33c45e3aaa0e277506bcd/swiperefreshlayout-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.asynclayoutinflater:asynclayoutinflater:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/336a4002419a4a1f53f35860ac0a2a92/asynclayoutinflater-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.asynclayoutinflater:asynclayoutinflater:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/336a4002419a4a1f53f35860ac0a2a92/asynclayoutinflater-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.core:core:1.3.2] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/0288a8aab631773614f54c3f4d4ca2e2/core-1.3.2/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.core:core:1.3.2] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/0288a8aab631773614f54c3f4d4ca2e2/core-1.3.2/AndroidManifest.xml:20:5-22:41
+MERGED from [com.github.bumptech.glide:gifdecoder:4.12.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/933edadb385250eba0b93836f8f12456/jetified-gifdecoder-4.12.0/AndroidManifest.xml:5:5-7:41
+MERGED from [com.github.bumptech.glide:gifdecoder:4.12.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/933edadb385250eba0b93836f8f12456/jetified-gifdecoder-4.12.0/AndroidManifest.xml:5:5-7:41
+MERGED from [androidx.exifinterface:exifinterface:1.2.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/e8082247b9cce2f3e5d098dac491cee2/exifinterface-1.2.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.exifinterface:exifinterface:1.2.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/e8082247b9cce2f3e5d098dac491cee2/exifinterface-1.2.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/b7b1f6519bc009335b55b56a137a0fe7/cursoradapter-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/b7b1f6519bc009335b55b56a137a0fe7/cursoradapter-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.cardview:cardview:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/b0dd6791cae7cf7d12abc2795c0845bd/cardview-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.cardview:cardview:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/b0dd6791cae7cf7d12abc2795c0845bd/cardview-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/de534ec502b5897f37cd0656f012af8b/versionedparcelable-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/de534ec502b5897f37cd0656f012af8b/versionedparcelable-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.2.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/2812379b013f2ebaa2b5ae83033056c0/jetified-lifecycle-viewmodel-savedstate-2.2.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.2.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/2812379b013f2ebaa2b5ae83033056c0/jetified-lifecycle-viewmodel-savedstate-2.2.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.2.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/811307f60e43295c797b464f20ee0487/lifecycle-viewmodel-2.2.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.2.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/811307f60e43295c797b464f20ee0487/lifecycle-viewmodel-2.2.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.documentfile:documentfile:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/2d5bd593b577b4388261994fb6e33e67/documentfile-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.documentfile:documentfile:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/2d5bd593b577b4388261994fb6e33e67/documentfile-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/8689f2da0688900b5c61388180c1c3cd/localbroadcastmanager-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/8689f2da0688900b5c61388180c1c3cd/localbroadcastmanager-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.print:print:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/84c98cb070dd75a88e229c1f9ebb7b22/print-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.print:print:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/84c98cb070dd75a88e229c1f9ebb7b22/print-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.interpolator:interpolator:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/c453ae57944e0c881698300b976bdf91/interpolator-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.interpolator:interpolator:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/c453ae57944e0c881698300b976bdf91/interpolator-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime:2.2.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/7fa9fc8ef52ff3e1e226b34daba8a82c/lifecycle-runtime-2.2.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.lifecycle:lifecycle-runtime:2.2.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/7fa9fc8ef52ff3e1e226b34daba8a82c/lifecycle-runtime-2.2.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.savedstate:savedstate:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/2c0e139366c26ad50a15508f7085a3d4/jetified-savedstate-1.0.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.savedstate:savedstate:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/2c0e139366c26ad50a15508f7085a3d4/jetified-savedstate-1.0.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/052bd579326855443da117db8c9c787b/lifecycle-livedata-2.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/052bd579326855443da117db8c9c787b/lifecycle-livedata-2.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.2.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/83d67681881fce5c9ccaa940a2e1b25a/lifecycle-livedata-core-2.2.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.2.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/83d67681881fce5c9ccaa940a2e1b25a/lifecycle-livedata-core-2.2.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.arch.core:core-runtime:2.1.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/57a211e14f13f64258f86cc5a1e0acf9/core-runtime-2.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.arch.core:core-runtime:2.1.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/57a211e14f13f64258f86cc5a1e0acf9/core-runtime-2.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.annotation:annotation-experimental:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/65fa869a3d2398e881633f29543be79b/jetified-annotation-experimental-1.0.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.annotation:annotation-experimental:1.0.0] /Users/alexweichart/.gradle/caches/transforms-2/files-2.1/65fa869a3d2398e881633f29543be79b/jetified-annotation-experimental-1.0.0/AndroidManifest.xml:20:5-22:41
+INJECTED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml
+INJECTED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml
+		ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml
+		INJECTED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml
+		ADDED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml
+		INJECTED from /Users/alexweichart/Documents/GitHub/Screenshotmatcher-2.0/android/app/src/main/AndroidManifest.xml
