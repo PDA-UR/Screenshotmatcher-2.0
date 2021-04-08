@@ -82,7 +82,6 @@ class CameraActivity : AppCompatActivity() {
 
     private var mServerURL: String = ""
     private lateinit var mServerUrlList: List<Pair<String, String>>
-    private var currentServerUrlListIndex: Int = 0
     private var mUserID: String = ""
     private var startTime: Long = 0
     private var isCapturing: Boolean = false
@@ -120,7 +119,7 @@ class CameraActivity : AppCompatActivity() {
 
     private fun restoreFromSavedInstance(savedInstanceState: Bundle) {
         imageArray = savedInstanceState.getSerializable(getString(R.string.ca_saved_instance_image_list_key)) as ArrayList<ArrayList<File>>
-        currentServerUrlListIndex = savedInstanceState.getInt(getString(R.string.ca_saved_instance_index_key))
+        mServerURL = savedInstanceState.getString(getString(R.string.ca_saved_instance_url_key)).toString()
         var urlList = savedInstanceState.getStringArrayList(getString(R.string.ca_saved_instance_url_list_key))
         var hostList = savedInstanceState.getStringArrayList(getString(R.string.ca_saved_instance_host_list_key))
         var l = mutableListOf<Pair<String, String>>()
@@ -132,7 +131,7 @@ class CameraActivity : AppCompatActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putInt(getString(R.string.ca_saved_instance_index_key), currentServerUrlListIndex)
+        outState.putString(getString(R.string.ca_saved_instance_url_key), mServerURL)
         outState.putSerializable(getString(R.string.ca_saved_instance_image_list_key), imageArray)
 
         var serverUrlList: ArrayList<String> = ArrayList()
@@ -593,11 +592,17 @@ class CameraActivity : AppCompatActivity() {
     fun onServerURLsGet(servers: List<Pair<String, String>>) {
         if (servers.isNotEmpty()) {
             mServerUrlList = servers
-            mServerURL = mServerUrlList[currentServerUrlListIndex].first
+            if (mServerURL == null || mServerURL.length < 3){
+                mServerURL = mServerUrlList[0].first
+            }
             runOnUiThread {
                 mSelectDeviceButton.background =
                     resources.getDrawable(R.drawable.select_device_connected)
-                mSelectDeviceButtonText.text = servers[currentServerUrlListIndex].second
+                mServerUrlList.forEach {
+                    if (it.first == mServerURL){
+                        mSelectDeviceButtonText.text = it.second
+                    }
+                }
             }
         } else {
             Thread {
@@ -763,10 +768,13 @@ class CameraActivity : AppCompatActivity() {
         } else return null
     }
 
-    fun setServerUrl(index: Int) {
-        currentServerUrlListIndex = index
-        mServerURL = mServerUrlList[index].first
-        mSelectDeviceButtonText.text = mServerUrlList[index].second
+    fun setServerUrl(hostname: String) {
+        mSelectDeviceButtonText.text = hostname
+        mServerUrlList.forEach {
+            if (it.second == hostname){
+                mServerURL = it.first
+            }
+        }
     }
 
 }
