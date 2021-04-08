@@ -73,7 +73,7 @@ class SelectDeviceFragment : Fragment() {
                 lastSelectedItem = view as TextView
                 val itemView: TextView = view
                 itemView.setTextColor(resources.getColor(R.color.connected_green))
-                ca.setServerUrl(position)
+                ca.setServerUrl(mServerList[position])
         }
     }
 

@@ -39,7 +39,7 @@
     <string name="gallery_en">Gallery</string>
     <string name="preview_fragment_only_one_available_en">Only one image is available</string>
     <string name="camera_activity_select_device_back_text_en">Back</string>
-    <string name="ca_saved_instance_index_key" translatable="false">ca_index_key</string>
+    <string name="ca_saved_instance_url_key" translatable="false">ca_url_key</string>
     <string name="ca_saved_instance_image_list_key" translatable="false">ca_image_list_key</string>
     <string name="ca_saved_instance_url_list_key" translatable="false">ca_server_url_list_key</string>
     <string name="ca_saved_instance_host_list_key" translatable="false">ca_host_list_key</string>
