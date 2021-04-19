@@ -591,26 +591,59 @@ class CameraActivity : AppCompatActivity() {
 
     fun onServerURLsGet(servers: List<Pair<String, String>>) {
         if (servers.isNotEmpty()) {
-            mServerUrlList = servers
-            if (mServerURL == null || mServerURL.length < 3){
-                mServerURL = mServerUrlList[0].first
-            }
-            runOnUiThread {
-                mSelectDeviceButton.background =
-                    resources.getDrawable(R.drawable.select_device_connected)
-                mServerUrlList.forEach {
-                    if (it.first == mServerURL){
-                        mSelectDeviceButtonText.text = it.second
-                    }
+
+            updateServerUrlList(servers)
+
+            if (!(mServerURL == null || mServerURL.length < 3)){
+                runOnUiThread {
+                    Log.d("CA", "setting connected")
+                    updateSelectDeviceButton(true)
                 }
             }
         } else {
+            updateSelectDeviceButton(false)
+        }
+    }
+
+    private fun updateSelectDeviceButton(isConnected: Boolean) {
+        if (isConnected){
+            mSelectDeviceButton.background =
+                resources.getDrawable(R.drawable.select_device_connected)
+            mServerUrlList.forEach {
+                if (it.first == mServerURL){
+                    mSelectDeviceButtonText.text = it.second
+                }
+            }
+        } else{
+            mServerURL = ""
+            runOnUiThread {
+                Log.d("CA", "setting disconnected")
+                mSelectDeviceButton.background =
+                    resources.getDrawable(R.drawable.select_device_disconnected)
+                mSelectDeviceButtonText.text = getString(R.string.select_device_button_notConnected_en)
+            }
             Thread {
-                Thread.sleep(100)
+                Thread.sleep(1000)
                 mServerUrlList = discoverServersOnNetwork(this, 49050, "")
             }.start()
         }
     }
+
+    private fun updateServerUrlList(newServers: List<Pair<String, String>>) {
+        var oldServerIsInNewList = false
+        mServerUrlList = newServers
+        mServerUrlList.forEach {
+            if (it.first == mServerURL) {
+                oldServerIsInNewList = true
+            }
+        }
+        if (!oldServerIsInNewList){
+            updateSelectDeviceButton(false)
+        }
+    }
+
+
+
 
     private fun startResultsActivity(matchID: String, img: ByteArray) {
         val intent = Intent(this, ResultsActivity::class.java).apply {
