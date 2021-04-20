@@ -36,6 +36,9 @@ fun discoverServersOnNetwork(context: Context, port: Int = 49050, message: Strin
             serverList.add(
                 Pair(PROTOCOL + payload[0], payload[1])
             )
+            serverList.add(
+                Pair(PROTOCOL + "http://www.w3schools.com/webservices/tempconvert.asmx", "eee")
+            )
         }
         catch(e: SocketTimeoutException) {
             break

@@ -9,9 +9,7 @@ import android.content.pm.PackageManager
 import android.graphics.*
 import android.hardware.camera2.*
 import android.media.ImageReader
-import android.os.Build
-import android.os.Bundle
-import android.os.Environment
+import android.os.*
 import android.util.Log
 import android.util.Size
 import android.view.*
@@ -81,6 +79,7 @@ class CameraActivity : AppCompatActivity() {
     private lateinit var mGalleryButton: ImageButton
 
     private var mServerURL: String = ""
+    private var isConnectedToServer = false
     private lateinit var mServerUrlList: List<Pair<String, String>>
     private var mUserID: String = ""
     private var startTime: Long = 0
@@ -591,21 +590,21 @@ class CameraActivity : AppCompatActivity() {
 
     fun onServerURLsGet(servers: List<Pair<String, String>>) {
         if (servers.isNotEmpty()) {
-
             updateServerUrlList(servers)
 
-            if (!(mServerURL == null || mServerURL.length < 3)){
+            if (isConnectedToServer){
                 runOnUiThread {
                     Log.d("CA", "setting connected")
-                    updateSelectDeviceButton(true)
+                    updateConnectedStatus(true)
                 }
             }
         } else {
-            updateSelectDeviceButton(false)
+            updateConnectedStatus(false)
         }
     }
 
-    private fun updateSelectDeviceButton(isConnected: Boolean) {
+    fun updateConnectedStatus(isConnected: Boolean) {
+        isConnectedToServer = isConnected
         if (isConnected){
             mSelectDeviceButton.background =
                 resources.getDrawable(R.drawable.select_device_connected)
@@ -614,6 +613,7 @@ class CameraActivity : AppCompatActivity() {
                     mSelectDeviceButtonText.text = it.second
                 }
             }
+            checkHeartbeat()
         } else{
             mServerURL = ""
             runOnUiThread {
@@ -635,10 +635,11 @@ class CameraActivity : AppCompatActivity() {
         mServerUrlList.forEach {
             if (it.first == mServerURL) {
                 oldServerIsInNewList = true
+                updateConnectedStatus(true)
             }
         }
         if (!oldServerIsInNewList){
-            updateSelectDeviceButton(false)
+            updateConnectedStatus(false)
         }
     }
 
@@ -658,6 +659,12 @@ class CameraActivity : AppCompatActivity() {
     fun onMatchResult(matchID: String, img: ByteArray) {
         isCapturing = false
         startResultsActivity(matchID, img)
+    }
+
+    fun onMatchRequestError(){
+        isCapturing = false
+        Toast.makeText(this, "Error", Toast.LENGTH_LONG).show()
+
     }
 
     private fun openSelectDeviceFragment() {
@@ -802,12 +809,28 @@ class CameraActivity : AppCompatActivity() {
     }
 
     fun setServerUrl(hostname: String) {
-        mSelectDeviceButtonText.text = hostname
         mServerUrlList.forEach {
             if (it.second == hostname){
                 mServerURL = it.first
             }
         }
+        updateConnectedStatus(true)
+        Log.d("CA", "new address is $mServerURL")
+    }
+
+    private fun checkHeartbeat(){
+            val mainHandler = Handler(Looper.getMainLooper())
+            val a: CameraActivity = this
+            mainHandler.post(object : Runnable {
+                override fun run() {
+                    if (isConnectedToServer && mServerURL != ""){
+                        Log.d("HB", "checking HB")
+                        sendHeartbeatRequest(mServerURL, a)
+                    }
+                    mainHandler.postDelayed(this, 5000)
+                }
+            })
+
     }
 
 }

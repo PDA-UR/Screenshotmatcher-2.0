@@ -11,9 +11,9 @@ import android.util.Base64
 import android.util.Log
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import com.android.volley.Request
-import com.android.volley.Response
+import com.android.volley.*
 import com.android.volley.toolbox.JsonObjectRequest
+import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
@@ -43,6 +43,7 @@ fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, matchingO
     val jsonOR = JsonObjectRequest(
         Request.Method.POST, serverURL + MATCH_DEST, json,
         { response ->
+            Log.d("HTTP", response.toString())
             StudyLogger.hashMap["tc_http_response"] = System.currentTimeMillis()
             StudyLogger.hashMap["match_id"] = response.get("uid").toString()
             if (response.get("hasResult").toString() != "false") {
@@ -61,16 +62,35 @@ fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, matchingO
                 } catch (e: InvocationTargetException) {
                     e.printStackTrace()
                 }
-            } else{
-                if(activity is CameraActivity) {
+            } else if (activity is CameraActivity){
                     activity.openErrorFragment(response.get("uid").toString())
-                }
             }
         },
-        { _ -> })
+        { error ->
+            if (activity is CameraActivity){
+                activity.onMatchRequestError()
+            }
+
+        })
 
     StudyLogger.hashMap["tc_http_request"] = System.currentTimeMillis()
     queue.add(jsonOR)
+}
+
+fun sendHeartbeatRequest (serverURL: String, activity: Activity){
+    val request: StringRequest = StringRequest(Request.Method.GET,serverURL + "/heartbeat",
+        Response.Listener<String> { response ->
+            Log.d("HB", "Heartbeat is ok")
+    },
+        Response.ErrorListener {
+            Log.d("HB", "No Heartbeat")
+            if (activity is CameraActivity){
+                activity.runOnUiThread { activity.updateConnectedStatus(false) }
+            }
+        } )
+
+    val queue = Volley.newRequestQueue(activity.applicationContext)
+    queue.add(request)
 }
 
 fun downloadFullScreenshot(matchID: String, filename : String, serverURL: String, context: Context) {
