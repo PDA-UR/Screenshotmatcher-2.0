@@ -94,6 +94,10 @@ class CameraActivity : AppCompatActivity() {
     lateinit var files: Array<File>
     lateinit var imageArray: ArrayList<ArrayList<File>>
 
+    var handlerThread: HandlerThread? = null
+    var mHandler: Handler? = null
+    var looper: Looper? = null
+
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -104,6 +108,7 @@ class CameraActivity : AppCompatActivity() {
         getUserID()
         initViews()
         setViewListeners()
+        initNetworkHandler()
 
         if (savedInstanceState != null) {
             restoreFromSavedInstance(savedInstanceState)
@@ -114,6 +119,12 @@ class CameraActivity : AppCompatActivity() {
         if (!this::imageArray.isInitialized) {
             thread { fillUpImageList() }
         }
+    }
+
+    private fun initNetworkHandler() {
+        handlerThread = HandlerThread("NetworkThread")
+        handlerThread!!.start()
+        looper = handlerThread!!.looper
     }
 
     private fun restoreFromSavedInstance(savedInstanceState: Bundle) {
@@ -583,12 +594,14 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun getServerURL() {
+        Log.d("CA", "requesting server url")
         Thread {
             mServerUrlList = discoverServersOnNetwork(this, 49050, "")
         }.start()
     }
 
     fun onServerURLsGet(servers: List<Pair<String, String>>) {
+        Log.d("CA", "got server urls")
         if (servers.isNotEmpty()) {
             updateServerUrlList(servers)
 
@@ -603,8 +616,11 @@ class CameraActivity : AppCompatActivity() {
         }
     }
 
+
+
     fun updateConnectedStatus(isConnected: Boolean) {
         isConnectedToServer = isConnected
+        Log.d("CA", "updating status")
         if (isConnected){
             mSelectDeviceButton.background =
                 resources.getDrawable(R.drawable.select_device_connected)
@@ -613,8 +629,11 @@ class CameraActivity : AppCompatActivity() {
                     mSelectDeviceButtonText.text = it.second
                 }
             }
+            mHandler!!.sendMessage(mHandler!!.obtainMessage(3))
+            mHandler!!.sendMessage(mHandler!!.obtainMessage(0))
             checkHeartbeat()
         } else{
+
             mServerURL = ""
             runOnUiThread {
                 Log.d("CA", "setting disconnected")
@@ -622,11 +641,59 @@ class CameraActivity : AppCompatActivity() {
                     resources.getDrawable(R.drawable.select_device_disconnected)
                 mSelectDeviceButtonText.text = getString(R.string.select_device_button_notConnected_en)
             }
-            Thread {
-                Thread.sleep(1000)
-                mServerUrlList = discoverServersOnNetwork(this, 49050, "")
-            }.start()
+
+
+            if (mHandler == null){
+
+                val a: CameraActivity = this
+
+                val discoverRunnable = object: Runnable {
+                    override fun run() {
+                        Log.d("thread", "run discover")
+                        mServerUrlList = discoverServersOnNetwork(a, 49050, "")
+                        mHandler?.postDelayed(this, 5000)
+                    }
+                }
+
+                val heartbeatRunnable = object: Runnable {
+                    override fun run() {
+                        if (isConnectedToServer && mServerURL != ""){
+                            Log.d("HB", "checking HB")
+                            sendHeartbeatRequest(mServerURL, a)
+                        }
+                        mHandler?.postDelayed(this, 5000)
+                    }
+                }
+
+                mHandler = object : Handler(looper!!) {
+                    override fun handleMessage(msg: Message) {
+                        when (msg.what) {
+                            1 -> {
+                                Log.d("thread", "run disc")
+                                this.post(discoverRunnable)
+                            }
+                            0 -> {
+                                Log.d("thread", "quit thread")
+                                this.removeCallbacks(discoverRunnable)
+                            }
+                            2 -> {
+                                this.post(heartbeatRunnable);
+                            }
+                            3 -> {
+                                Log.d("thread", "quit thread")
+                                this.removeCallbacks(heartbeatRunnable)
+                            }
+                        }
+                    }
+                }
+                mHandler!!.sendMessage(mHandler!!.obtainMessage(1))
+            }
+
         }
+    }
+
+    private fun checkHeartbeat(){
+        mHandler!!.sendMessage(mHandler!!.obtainMessage(2))
     }
 
     private fun updateServerUrlList(newServers: List<Pair<String, String>>) {
@@ -642,8 +709,6 @@ class CameraActivity : AppCompatActivity() {
             updateConnectedStatus(false)
         }
     }
-
-
 
 
     private fun startResultsActivity(matchID: String, img: ByteArray) {
@@ -818,19 +883,6 @@ class CameraActivity : AppCompatActivity() {
         Log.d("CA", "new address is $mServerURL")
     }
 
-    private fun checkHeartbeat(){
-            val mainHandler = Handler(Looper.getMainLooper())
-            val a: CameraActivity = this
-            mainHandler.post(object : Runnable {
-                override fun run() {
-                    if (isConnectedToServer && mServerURL != ""){
-                        Log.d("HB", "checking HB")
-                        sendHeartbeatRequest(mServerURL, a)
-                    }
-                    mainHandler.postDelayed(this, 5000)
-                }
-            })
 
-    }
 
 }
