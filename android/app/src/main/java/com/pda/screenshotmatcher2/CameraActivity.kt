@@ -127,16 +127,16 @@ class CameraActivity : AppCompatActivity() {
         val a: CameraActivity = this
         val discoverRunnable = object: Runnable {
             override fun run() {
-                Log.d("thread", "run discover")
                 getServerURL()
-                mHandler?.postDelayed(this, 5000)
+                if (handlerThread?.isAlive!!){
+                    mHandler?.postDelayed(this, 5000)
+                }
             }
         }
 
         val heartbeatRunnable = object: Runnable {
             override fun run() {
                 if (isConnectedToServer && mServerURL != ""){
-                    Log.d("HB", "checking HB")
                     sendHeartbeatRequest(mServerURL, a)
                 }
                 mHandler?.postDelayed(this, 5000)
@@ -148,18 +148,15 @@ class CameraActivity : AppCompatActivity() {
                 when (msg.what) {
                     //0 = end all threads
                     0 -> {
-                        Log.d("thread", "quit thread")
                         this.removeCallbacksAndMessages(null)
                     }
                     //1 = start discover, end heartbeat
                     1 -> {
-                        Log.d("thread", "run disc")
                         this.removeCallbacksAndMessages(null)
                         this.post(discoverRunnable)
                     }
                     //2 = start heartbeat, end discover
                     2 -> {
-                        Log.d("thread", "run hb")
                         this.removeCallbacksAndMessages(null)
                         this.post(heartbeatRunnable);
                     }
@@ -181,9 +178,6 @@ class CameraActivity : AppCompatActivity() {
         for (i in 0 until urlList?.size!!) {
             l.add(Pair(urlList[i], hostList?.get(i)) as Pair<String, String>)
         }
-        onServerURLsGet(l)
-
-        Log.d("restore", "connected: $isConnectedToServer")
         initNetworkHandler()
     }
 
@@ -650,20 +644,16 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun getServerURL() {
-        Log.d("CA", "requesting server url")
         Thread {
             mServerUrlList = discoverServersOnNetwork(this, 49050, "")
         }.start()
     }
 
     fun onServerURLsGet(servers: List<Pair<String, String>>) {
-        Log.d("CA", "got server urls")
         if (servers.isNotEmpty()) {
             updateServerUrlList(servers)
-
-            if (isConnectedToServer){
+            if (isConnectedToServer && handlerThread!!.isAlive){
                 runOnUiThread {
-                    Log.d("CA", "setting connected")
                     updateConnectedStatus(true)
                 }
             }
@@ -676,7 +666,6 @@ class CameraActivity : AppCompatActivity() {
 
     private fun updateConnectedStatus(isConnected: Boolean) {
         isConnectedToServer = isConnected
-        Log.d("CA", "updating status")
         if (isConnected){
             mSelectDeviceButton.background =
                 resources.getDrawable(R.drawable.select_device_connected)
@@ -689,7 +678,6 @@ class CameraActivity : AppCompatActivity() {
         } else{
             mServerURL = ""
             runOnUiThread {
-                Log.d("CA", "setting disconnected")
                 mSelectDeviceButton.background =
                     resources.getDrawable(R.drawable.select_device_disconnected)
                 mSelectDeviceButtonText.text = getString(R.string.select_device_button_notConnected_en)
@@ -698,7 +686,9 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun startHeartbeatThread(){
-        mHandler!!.sendMessage(mHandler!!.obtainMessage(2))
+        if (handlerThread?.isAlive!!){
+            mHandler!!.sendMessage(mHandler!!.obtainMessage(2))
+        }
     }
 
     fun onHeartbeatFail(){
@@ -708,7 +698,9 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun startDiscoverThread(){
-        mHandler!!.sendMessage(mHandler!!.obtainMessage(1))
+        if (handlerThread?.isAlive!!) {
+            mHandler!!.sendMessage(mHandler!!.obtainMessage(1))
+        }
     }
 
     private fun updateServerUrlList(newServers: List<Pair<String, String>>) {
@@ -894,7 +886,6 @@ class CameraActivity : AppCompatActivity() {
             }
         }
         updateConnectedStatus(true)
-        Log.d("CA", "new address is $mServerURL")
     }
 
 
