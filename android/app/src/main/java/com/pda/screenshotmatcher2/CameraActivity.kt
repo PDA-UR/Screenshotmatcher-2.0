@@ -128,7 +128,7 @@ class CameraActivity : AppCompatActivity() {
         val discoverRunnable = object: Runnable {
             override fun run() {
                 Log.d("thread", "run discover")
-                mServerUrlList = discoverServersOnNetwork(a, 49050, "")
+                getServerURL()
                 mHandler?.postDelayed(this, 5000)
             }
         }
