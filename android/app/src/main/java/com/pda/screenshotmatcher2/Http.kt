@@ -24,6 +24,7 @@ private const val MATCH_DEST = "/match"
 private const val SCREENSHOT_DEST = "/screenshot"
 private const val FEEDBACK_DEST = "/feedback"
 private const val RESULT_DEST = "/results/result-"
+private const val HEARTBEAT_DEST = "/heartbeat"
 var downloadID : Long = 0
 
 fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, matchingOptions: HashMap<Any?,Any?>? = null){
@@ -78,17 +79,16 @@ fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, matchingO
 }
 
 fun sendHeartbeatRequest (serverURL: String, activity: Activity){
-    val request: StringRequest = StringRequest(Request.Method.GET,serverURL + "/heartbeat",
+    val request = StringRequest(Request.Method.GET,serverURL + HEARTBEAT_DEST,
         Response.Listener<String> { response ->
-            Log.d("HB", "Heartbeat is ok")
     },
         Response.ErrorListener {
-            Log.d("HB", "No Heartbeat")
             if (activity is CameraActivity){
-                activity.runOnUiThread { activity.updateConnectedStatus(false) }
+                activity.runOnUiThread { activity.onHeartbeatFail() }
             }
         } )
 
+    Log.d("HB", "send hb")
     val queue = Volley.newRequestQueue(activity.applicationContext)
     queue.add(request)
 }

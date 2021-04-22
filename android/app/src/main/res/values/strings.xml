@@ -47,5 +47,7 @@
     <string name="ca_pref_preview_height" translatable="false">previewHeightPortrait</string>
     <string name="ca_pref_surface_view_width" translatable="false">ViewPreviewWidthPortrait</string>
     <string name="ca_pref_surface_view_height" translatable="false">ViewPreviewHeightPortrait</string>
-    <string name="permission_request_en" translatable="false">Please grant the permissions, otherwise the app won\'t work</string>
+    <string name="permission_request_en">Please grant the permissions, otherwise the app won\'t work</string>
+    <string name="heartbeat_fail_en">Disconnected from server</string>
+    <string name="match_request_error_en">Failed to make request to server</string>
 </resources>
