@@ -32,8 +32,5 @@
     <string name="settings_algorithm_header_en">Matching Modus</string>
     <string name="settings_algorithm_toggle">Schneller Modus</string>
     <string name="settings_algorithm_summary">Ist diese Option aktiviert, läuft das Matching schneller aber weniger präzise</string>
-    <string name="settings_algorithm_key">ALG_MODE_KEY</string>
     <string name="algorithm_key_server">algorithm</string>
-    <string name="algorithm_fast_mode_name_server">ORB</string>
-    <string name="algorithm_accurate_mode_name_server">SURF</string>
 </resources>

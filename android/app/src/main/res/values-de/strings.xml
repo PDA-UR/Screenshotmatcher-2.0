@@ -3,4 +3,7 @@
     <string name="gallery_en">Gallerie</string>
     <string name="preview_fragment_only_one_available_en">Nur ein Bild ist verfügbar</string>
     <string name="camera_activity_select_device_back_text_en">Zurück</string>
+    <string name="permission_request_en">Bitte geben Sie der App die benötigten Rechte</string>
+    <string name="heartbeat_fail_en">Verbindung zum Server wurde getrennt</string>
+    <string name="match_request_error_en">Es konnte keine Verbindung zum Server hergestellt werden</string>
 </resources>
