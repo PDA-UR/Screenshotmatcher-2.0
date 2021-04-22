@@ -28,7 +28,6 @@ private const val HEARTBEAT_DEST = "/heartbeat"
 var downloadID : Long = 0
 
 fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, matchingOptions: HashMap<Any?,Any?>? = null){
-    Log.d("DEBB", serverURL+ MATCH_DEST)
     val baos = ByteArrayOutputStream()
     bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
     val b64Image = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT)
@@ -37,14 +36,12 @@ fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, matchingO
     val json = JSONObject()
     matchingOptions?.forEach{ (key, value) ->
         json.put(key.toString(), value.toString())
-        Log.d("key", "$value")
     }
     // keys: "algorithm", "ORB_nfeatures", "SURF_hessian_threshold"
     json.put("b64", b64Image)
     val jsonOR = JsonObjectRequest(
         Request.Method.POST, serverURL + MATCH_DEST, json,
         { response ->
-            Log.d("HTTP", response.toString())
             StudyLogger.hashMap["tc_http_response"] = System.currentTimeMillis()
             StudyLogger.hashMap["match_id"] = response.get("uid").toString()
             if (response.get("hasResult").toString() != "false") {
@@ -88,7 +85,6 @@ fun sendHeartbeatRequest (serverURL: String, activity: Activity){
             }
         } )
 
-    Log.d("HB", "send hb")
     val queue = Volley.newRequestQueue(activity.applicationContext)
     queue.add(request)
 }
