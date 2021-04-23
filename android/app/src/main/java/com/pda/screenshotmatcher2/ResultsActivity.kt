@@ -222,13 +222,14 @@ class ResultsActivity : AppCompatActivity() {
             //Start sharing
             val contentUri =
                 getUriForFile(this, BuildConfig.APPLICATION_ID + ".fileprovider", mCroppedImageFile)
-            val intent = Intent().apply {
+            val sendIntent = Intent().apply {
                 this.action = Intent.ACTION_SEND
                 this.putExtra(Intent.EXTRA_STREAM, contentUri)
                 this.type = "image/png"
                 this.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
-            startActivity(intent)
+            val shareIntent = Intent.createChooser(sendIntent,null)
+            startActivity(shareIntent)
         } else {
             if (fullScreenshotDownloaded) {
                 //Full screenshot needs to be shared
@@ -240,13 +241,14 @@ class ResultsActivity : AppCompatActivity() {
                         BuildConfig.APPLICATION_ID + ".fileprovider",
                         mFullImageFile!!
                     )
-                val intent = Intent().apply {
+                val sendIntent = Intent().apply {
                     this.action = Intent.ACTION_SEND
                     this.putExtra(Intent.EXTRA_STREAM, contentUri)
                     this.type = "image/png"
                     this.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
-                startActivity(intent)
+                val shareIntent = Intent.createChooser(sendIntent,null)
+                startActivity(shareIntent)
             } else {
                 Toast.makeText(
                     this,

@@ -223,13 +223,14 @@ class GalleryPreviewFragment : Fragment() {
                     BuildConfig.APPLICATION_ID + ".fileprovider",
                     mCroppedImageFile!!
                 )
-            val intent = Intent().apply {
+            val sendIntent = Intent().apply {
                 this.action = Intent.ACTION_SEND
                 this.putExtra(Intent.EXTRA_STREAM, contentUri)
                 this.type = "image/png"
                 this.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
-            startActivity(intent)
+            val shareIntent = Intent.createChooser(sendIntent,null)
+            startActivity(shareIntent)
         } else {
             if (mFullImageFile != null) {
                 val contentUri =
@@ -238,13 +239,14 @@ class GalleryPreviewFragment : Fragment() {
                         BuildConfig.APPLICATION_ID + ".fileprovider",
                         mFullImageFile!!
                     )
-                val intent = Intent().apply {
+                val sendIntent = Intent().apply {
                     this.action = Intent.ACTION_SEND
                     this.putExtra(Intent.EXTRA_STREAM, contentUri)
                     this.type = "image/png"
                     this.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
-                startActivity(intent)
+                val shareIntent = Intent.createChooser(sendIntent,null)
+                startActivity(shareIntent)
             }
         }
     }
