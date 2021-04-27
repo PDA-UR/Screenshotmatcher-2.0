@@ -78,8 +78,8 @@ class Server():
                 log.value_pairs.pop("match_uid", None)  # remove duplicate match_id entry
                 log.send_log()
                 self.last_logs.remove(log)
-                return "ok"
-        return "log does not match any match_id"
+                return {"response": "ok"}
+        return {"response" : "log does not match any match_id"}
 
     def feedback_route(self):
         r_json = request.json
@@ -182,14 +182,12 @@ class Server():
         log.value_pairs["ts_response_sent"] = round(time.time() * 1000)
         if not match_result:
             log.value_pairs["match_success"] = False
-            print(log.value_pairs)
 
             response['hasResult'] = False
             response['uid'] = uid
             return Response(json.dumps(response), mimetype='application/json')
         else:
             log.value_pairs["match_success"] = True
-            print(log.value_pairs)
 
             response['hasResult'] = True
             response['b64'] = match_result
