@@ -623,7 +623,7 @@ class CameraActivity : AppCompatActivity() {
         }
 
         if (mBitmap != null) {
-            StudyLogger.hashMap["tc_image_captured"] = System.currentTimeMillis()
+            StudyLogger.hashMap["tc_image_captured"] = System.currentTimeMillis()   // image is in memory
             StudyLogger.hashMap["long_side"] = IMG_TARGET_SIZE
             val greyImg = rescale(mBitmap, IMG_TARGET_SIZE)
             var matchingOptions: HashMap<Any?, Any?>? = getMatchingOptionsFromPref()

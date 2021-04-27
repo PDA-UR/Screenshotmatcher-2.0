@@ -45,6 +45,7 @@ fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, matchingO
             StudyLogger.hashMap["tc_http_response"] = System.currentTimeMillis()
             StudyLogger.hashMap["match_id"] = response.get("uid").toString()
             if (response.get("hasResult").toString() != "false") {
+
                 try {
                     val b64ImageString = response.get("b64").toString()
                     if (b64ImageString.isNotEmpty()) {
@@ -77,13 +78,13 @@ fun sendBitmap(bitmap: Bitmap, serverURL: String, activity : Activity, matchingO
 
 fun sendHeartbeatRequest (serverURL: String, activity: Activity){
     val request = StringRequest(Request.Method.GET,serverURL + HEARTBEAT_DEST,
-        Response.Listener<String> { response ->
+        { response ->
     },
-        Response.ErrorListener {
+        {
             if (activity is CameraActivity){
                 activity.runOnUiThread { activity.onHeartbeatFail() }
             }
-        } )
+        })
 
     val queue = Volley.newRequestQueue(activity.applicationContext)
     queue.add(request)
