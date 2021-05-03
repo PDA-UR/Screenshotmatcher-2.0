@@ -202,8 +202,6 @@ class Matcher():
     if maxY - minY <= 0:
       return False
 
-    imwrite(self.match_dir + '/result.png', screen_colored[ minY:maxY, minX:maxX])
-
     t9 = time.perf_counter()
     self.writeLog('Wrote Image - {}ms'.format( self.formatTimeDiff(t8, t9) ))
 
