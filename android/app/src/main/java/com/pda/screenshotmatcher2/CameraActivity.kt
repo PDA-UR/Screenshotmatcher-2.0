@@ -7,6 +7,10 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.graphics.*
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.hardware.camera2.*
 import android.media.ImageReader
 import android.os.*
@@ -31,11 +35,10 @@ import kotlin.collections.HashMap
 import kotlin.concurrent.thread
 
 
-class CameraActivity : AppCompatActivity() {
+class CameraActivity : AppCompatActivity(), SensorEventListener {
     private val MAX_PREVIEW_WIDTH = 1920
     private val MAX_PREVIEW_HEIGHT = 1080
     private val IMG_TARGET_SIZE = 512
-
     //Physical camera
     private lateinit var mCameraId: String
 
@@ -56,6 +59,11 @@ class CameraActivity : AppCompatActivity() {
 
     //Camera preview builder
     private lateinit var mPreviewRequestBuilder: CaptureRequest.Builder
+
+    //Sensors
+    private lateinit var mSensorManager : SensorManager
+    private lateinit var mAccelerometer : Sensor
+    private var phoneOrientation : Int = 0;
 
     //Request from builder
     private lateinit var mPreviewRequest: CaptureRequest
@@ -110,6 +118,8 @@ class CameraActivity : AppCompatActivity() {
         initViews()
         setViewListeners()
         initNetworkHandler()
+        mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
 
         if (savedInstanceState != null) {
             restoreFromSavedInstance(savedInstanceState)
@@ -200,8 +210,15 @@ class CameraActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         initNetworkHandler()
+        mAccelerometer?.also { accel ->
+            mSensorManager.registerListener(this, accel, SensorManager.SENSOR_DELAY_NORMAL)
+        }
     }
 
+    override fun onPause() {
+        super.onPause()
+        mSensorManager.unregisterListener(this)
+    }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -614,11 +631,22 @@ class CameraActivity : AppCompatActivity() {
         isCapturing = true
         startTime = System.currentTimeMillis()
         var mBitmap: Bitmap? = mTextureView.bitmap
-        val orientation = windowManager.defaultDisplay.rotation
-        if (orientation != Surface.ROTATION_0 && mBitmap != null) {
-            when (orientation) {
+        val screenOrientation = windowManager.defaultDisplay.rotation
+
+        // screen rotated
+        if (screenOrientation != Surface.ROTATION_0 && mBitmap != null) {
+            when (screenOrientation) {
                 Surface.ROTATION_90 -> mBitmap = rotateBitmapAndAdjustRatio(mBitmap, -90F)
                 Surface.ROTATION_270 -> mBitmap = rotateBitmapAndAdjustRatio(mBitmap, 90F)
+                Surface.ROTATION_180 -> mBitmap = rotateBitmap(mBitmap, 180F)
+            }
+        }
+        // screen rotation locked, but physical phone rotated
+        else if(screenOrientation == Surface.ROTATION_0 && phoneOrientation != Surface.ROTATION_0 && mBitmap != null){
+            when(phoneOrientation){
+                Surface.ROTATION_90 -> mBitmap = rotateBitmap(mBitmap, -90F)
+                Surface.ROTATION_270 -> mBitmap = rotateBitmap(mBitmap, 90F)
+                Surface.ROTATION_180 -> mBitmap = rotateBitmap(mBitmap, 180F)
             }
         }
 
@@ -626,7 +654,7 @@ class CameraActivity : AppCompatActivity() {
             StudyLogger.hashMap["tc_image_captured"] = System.currentTimeMillis()   // image is in memory
             StudyLogger.hashMap["long_side"] = IMG_TARGET_SIZE
             val greyImg = rescale(mBitmap, IMG_TARGET_SIZE)
-            var matchingOptions: HashMap<Any?, Any?>? = getMatchingOptionsFromPref()
+            val matchingOptions: HashMap<Any?, Any?>? = getMatchingOptionsFromPref()
             sendBitmap(greyImg, mServerURL, this, matchingOptions)
         }
     }
@@ -888,6 +916,25 @@ class CameraActivity : AppCompatActivity() {
         updateConnectedStatus(true)
     }
 
+    override fun onSensorChanged(event: SensorEvent?) {
+        if (event!!.values[1] > 0 && event.values[0].toInt() == 0) {
+            phoneOrientation = Surface.ROTATION_0 //portrait
+        }
 
+        else if (event.values[1] < 0 && event.values[0].toInt() == 0) {
+            phoneOrientation = Surface.ROTATION_180 //portrait reverse
+        }
 
+        else if (event.values[0] > 0 && event.values[1].toInt() == 0) {
+            phoneOrientation = Surface.ROTATION_90 //portrait reverse
+        }
+
+        else if (event.values[0] < 0 && event.values[1].toInt() == 0) {
+            phoneOrientation = Surface.ROTATION_270 //portrait reverse
+        }
+    }
+
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+        return
+    }
 }
