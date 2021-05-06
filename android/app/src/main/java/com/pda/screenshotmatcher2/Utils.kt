@@ -13,7 +13,6 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Base64
-import android.util.Log
 import androidx.core.app.ActivityCompat
 import java.io.File
 import java.io.FileOutputStream
@@ -128,6 +127,10 @@ fun getDeviceName(): String {
     } else {
         "$manufacturer $model"
     }
+}
+
+fun rotateBitmap(bitmap: Bitmap, deg: Float): Bitmap{
+    return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, Matrix().apply { postRotate(deg) }, true)
 }
 
 fun rotateBitmapAndAdjustRatio(bitmap: Bitmap, deg: Float): Bitmap{
