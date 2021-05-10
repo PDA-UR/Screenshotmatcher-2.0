@@ -46,8 +46,8 @@ class Server():
                               self.feedback_route, methods=['POST'])
         self.app.add_url_rule(
             '/match', 'match', self.match_route, methods=['POST'])
-        self.app.add_url_rule("/logs", "logs", self.log_route, methods=["POST"])
-        self.app.add_url_rule("/screenshot/<result_id>", "screenshot/<result_id>", self.screenshot_route)
+        self.app.add_url_rule('/logs', 'logs', self.log_route, methods=['POST'])
+        self.app.add_url_rule('/screenshot/<result_id>', 'screenshot/<result_id>', self.screenshot_route)
 
     def start(self):
         self.app.run(host=Config.HOST, port=Config.PORT, threaded=True)
@@ -61,10 +61,10 @@ class Server():
     # Routes
 
     def index_route(self):
-        return redirect("/index.html", code=301)
+        return redirect('/index.html', code=301)
 
     def heartbeat_route(self):
-        return "ok"
+        return 'ok'
 
     def get_url_route(self):
         return Config.SERVICE_URL
@@ -72,14 +72,14 @@ class Server():
     def log_route(self):
         phone_log = request.json
         for log in self.last_logs:
-            if phone_log.get("match_id") == log.value_pairs.get("match_uid"):
+            if phone_log.get('match_id') == log.value_pairs.get('match_uid'):
                 for key,value in phone_log.items():
                     log.value_pairs[key] = value
-                log.value_pairs.pop("match_uid", None)  # remove duplicate match_id entry
+                log.value_pairs.pop('match_uid', None)  # remove duplicate match_id entry
                 log.send_log()
                 self.last_logs.remove(log)
-                return {"response": "ok"}
-        return {"response" : "log does not match any match_id"}
+                return {'response': 'ok'}
+        return {'response' : 'log does not match any match_id'}
 
     def feedback_route(self):
         r_json = request.json
@@ -119,7 +119,7 @@ class Server():
         
         urllib3.disable_warnings()
         
-        return {"feedbackPosted" : "true"}
+        return {'feedbackPosted' : 'true'}
 
 
     def match_route(self):
@@ -129,20 +129,20 @@ class Server():
             self.last_logs.pop()
 
         t_start = time.perf_counter()
-        print("{}:\t request get".format(int(time.time()* 1000)))
-        log.value_pairs["ts_request_received"] = round(time.time() * 1000)
+        print('{}:\t request get'.format(int(time.time()* 1000)))
+        log.value_pairs['ts_request_received'] = round(time.time() * 1000)
         r_json = request.json
-        b64String = r_json.get("b64")
-        log.value_pairs["ts_photo_received"] = round(time.time() * 1000)
-        print("{}:\t b64 string with size {} get".format(time.time(), sys.getsizeof(b64String)))
+        b64String = r_json.get('b64')
+        log.value_pairs['ts_photo_received'] = round(time.time() * 1000)
+        print('{}:\t b64 string with size {} get'.format(time.time(), sys.getsizeof(b64String)))
         
         if b64String is None:
-            return {"error" : "no base64 string attached."}
+            return {'error' : 'no base64 string attached.'}
 
         # Create match uid
         uid = uuid.uuid4().hex
-        log.value_pairs["match_uid"] = uid
-        print("{}:\t request get".format(int(time.time()* 1000)))
+        log.value_pairs['match_uid'] = uid
+        print('{}:\t request get'.format(int(time.time()* 1000)))
 
         # Create Match dir
         match_dir = self.results_dir + '/result-' + uid
@@ -152,17 +152,17 @@ class Server():
         start_time = time.perf_counter()
         matcher = Matcher(uid, b64String, log)
         # Override default values if options are given
-        if r_json.get("algorithm") :
-            matcher.algorithm = r_json.get("algorithm")
-        if r_json.get("ORB_nfeatures"):
-            matcher.ORB_nfeatures =  r_json.get("ORB_nfeatures")
-        if r_json.get("SURF_hessian_threshold"):
-            matcher.SURF_hessian_threshold = r_json.get("SURF_hessian_threshold")
+        if r_json.get('algorithm') :
+            matcher.algorithm = r_json.get('algorithm')
+        if r_json.get('ORB_nfeatures'):
+            matcher.ORB_nfeatures =  r_json.get('ORB_nfeatures')
+        if r_json.get('SURF_hessian_threshold'):
+            matcher.SURF_hessian_threshold = r_json.get('SURF_hessian_threshold')
 
         # Start matcher
         match_result = matcher.match()
     
-        print("Matching took {} ms".format(time.perf_counter()-t_start))
+        print('Matching took {} ms'.format(time.perf_counter()-t_start))
         end_time = time.perf_counter()
 
         # Send data to server for logging
@@ -175,19 +175,19 @@ class Server():
         }
 
         urllib3.disable_warnings()
-        print("{}:\t Generating response.".format(time.time()))
-        print("Time until response: {}\n".format(time.perf_counter() - t_start))
+        print('{}:\t Generating response.'.format(time.time()))
+        print('Time until response: {}\n'.format(time.perf_counter() - t_start))
 
         response = {'uid': uid}
-        log.value_pairs["ts_response_sent"] = round(time.time() * 1000)
+        log.value_pairs['ts_response_sent'] = round(time.time() * 1000)
         if not match_result.success:
-            log.value_pairs["match_success"] = False
+            log.value_pairs['match_success'] = False
 
             response['hasResult'] = False
             response['uid'] = uid
             return Response(json.dumps(response), mimetype='application/json')
         else:
-            log.value_pairs["match_success"] = True
+            log.value_pairs['match_success'] = True
 
             response['hasResult'] = True
             response['b64'] = match_result.img_encoded
@@ -195,9 +195,9 @@ class Server():
 
     def screenshot_route(self, result_id):
         if not result_id:
-            return "No match-id given."
+            return 'No match-id given.'
 
         application_path = get_main_dir()
                 
-        path = os.path.join(application_path, self.results_dir, "result-{}".format(result_id))
-        return send_from_directory(path, "screenshot.png")
+        path = os.path.join(application_path, self.results_dir, 'result-{}'.format(result_id))
+        return send_from_directory(path, 'screenshot.png')

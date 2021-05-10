@@ -6,14 +6,14 @@ import hashlib
 import platform
 import random
 
-identifier = ""
+identifier = ''
 
 try:
     with open('id.txt', 'r') as f:
         identifier = f.read()
 except:
     with open('id.txt', 'w') as f:
-        data_for_encoding = "{}-{}".format( platform.platform(), random.randrange(1000000, 9999999) )
+        data_for_encoding = '{}-{}'.format( platform.platform(), random.randrange(1000000, 9999999) )
         identifier = data_for_encoding
         f.write(identifier)
 
@@ -25,7 +25,7 @@ class Config():
     CURRENT_VERSION = 'v1.1.0'
     ICON_PATH = 'gui/icon.png'
     HOST = common.utils.getCurrentIPAddress()
-    LOG_HOST = "https://132.199.132.34:49051/"
+    LOG_HOST = 'https://132.199.132.34:49051/'
     PORT = 49049
     PORT_DISCOVERY = 49050
     SERVICE_URL = 'http://{}:{}'.format(HOST, PORT)

@@ -8,12 +8,12 @@ import colored
 def getCurrentIPAddress():
     s_ip = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)     # socket for finding local network IP
     s_ip.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # reuse address if already in use
-    ip = ""
+    ip = ''
     try:
         s_ip.connect(('10.255.255.255', 1))
         ip = s_ip.getsockname()[0]
     except Exception as e:
-        print("Exception caught while trying to determine server IP")
+        print('Exception caught while trying to determine server IP')
         print(e)
     finally:
         s_ip.close()
@@ -32,7 +32,7 @@ def get_main_dir():
     else:
         # get the directory of main.py
         application_path = os.path.dirname(os.path.realpath(__file__))
-        if platform.system() == "Windows":
+        if platform.system() == 'Windows':
             application_path = application_path.rsplit('\\', 1)[0]
         else:
             application_path = application_path.rsplit('/', 1)[0]
@@ -42,29 +42,29 @@ def get_main_dir():
 def create_results_dir():
     main_dir = get_main_dir()
     print(main_dir)
-    if not os.path.exists(main_dir + "/www"):
-        os.mkdir(main_dir + "/www")
-    if not os.path.exists(main_dir + "/www/results"):
-        os.mkdir( main_dir + "/www/results")
+    if not os.path.exists(main_dir + '/www'):
+        os.mkdir(main_dir + '/www')
+    if not os.path.exists(main_dir + '/www/results'):
+        os.mkdir( main_dir + '/www/results')
 
 def allowed_file(filename):
     return '.' in filename and \
             filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg'}
 
 def open_file_or_dir(path):
-    if platform.system() == "Windows":
+    if platform.system() == 'Windows':
         os.startfile(path)
-    elif platform.system() == "Darwin":
-        subprocess.Popen(["open", path])
+    elif platform.system() == 'Darwin':
+        subprocess.Popen(['open', path])
     else:
-        subprocess.Popen(["xdg-open", path])
+        subprocess.Popen(['xdg-open', path])
 
 def print_banner(app_name, version, id):
 
     text_style_notice = colored.bg('9') + colored.attr('bold')
     text_style_banner = colored.fg('156') + colored.attr('bold')
 
-    notice_text = "    DO NOT CLOSE THIS WINDOW / FENSTER NICHT SCHLIESSEN    "
+    notice_text = '    DO NOT CLOSE THIS WINDOW / FENSTER NICHT SCHLIESSEN    '
                  
     banner_text = """
     ---------------------------
