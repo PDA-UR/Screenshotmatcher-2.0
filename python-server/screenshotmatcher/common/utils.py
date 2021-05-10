@@ -4,6 +4,10 @@ import sys
 import platform
 import subprocess
 import colored
+import time
+
+def get_current_ms():
+    return round(time.time() * 1000)
 
 def getCurrentIPAddress():
     s_ip = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)     # socket for finding local network IP
