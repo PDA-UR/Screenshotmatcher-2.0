@@ -2,19 +2,13 @@ import pyscreenshot as ImageGrab
 import time
 import numpy as np
 import logging
-import os
-import sys
-import uuid
-import io
 import base64
 import cv2
-import timeit
 import threading
 
 import common.log
 
 from common.config import Config
-
 
 class Matcher():
     def __init__(self, match_uid, b64_string, log, create_screenshot = True):
