@@ -80,16 +80,16 @@ class TestSuite():
         start_time = time.perf_counter()
         match_result = matcher.algorithm_SURF(photo, screen, screen_colored, i, dm_algo)
         time_diff = round(time.perf_counter() - start_time, 5)
-        print( '{} - {} - Threshold {} - {}s'.format(j, match_result, i, time_diff ) )
+        print( '{} - {} - Threshold {} - {}s'.format(j, match_result.img_encoded, i, time_diff ) )
         self.window.Refresh()
         
         with open(f'{self.here}/logs/SURF_hessian_{now}.log', 'a') as f:
-          f.write('{};{};{};{}\n'.format(j, match_result, i, time_diff ))
+          f.write('{};{};{};{}\n'.format(j, match_result.img_encoded, i, time_diff ))
         
         threshold_dataset.append(i)
         time_dataset.append(time_diff)
 
-        if match_result:
+        if match_result.success:
           successful_matches += 1
         else:
           error_dataset.append(error_index)
@@ -151,16 +151,16 @@ class TestSuite():
         start_time = time.perf_counter()
         match_result = matcher.algorithm_SURF(photo, screen, screen_colored, threshold, i)
         time_diff = round(time.perf_counter() - start_time, 5)
-        print( '{} - Algo {} - {}s'.format(match_result, i, time_diff ) )
+        print( '{} - Algo {} - {}s'.format(match_result.img_encoded, i, time_diff ) )
         self.window.Refresh()
         
         with open(f'{self.here}/logs/SURF_algos_{now}.log', 'a') as f:
-          f.write('{};{};{}\n'.format(match_result, i, time_diff ))
+          f.write('{};{};{}\n'.format(match_result.img_encoded, i, time_diff ))
         
         algo_dataset.append(i)
         time_dataset.append(time_diff)
 
-        if match_result:
+        if match_result.success:
           successful_matches += 1
         else:
           error_dataset.append(error_index)
@@ -224,16 +224,16 @@ class TestSuite():
         start_time = time.perf_counter()
         match_result = matcher.algorithm_ORB(photo, screen, screen_colored, i)
         time_diff = round(time.perf_counter() - start_time, 5)
-        print( '{} - {} - nFeatures {} - {}s'.format(j, match_result, i, time_diff ) )
+        print( '{} - {} - nFeatures {} - {}s'.format(j, match_result.img_encoded, i, time_diff ) )
         self.window.Refresh()
         
         with open(f'{self.here}/logs/ORB_nfeatures_{now}.log', 'a') as f:
-          f.write('{};{};{};{}\n'.format(j, match_result, i, time_diff ))
+          f.write('{};{};{};{}\n'.format(j, match_result.img_encoded, i, time_diff ))
         
         nfeatures_dataset.append(i)
         time_dataset.append(time_diff)
 
-        if match_result:
+        if match_result.success:
           successful_matches += 1
         else:
           error_dataset.append(error_index)
