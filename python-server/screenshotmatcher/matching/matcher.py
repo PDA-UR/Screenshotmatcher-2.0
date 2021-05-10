@@ -38,9 +38,9 @@ class Matcher():
 
         if create_screenshot:
             self.screenshot_file = 'screenshot.png'
-            log.value_pairs["ts_screenshot_start"] = round(time.time() * 1000)
+            log.value_pairs['ts_screenshot_start'] = round(time.time() * 1000)
             self.screenshot = ImageGrab.grab()
-            log.value_pairs["ts_screenshot_finished"] = round(time.time() * 1000)
+            log.value_pairs['ts_screenshot_finished'] = round(time.time() * 1000)
 
     def setMatchDir(self, new_dir):
         self.match_dir = new_dir
@@ -49,28 +49,28 @@ class Matcher():
         return round( (end - start) * 1000, 2 )
 
     def save_screenshot(self):
-        self.log.value_pairs["ts_save_screenshot_start"] = round(time.time() * 1000)
+        self.log.value_pairs['ts_save_screenshot_start'] = round(time.time() * 1000)
         self.screenshot.save(self.match_dir + '/' + self.screenshot_file)
-        self.log.value_pairs["ts_save_screenshot_end"] = round(time.time() * 1000)
+        self.log.value_pairs['ts_save_screenshot_end'] = round(time.time() * 1000)
 
     def match(self):
         # Load pictures
-        self.log.value_pairs["ts_img_convert_start"] = round(time.time() * 1000)
+        self.log.value_pairs['ts_img_convert_start'] = round(time.time() * 1000)
         nparr = np.frombuffer(base64.b64decode(self.img_encoded), np.uint8)
         photo = cv2.imdecode(nparr, cv2.IMREAD_GRAYSCALE)
         screen = cv2.cvtColor(np.array(self.screenshot), cv2.IMREAD_GRAYSCALE)
         screen_colored = cv2.cvtColor(np.array(self.screenshot), cv2.COLOR_BGR2RGB)
-        self.log.value_pairs["ts_img_convert_end"] = round(time.time() * 1000)
+        self.log.value_pairs['ts_img_convert_end'] = round(time.time() * 1000)
 
         # save screenshot in separate thread
         t = threading.Thread(target=self.save_screenshot, args=(), daemon=True)
         t.start()
 
-        self.log.value_pairs["ts_matching_start"] = round(time.time() * 1000)
+        self.log.value_pairs['ts_matching_start'] = round(time.time() * 1000)
 
         match_result = self.match_screenshot(photo, screen, screen_colored)
 
-        self.log.value_pairs["ts_matching_end"] = round(time.time() * 1000)
+        self.log.value_pairs['ts_matching_end'] = round(time.time() * 1000)
 
         return match_result
 
