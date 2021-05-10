@@ -104,7 +104,7 @@ class Matcher():
         except:
             return result
     
-        # Calc knn Matches
+        # Calc Matches
         try:
             matches = flann.knnMatch(des_photo, des_screen, k=2)
         except:
@@ -117,60 +117,21 @@ class Matcher():
             return result
     
         # store all the good matches as per Lowe's ratio test.
-        good = []
-        for m,n in matches:
-            if m.distance < 0.75*n.distance:
-                good.append(m)
-    
-        match_count_good = len(good)
+        good_matches = self.calculate_lowes_ratio(matches)    
+
+        match_count_good = len(good_matches)
         result.match_count_good = match_count_good
 
-        if not good or match_count_good < 10: # AS TODO: magic number as threshold for good matches in SURF algorithm
+        if not good_matches or match_count_good < 10: # AS TODO: magic number as threshold for good matches in SURF algorithm
             return result
     
-        photo_pts = np.float32([ kp_photo[m.queryIdx].pt for m in good ]).reshape(-1,1,2) # pylint: disable=too-many-function-args
-        screen_pts = np.float32([ kp_screen[m.trainIdx].pt for m in good ]).reshape(-1,1,2) # pylint: disable=too-many-function-args
-    
-        M, _ = cv2.findHomography(photo_pts, screen_pts, cv2.RANSAC, 5.0)
-    
-        if M is None or not M.any() or len(M) == 0:
-            return result
-    
-        h, w = photo.shape
-        pts = np.float32([ [0,0],[0,h-1],[w-1,h-1],[w-1,0] ]).reshape(-1,1,2) # pylint: disable=too-many-function-args
-        dst = cv2.perspectiveTransform(pts, M)
-    
-        minX = dst[0][0][0]
-        minY = dst[0][0][1]
-        maxX = dst[0][0][0]
-        maxY = dst[0][0][1]
-    
-        for i in range(4):
-            if dst[i][0][0] < minX:
-                minX = dst[i][0][0]
-            if dst[i][0][0] > maxX:
-                maxX = dst[i][0][0]
-            if dst[i][0][1] < minY:
-                minY = dst[i][0][1]
-            if dst[i][0][1] > maxY:
-                maxY = dst[i][0][1]
-    
-        minX = int(minX)
-        minY = int(minY)
-        maxX = int(maxX)
-        maxY = int(maxY)
-    
-        if minX < 0:
-            minX = 0
-        if minY < 0:
-            minY = 0
-    
-        if maxX - minX <= 0 or maxY - minY <= 0:
-            return result
-    
-        dimensions = {'width' : maxX - minX, 'height' : maxY - minY}
+        dimensions = self.calculate_homography(photo, good_matches, kp_photo, kp_screen)
 
-        result_img = screen_colored[ int(minY):int(maxY), int(minX):int(maxX)]
+        if not dimensions:
+            return result
+
+        result_img = screen_colored[dimensions['y'] : dimensions['y'] + dimensions['height'],
+                                    dimensions['x'] : dimensions['x'] + dimensions['height']]
 
         retval, buffer = cv2.imencode('.jpg', result_img)
         img_encoded = base64.b64encode(buffer).decode("ASCII")
@@ -198,8 +159,6 @@ class Matcher():
         kp_photo, des_photo = orb.detectAndCompute(photo, None)
         kp_screen, des_screen = orb.detectAndCompute(screen, None)
     
-        t3 = time.perf_counter()
-    
         # Descriptor Matcher
         try:
             descriptor_matcher = cv2.DescriptorMatcher_create(descriptor_matcher_name)
@@ -219,24 +178,47 @@ class Matcher():
             return result
     
         # store all the good matches as per Lowe's ratio test.
+        good_matches = self.calculate_lowes_ratio(matches)    
+
+        match_count_good = len(good_matches)
+        result.match_count_good = match_count_good
+
+        if not good_matches or match_count_good < 20: # AS TODO: magic number as threshold for good matches in ORB algorithm
+            return result
+    
+        dimensions = self.calculate_homography(photo, good_matches, kp_photo, kp_screen)
+
+        if not dimensions:
+            return result
+
+        result_img = screen_colored[dimensions['y'] : dimensions['y'] + dimensions['height'],
+                                    dimensions['x'] : dimensions['x'] + dimensions['height']]
+
+        retval, buffer = cv2.imencode('.jpg', result_img)
+        img_encoded = base64.b64encode(buffer).decode("ASCII")
+
+        result.dimensions = dimensions
+        result.result_img = result_img
+        result.img_encoded = img_encoded
+        result.success = True
+
+        return result
+
+    def calculate_lowes_ratio(self, matches):
         good = []
         for m,n in matches:
             if m.distance < 0.75*n.distance:
                 good.append(m)
-    
-        match_count_good = len(good)
-        result.match_count_good = match_count_good
+        return good
 
-        if not good or match_count_good < 20: # AS TODO: magic number as threshold for good matches in ORB algorithm
-            return result
-    
-        photo_pts = np.float32([ kp_photo[m.queryIdx].pt for m in good ]).reshape(-1,1,2) # pylint: disable=too-many-function-args
-        screen_pts = np.float32([ kp_screen[m.trainIdx].pt for m in good ]).reshape(-1,1,2) # pylint: disable=too-many-function-args
+    def calculate_homography(self, photo, matches, kp_photo, kp_screen):
+        photo_pts = np.float32([ kp_photo[m.queryIdx].pt for m in matches ]).reshape(-1,1,2) # pylint: disable=too-many-function-args
+        screen_pts = np.float32([ kp_screen[m.trainIdx].pt for m in matches ]).reshape(-1,1,2) # pylint: disable=too-many-function-args
     
         M, _ = cv2.findHomography(photo_pts, screen_pts, cv2.RANSAC, 5.0)
     
         if M is None or not M.any() or len(M) == 0:
-            return result
+            return None
     
         h, w = photo.shape
         pts = np.float32([ [0,0],[0,h-1],[w-1,h-1],[w-1,0] ]).reshape(-1,1,2) # pylint: disable=too-many-function-args
@@ -268,21 +250,11 @@ class Matcher():
             minY = 0
     
         if maxX - minX <= 0 or maxY - minY <= 0:
-            return False
+            return result
     
-        dimensions = {'width' : maxX - minX, 'height' : maxY - minY}
+        dimensions = {'x' : minX, 'y' : minY, 'width' : maxX - minX, 'height' : maxY - minY}
 
-        result_img = screen_colored[ int(minY):int(maxY), int(minX):int(maxX)]
-
-        retval, buffer = cv2.imencode('.jpg', result_img)
-        img_encoded = base64.b64encode(buffer).decode("ASCII")
-
-        result.dimensions = dimensions
-        result.result_img = result_img
-        result.img_encoded = img_encoded
-        result.success = True
-
-        return result
+        return dimensions
     
     def save_screenshot(self):
         self.log.value_pairs["ts_save_screenshot_start"] = round(time.time() * 1000)
