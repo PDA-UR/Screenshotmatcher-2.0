@@ -168,7 +168,7 @@ class Server():
         # Send data to server for logging
         payload = {
             'identifier': Config.IDENTIFIER,
-            'hasResult': bool(match_result),
+            'hasResult': match_result.success,
             'algorithm': Config.CURRENT_ALGORITHM,
             'device': request.values.get('device'),
             'speed': round(end_time - start_time, 5)
@@ -180,7 +180,7 @@ class Server():
 
         response = {'uid': uid}
         log.value_pairs["ts_response_sent"] = round(time.time() * 1000)
-        if not match_result:
+        if not match_result.success:
             log.value_pairs["match_success"] = False
 
             response['hasResult'] = False
@@ -190,7 +190,7 @@ class Server():
             log.value_pairs["match_success"] = True
 
             response['hasResult'] = True
-            response['b64'] = match_result
+            response['b64'] = match_result.img_encoded
             return Response(json.dumps(response), mimetype='application/json')
 
     def screenshot_route(self, result_id):

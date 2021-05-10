@@ -10,14 +10,27 @@ import common.log
 
 from common.config import Config
 
+class Match():
+    def __init__(self, success=False, result_img=None, img_encoded=None, dimensions=None, matcher=None, match_count=None, match_count_good=None):
+        self.success = success
+        self.result_img = result_img
+        self.img_encoded = img_encoded
+        self.dimensions = dimensions
+        self.matcher = matcher
+        self.match_count = match_count
+        self.match_count_good = match_count_good 
+
 class Matcher():
-    def __init__(self, match_uid, b64_string, log, create_screenshot = True):
+    SURF = "SURF"
+    ORB = "ORB"
+
+    def __init__(self, match_uid, img_encoded, log, create_screenshot = True):
 
         self.match_uid = match_uid
 
         self.match_dir = './www/results/result-' + match_uid
 
-        self.b64_string = b64_string
+        self.img_encoded = img_encoded
         self.algorithm = Config.CURRENT_ALGORITHM
         self.ORB_nfeatures = 2000
         self.SURF_hessian_threshold = 3500
@@ -44,8 +57,8 @@ class Matcher():
 
         # Load pictures
         self.log.value_pairs["ts_img_convert_start"] = round(time.time() * 1000)
-        nparr = np.frombuffer(base64.b64decode(self.b64_string), np.uint8)
-        photo = cv2.imdecode(nparr, cv2.cv2.IMREAD_GRAYSCALE)
+        nparr = np.frombuffer(base64.b64decode(self.img_encoded), np.uint8)
+        photo = cv2.imdecode(nparr, cv2.IMREAD_GRAYSCALE)
         screen = cv2.cvtColor(np.array(self.screenshot), cv2.IMREAD_GRAYSCALE)
         screen_colored = cv2.cvtColor(np.array(self.screenshot), cv2.COLOR_BGR2RGB)
         self.log.value_pairs["ts_img_convert_end"] = round(time.time() * 1000)
@@ -70,24 +83,18 @@ class Matcher():
         return match_result
 
     def algorithm_SURF(self, photo, screen, screen_colored, descMatcher = 1):
+        result = Match(matcher=Matcher.SURF)
+
         self.log.value_pairs["algorithm"] = "SURF"
         self.log.value_pairs["SURF_hessian_threshold"] = self.SURF_hessian_threshold
-        t1 = time.perf_counter()
     
         # Init algorithm
         surf = cv2.xfeatures2dSURF_create(self.SURF_hessian_threshold)
         surf.setUpright(True)
     
-        t2 = time.perf_counter()
-    
-        self.writeLog('Created SURF object - {}ms'.format( self.formatTimeDiff(t1, t2) ))
-    
         # Detect and compute
         kp_photo, des_photo = surf.detectAndCompute(photo, None)
         kp_screen, des_screen = surf.detectAndCompute(screen, None)
-    
-        t3 = time.perf_counter()
-        self.writeLog('Detected keypoints - {}ms'.format( self.formatTimeDiff(t2, t3) ))
     
         # Descriptor Matcher
         try:
@@ -95,23 +102,19 @@ class Matcher():
             search_params = dict(checks = 50)
             flann = cv2.FlannBasedMatcher(index_params, search_params)
         except:
-            return False
-    
-        t4 = time.perf_counter()
-        self.writeLog('Initialized Flann Matcher - {}ms'.format( self.formatTimeDiff(t3, t4) ))
+            return result
     
         # Calc knn Matches
         try:
             matches = flann.knnMatch(des_photo, des_screen, k=2)
         except:
-            return False
+            return result
     
-        logging.info('knn {}'.format(len(matches)))
-        t5 = time.perf_counter()
-        self.writeLog('Calced knn matches - {}ms'.format( self.formatTimeDiff(t4, t5) ))
-    
-        if not matches or len(matches) == 0:
-            return False
+        match_count = len(matches)
+        result.match_count = match_count
+
+        if not matches or match_count == 0:
+            return result
     
         # store all the good matches as per Lowe's ratio test.
         good = []
@@ -119,31 +122,23 @@ class Matcher():
             if m.distance < 0.75*n.distance:
                 good.append(m)
     
-        logging.info('good {}'.format(len(good)))
-        t6 = time.perf_counter()
-        self.writeLog('Filtered good matches - {}ms'.format( self.formatTimeDiff(t5, t6) ))
-    
-        if not good or len(good) < 10:
-            return False
-    
+        match_count_good = len(good)
+        result.match_count_good = match_count_good
+
+        if not good or match_count_good < 10: # AS TODO: magic number as threshold for good matches in SURF algorithm
+            return result
     
         photo_pts = np.float32([ kp_photo[m.queryIdx].pt for m in good ]).reshape(-1,1,2) # pylint: disable=too-many-function-args
         screen_pts = np.float32([ kp_screen[m.trainIdx].pt for m in good ]).reshape(-1,1,2) # pylint: disable=too-many-function-args
     
         M, _ = cv2.findHomography(photo_pts, screen_pts, cv2.RANSAC, 5.0)
     
-        t7 = time.perf_counter()
-        self.writeLog('Found Homography - {}ms'.format( self.formatTimeDiff(t6, t7) ))
-    
         if M is None or not M.any() or len(M) == 0:
-            return False
+            return result
     
         h, w = photo.shape
         pts = np.float32([ [0,0],[0,h-1],[w-1,h-1],[w-1,0] ]).reshape(-1,1,2) # pylint: disable=too-many-function-args
         dst = cv2.perspectiveTransform(pts, M)
-    
-        t8 = time.perf_counter()
-        self.writeLog('Perspective Transform - {}ms'.format( self.formatTimeDiff(t7, t8) ))
     
         minX = dst[0][0][0]
         minY = dst[0][0][1]
@@ -170,63 +165,58 @@ class Matcher():
         if minY < 0:
             minY = 0
     
-        logging.info('minY {}'.format(int(minY)))
-        logging.info('minX {}'.format(int(minX)))
-        logging.info('maxY {}'.format(int(maxY)))
-        logging.info('maxX {}'.format(int(maxX)))
+        if maxX - minX <= 0 or maxY - minY <= 0:
+            return result
     
-        if maxX - minX <= 0:
-            return False
-        if maxY - minY <= 0:
-            return False
-    
-        t9 = time.perf_counter()
-        self.writeLog('Wrote Image - {}ms'.format( self.formatTimeDiff(t8, t9) ))
-    
-        retval, buffer = cv2.imencode('.jpg', screen_colored[ int(minY):int(maxY), int(minX):int(maxX)])
-        b64_string = base64.b64encode(buffer).decode("ASCII")
-        return b64_string
+        dimensions = {'width' : maxX - minX, 'height' : maxY - minY}
+
+        result_img = screen_colored[ int(minY):int(maxY), int(minX):int(maxX)]
+
+        retval, buffer = cv2.imencode('.jpg', result_img)
+        img_encoded = base64.b64encode(buffer).decode("ASCII")
+
+        result.dimensions = dimensions
+        result.result_img = result_img
+        result.img_encoded = img_encoded
+        result.success = True
+
+        #result = Match(result_img, img_encoded, dimensions, Matcher.SURF, match_count, match_count_good)
+
+        return result
     
     
     def algorithm_ORB(self, photo, screen, screen_colored, descriptor_matcher_name = 'BruteForce-Hamming'):
+        result = Match(matcher=Matcher.ORB)
+
         self.log.value_pairs["algorithm"] = "ORB"
         self.log.value_pairs["ORB_nfeatures"] = self.ORB_nfeatures
-        t1 = time.perf_counter()
     
         # Init algorithm
         orb = cv2.ORB_create(self.ORB_nfeatures)
-    
-        t2 = time.perf_counter()
-    
-        self.writeLog('Created ORB object - {}ms'.format( self.formatTimeDiff(t1, t2) ))
     
         # Detect and compute
         kp_photo, des_photo = orb.detectAndCompute(photo, None)
         kp_screen, des_screen = orb.detectAndCompute(screen, None)
     
         t3 = time.perf_counter()
-        self.writeLog('Detected keypoints - {}ms'.format( self.formatTimeDiff(t2, t3) ))
     
         # Descriptor Matcher
         try:
             descriptor_matcher = cv2.DescriptorMatcher_create(descriptor_matcher_name)
         except:
-            return False
-    
-        t4 = time.perf_counter()
-        self.writeLog('Initialized Descriptor Matcher - {}ms'.format( self.formatTimeDiff(t3, t4) ))
+            return result
     
         # Calc knn Matches
         try:
             matches = descriptor_matcher.knnMatch(des_photo, des_screen, k=2)
         except:
-            return False
+            return result
     
-        t5 = time.perf_counter()
-        self.writeLog('Calced knn matches - {}ms'.format( self.formatTimeDiff(t4, t5) ))
-    
-        if not matches or len(matches) == 0:
-            return False
+        match_count = len(matches)
+        result.match_count = match_count
+
+        if not matches or match_count == 0:
+            return result
     
         # store all the good matches as per Lowe's ratio test.
         good = []
@@ -234,30 +224,23 @@ class Matcher():
             if m.distance < 0.75*n.distance:
                 good.append(m)
     
-        t6 = time.perf_counter()
-        self.writeLog('Filtered good matches - {}ms'.format( self.formatTimeDiff(t5, t6) ))
-    
-        if not good or len(good) < 20:
-            return False
+        match_count_good = len(good)
+        result.match_count_good = match_count_good
+
+        if not good or match_count_good < 20: # AS TODO: magic number as threshold for good matches in ORB algorithm
+            return result
     
         photo_pts = np.float32([ kp_photo[m.queryIdx].pt for m in good ]).reshape(-1,1,2) # pylint: disable=too-many-function-args
         screen_pts = np.float32([ kp_screen[m.trainIdx].pt for m in good ]).reshape(-1,1,2) # pylint: disable=too-many-function-args
     
         M, _ = cv2.findHomography(photo_pts, screen_pts, cv2.RANSAC, 5.0)
     
-        t7 = time.perf_counter()
-        self.writeLog('Found Homography - {}ms'.format( self.formatTimeDiff(t6, t7) ))
-    
         if M is None or not M.any() or len(M) == 0:
-            return False
+            return result
     
         h, w = photo.shape
         pts = np.float32([ [0,0],[0,h-1],[w-1,h-1],[w-1,0] ]).reshape(-1,1,2) # pylint: disable=too-many-function-args
         dst = cv2.perspectiveTransform(pts, M)
-    
-        t8 = time.perf_counter()
-        self.writeLog('Perspective Transform - {}ms'.format( self.formatTimeDiff(t7, t8) ))
-    
     
         minX = dst[0][0][0]
         minY = dst[0][0][1]
@@ -284,23 +267,22 @@ class Matcher():
         if minY < 0:
             minY = 0
     
-        logging.info('minY {}'.format(int(minY)))
-        logging.info('minX {}'.format(int(minX)))
-        logging.info('maxY {}'.format(int(maxY)))
-        logging.info('maxX {}'.format(int(maxX)))
-    
-        if maxX - minX <= 0:
-            return False
-        if maxY - minY <= 0:
+        if maxX - minX <= 0 or maxY - minY <= 0:
             return False
     
-        # cv2.imwrite(self.match_dir + '/result.png', screen_colored[ int(minY):int(maxY), int(minX):int(maxX)])
-    
-        t9 = time.perf_counter()
-        self.writeLog('Wrote Image - {}ms'.format( self.formatTimeDiff(t8, t9) ))
-        retval, buffer = cv2.imencode('.jpg', screen_colored[ int(minY):int(maxY), int(minX):int(maxX)])
-        b64_string = base64.b64encode(buffer).decode("ASCII")
-        return b64_string
+        dimensions = {'width' : maxX - minX, 'height' : maxY - minY}
+
+        result_img = screen_colored[ int(minY):int(maxY), int(minX):int(maxX)]
+
+        retval, buffer = cv2.imencode('.jpg', result_img)
+        img_encoded = base64.b64encode(buffer).decode("ASCII")
+
+        result.dimensions = dimensions
+        result.result_img = result_img
+        result.img_encoded = img_encoded
+        result.success = True
+
+        return result
     
     def save_screenshot(self):
         self.log.value_pairs["ts_save_screenshot_start"] = round(time.time() * 1000)
