@@ -1,13 +1,10 @@
 import pyscreenshot as ImageGrab
 import time
 import numpy as np
-import logging
 import base64
 import cv2
 import threading
-
 import common.log
-
 from common.config import Config
 
 class Match():
@@ -21,8 +18,8 @@ class Match():
         self.match_count_good = match_count_good 
 
 class Matcher():
-    SURF = "SURF"
-    ORB = "ORB"
+    SURF = 'SURF'
+    ORB = 'ORB'
 
     def __init__(self, match_uid, img_encoded, log, create_screenshot = True):
 
@@ -32,10 +29,10 @@ class Matcher():
 
         self.img_encoded = img_encoded
         self.algorithm = Config.CURRENT_ALGORITHM
-        self.ORB_nfeatures = 2000
         self.ORB_descriptor_matcher = 'BruteForce-Hamming'
-        self.SURF_hessian_threshold = 3500
         self.SURF_descriptor_matcher = 1
+        self.THRESHOLDS = {'ORB' : 2000, 'SURF' : 3500}
+        self.MIN_GOOD_MATCHES = {'ORB' : 20, 'SURF' : 10}
 
         self.log = log
 
@@ -48,15 +45,15 @@ class Matcher():
     def setMatchDir(self, new_dir):
         self.match_dir = new_dir
 
-    def writeLog(self, msg):
-        logging.info('MATCHER - {}'.format(msg))
-
     def formatTimeDiff(self, start, end):
         return round( (end - start) * 1000, 2 )
 
-    def match(self):
-        start_time = time.perf_counter()
+    def save_screenshot(self):
+        self.log.value_pairs["ts_save_screenshot_start"] = round(time.time() * 1000)
+        self.screenshot.save(self.match_dir + '/' + self.screenshot_file)
+        self.log.value_pairs["ts_save_screenshot_end"] = round(time.time() * 1000)
 
+    def match(self):
         # Load pictures
         self.log.value_pairs["ts_img_convert_start"] = round(time.time() * 1000)
         nparr = np.frombuffer(base64.b64decode(self.img_encoded), np.uint8)
@@ -70,104 +67,60 @@ class Matcher():
         t.start()
 
         self.log.value_pairs["ts_matching_start"] = round(time.time() * 1000)
-        # Provisional switch statement
-        if self.algorithm == 'SURF':
-            match_result = self.algorithm_SURF(photo, screen, screen_colored)
-        elif self.algorithm == 'ORB':
-            match_result = self.algorithm_ORB(photo, screen, screen_colored)
-        else:
-            match_result = self.algorithm_SURF(photo, screen, screen_colored)
+
+        match_result = self.match_screenshot(photo, screen, screen_colored)
 
         self.log.value_pairs["ts_matching_end"] = round(time.time() * 1000)
 
-        self.writeLog('FINAL TIME {}ms'.format(round( (time.perf_counter() - start_time) * 1000 )))
-
         return match_result
 
-    def algorithm_SURF(self, photo, screen, screen_colored):
-        result = Match(matcher=Matcher.SURF)
+    def match_screenshot(self, photo, screen, screen_colored):
+        result = Match(matcher=self.algorithm)
+        
+        self.log.value_pairs['algorithm'] = self.algorithm
+        self.log.value_pairs['threshold'] = self.THRESHOLDS[self.algorithm]
 
-        self.log.value_pairs["algorithm"] = "SURF"
-        self.log.value_pairs["SURF_hessian_threshold"] = self.SURF_hessian_threshold
-    
-        matches, kp_photo, kp_screen = self.find_matches_SURF(photo, screen)
-    
-        match_count = len(matches)
-        result.match_count = match_count
+        try:
+            if self.algorithm == 'SURF':
+                matches, kp_photo, kp_screen = self.find_matches_SURF(photo, screen)
+            elif self.algorithm == 'ORB':
+                matches, kp_photo, kp_screen = self.find_matches_ORB(photo, screen)
 
-        if not matches or match_count == 0:
+            match_count = len(matches)
+            result.match_count = match_count
+
+            if not matches or match_count == 0:
+                raise Exception('no matches found')
+
+            # store all the good matches as per Lowe's ratio test.
+            good_matches = self.calculate_lowes_ratio(matches)    
+
+            match_count_good = len(good_matches)
+            result.match_count_good = match_count_good
+
+            if not good_matches or match_count_good < self.MIN_GOOD_MATCHES[self.algorithm]:
+                raise Exception('not enough good matches')
+
+            dimensions = self.calculate_homography(photo, good_matches, kp_photo, kp_screen)
+
+            if not dimensions:
+                raise Exception('could not calculate homography')
+
+            result_img = screen_colored[dimensions['y'] : dimensions['y'] + dimensions['height'],
+                                        dimensions['x'] : dimensions['x'] + dimensions['height']]
+
+            _, buf = cv2.imencode('.jpg', result_img)
+            img_encoded = base64.b64encode(buf).decode('ASCII')
+
+            result.dimensions = dimensions
+            result.result_img = result_img
+            result.img_encoded = img_encoded
+            result.success = True
+        except Exception as e:
+            pass
+            #print(str(e))
+        finally:
             return result
-    
-        # store all the good matches as per Lowe's ratio test.
-        good_matches = self.calculate_lowes_ratio(matches)    
-
-        match_count_good = len(good_matches)
-        result.match_count_good = match_count_good
-
-        if not good_matches or match_count_good < 10: # AS TODO: magic number as threshold for good matches in SURF algorithm
-            return result
-    
-        dimensions = self.calculate_homography(photo, good_matches, kp_photo, kp_screen)
-
-        if not dimensions:
-            return result
-
-        result_img = screen_colored[dimensions['y'] : dimensions['y'] + dimensions['height'],
-                                    dimensions['x'] : dimensions['x'] + dimensions['height']]
-
-        retval, buffer = cv2.imencode('.jpg', result_img)
-        img_encoded = base64.b64encode(buffer).decode("ASCII")
-
-        result.dimensions = dimensions
-        result.result_img = result_img
-        result.img_encoded = img_encoded
-        result.success = True
-
-        #result = Match(result_img, img_encoded, dimensions, Matcher.SURF, match_count, match_count_good)
-
-        return result
-    
-    
-    def algorithm_ORB(self, photo, screen, screen_colored):
-        result = Match(matcher=Matcher.ORB)
-
-        self.log.value_pairs["algorithm"] = "ORB"
-        self.log.value_pairs["ORB_nfeatures"] = self.ORB_nfeatures
-    
-        matches, kp_photo, kp_screen = self.find_matches_ORB(photo, screen)
-
-        match_count = len(matches)
-        result.match_count = match_count
-
-        if not matches or match_count == 0:
-            return result
-    
-        # store all the good matches as per Lowe's ratio test.
-        good_matches = self.calculate_lowes_ratio(matches)    
-
-        match_count_good = len(good_matches)
-        result.match_count_good = match_count_good
-
-        if not good_matches or match_count_good < 20: # AS TODO: magic number as threshold for good matches in ORB algorithm
-            return result
-    
-        dimensions = self.calculate_homography(photo, good_matches, kp_photo, kp_screen)
-
-        if not dimensions:
-            return result
-
-        result_img = screen_colored[dimensions['y'] : dimensions['y'] + dimensions['height'],
-                                    dimensions['x'] : dimensions['x'] + dimensions['height']]
-
-        retval, buffer = cv2.imencode('.jpg', result_img)
-        img_encoded = base64.b64encode(buffer).decode("ASCII")
-
-        result.dimensions = dimensions
-        result.result_img = result_img
-        result.img_encoded = img_encoded
-        result.success = True
-
-        return result
 
     def calculate_lowes_ratio(self, matches):
         good = []
@@ -183,7 +136,7 @@ class Matcher():
         M, _ = cv2.findHomography(photo_pts, screen_pts, cv2.RANSAC, 5.0)
     
         if M is None or not M.any() or len(M) == 0:
-            return None
+            raise Exception('could not find homography')
     
         h, w = photo.shape
         pts = np.float32([ [0,0],[0,h-1],[w-1,h-1],[w-1,0] ]).reshape(-1,1,2) # pylint: disable=too-many-function-args
@@ -214,8 +167,8 @@ class Matcher():
         if minY < 0:
             minY = 0
     
-        if maxX - minX <= 0 or maxY - minY <= 0:
-            return result
+        if maxX <= minX or maxY <= minY:
+            raise Exception('invalid dimensions: max < min')
     
         dimensions = {'x' : minX, 'y' : minY, 'width' : maxX - minX, 'height' : maxY - minY}
 
@@ -223,7 +176,7 @@ class Matcher():
 
     def find_matches_SURF(self, photo, screen):
         # Init algorithm
-        surf = cv2.xfeatures2dSURF_create(self.SURF_hessian_threshold)
+        surf = cv2.xfeatures2dSURF_create(self.THRESHOLDS['SURF'])
         surf.setUpright(True)
     
         # Detect and compute
@@ -231,36 +184,25 @@ class Matcher():
         kp_screen, des_screen = surf.detectAndCompute(screen, None)
     
         # Descriptor Matcher
-        try:
-            index_params = dict(algorithm = self.SURF_descriptor_matcher, trees = 5)
-            search_params = dict(checks = 50)
-            flann = cv2.FlannBasedMatcher(index_params, search_params)
-    
-            # Calc Matches
-            matches = flann.knnMatch(des_photo, des_screen, k=2)
-        except:
-            return None
+        index_params = dict(algorithm = self.SURF_descriptor_matcher, trees = 5)
+        search_params = dict(checks = 50)
+        flann = cv2.FlannBasedMatcher(index_params, search_params)
+
+        # Calc Matches
+        matches = flann.knnMatch(des_photo, des_screen, k=2)
 
         return matches, kp_photo, kp_screen
 
     def find_matches_ORB(self, photo, screen):
         # Init algorithm
-        orb = cv2.ORB_create(self.ORB_nfeatures)
+        orb = cv2.ORB_create(self.THRESHOLDS['ORB'])
     
         # Detect and compute
         kp_photo, des_photo = orb.detectAndCompute(photo, None)
         kp_screen, des_screen = orb.detectAndCompute(screen, None)
     
         # Descriptor Matcher
-        try:
-            descriptor_matcher = cv2.DescriptorMatcher_create(self.ORB_descriptor_matcher)
-            matches = descriptor_matcher.knnMatch(des_photo, des_screen, k=2)
-        except:
-            return None
+        descriptor_matcher = cv2.DescriptorMatcher_create(self.ORB_descriptor_matcher)
+        matches = descriptor_matcher.knnMatch(des_photo, des_screen, k=2)
 
         return matches, kp_photo, kp_screen
-    
-    def save_screenshot(self):
-        self.log.value_pairs["ts_save_screenshot_start"] = round(time.time() * 1000)
-        self.screenshot.save(self.match_dir + '/' + self.screenshot_file)
-        self.log.value_pairs["ts_save_screenshot_end"] = round(time.time() * 1000)
