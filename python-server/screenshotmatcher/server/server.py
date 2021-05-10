@@ -155,9 +155,9 @@ class Server():
         if r_json.get('algorithm') :
             matcher.algorithm = r_json.get('algorithm')
         if r_json.get('ORB_nfeatures'):
-            matcher.ORB_nfeatures =  r_json.get('ORB_nfeatures')
+            matcher.THRESHOLDS['ORB'] =  r_json.get('ORB_nfeatures')
         if r_json.get('SURF_hessian_threshold'):
-            matcher.SURF_hessian_threshold = r_json.get('SURF_hessian_threshold')
+            matcher.THRESHOLDS['SURF'] = r_json.get('SURF_hessian_threshold')
 
         # Start matcher
         match_result = matcher.match()
