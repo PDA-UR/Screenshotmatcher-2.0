@@ -18,7 +18,7 @@ import common.log
 
 from common.config import Config
 from matching.matcher import Matcher
-from common.utils import allowed_file, get_main_dir
+from common.utils import allowed_file, get_main_dir, get_current_ms
 
 LOGS_TO_KEEP = 3
 
@@ -130,10 +130,10 @@ class Server():
 
         t_start = time.perf_counter()
         print('{}:\t request get'.format(int(time.time()* 1000)))
-        log.value_pairs['ts_request_received'] = round(time.time() * 1000)
+        log.value_pairs['ts_request_received'] = get_current_ms()
         r_json = request.json
         b64String = r_json.get('b64')
-        log.value_pairs['ts_photo_received'] = round(time.time() * 1000)
+        log.value_pairs['ts_photo_received'] = get_current_ms()
         print('{}:\t b64 string with size {} get'.format(time.time(), sys.getsizeof(b64String)))
         
         if b64String is None:
@@ -179,7 +179,7 @@ class Server():
         print('Time until response: {}\n'.format(time.perf_counter() - t_start))
 
         response = {'uid': uid}
-        log.value_pairs['ts_response_sent'] = round(time.time() * 1000)
+        log.value_pairs['ts_response_sent'] = get_current_ms()
         if not match_result.success:
             log.value_pairs['match_success'] = False
 
