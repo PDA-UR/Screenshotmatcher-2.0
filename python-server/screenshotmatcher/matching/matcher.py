@@ -1,11 +1,11 @@
 import pyscreenshot as ImageGrab
-import time
 import numpy as np
 import base64
 import cv2
 import threading
 import common.log
 from common.config import Config
+from common.utils import get_current_ms
 
 class Match():
     def __init__(self, success=False, result_img=None, img_encoded=None, dimensions=None, matcher=None, match_count=None, match_count_good=None):
@@ -38,39 +38,36 @@ class Matcher():
 
         if create_screenshot:
             self.screenshot_file = 'screenshot.png'
-            log.value_pairs['ts_screenshot_start'] = round(time.time() * 1000)
+            log.value_pairs['ts_screenshot_start'] = get_current_ms()
             self.screenshot = ImageGrab.grab()
-            log.value_pairs['ts_screenshot_finished'] = round(time.time() * 1000)
+            log.value_pairs['ts_screenshot_finished'] = get_current_ms()
 
     def setMatchDir(self, new_dir):
         self.match_dir = new_dir
 
-    def formatTimeDiff(self, start, end):
-        return round( (end - start) * 1000, 2 )
-
     def save_screenshot(self):
-        self.log.value_pairs['ts_save_screenshot_start'] = round(time.time() * 1000)
+        self.log.value_pairs['ts_save_screenshot_start'] = get_current_ms()
         self.screenshot.save(self.match_dir + '/' + self.screenshot_file)
-        self.log.value_pairs['ts_save_screenshot_end'] = round(time.time() * 1000)
+        self.log.value_pairs['ts_save_screenshot_end'] = get_current_ms()
 
     def match(self):
         # Load pictures
-        self.log.value_pairs['ts_img_convert_start'] = round(time.time() * 1000)
+        self.log.value_pairs['ts_img_convert_start'] = get_current_ms()
         nparr = np.frombuffer(base64.b64decode(self.img_encoded), np.uint8)
         photo = cv2.imdecode(nparr, cv2.IMREAD_GRAYSCALE)
         screen = cv2.cvtColor(np.array(self.screenshot), cv2.IMREAD_GRAYSCALE)
         screen_colored = cv2.cvtColor(np.array(self.screenshot), cv2.COLOR_BGR2RGB)
-        self.log.value_pairs['ts_img_convert_end'] = round(time.time() * 1000)
+        self.log.value_pairs['ts_img_convert_end'] = get_current_ms()
 
         # save screenshot in separate thread
         t = threading.Thread(target=self.save_screenshot, args=(), daemon=True)
         t.start()
 
-        self.log.value_pairs['ts_matching_start'] = round(time.time() * 1000)
+        self.log.value_pairs['ts_matching_start'] = get_current_ms()
 
         match_result = self.match_screenshot(photo, screen, screen_colored)
 
-        self.log.value_pairs['ts_matching_end'] = round(time.time() * 1000)
+        self.log.value_pairs['ts_matching_end'] = get_current_ms()
 
         return match_result
 
