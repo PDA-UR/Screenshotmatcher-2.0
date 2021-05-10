@@ -33,7 +33,9 @@ class Matcher():
         self.img_encoded = img_encoded
         self.algorithm = Config.CURRENT_ALGORITHM
         self.ORB_nfeatures = 2000
+        self.ORB_descriptor_matcher = 'BruteForce-Hamming'
         self.SURF_hessian_threshold = 3500
+        self.SURF_descriptor_matcher = 1
 
         self.log = log
 
@@ -82,33 +84,13 @@ class Matcher():
 
         return match_result
 
-    def algorithm_SURF(self, photo, screen, screen_colored, descMatcher = 1):
+    def algorithm_SURF(self, photo, screen, screen_colored):
         result = Match(matcher=Matcher.SURF)
 
         self.log.value_pairs["algorithm"] = "SURF"
         self.log.value_pairs["SURF_hessian_threshold"] = self.SURF_hessian_threshold
     
-        # Init algorithm
-        surf = cv2.xfeatures2dSURF_create(self.SURF_hessian_threshold)
-        surf.setUpright(True)
-    
-        # Detect and compute
-        kp_photo, des_photo = surf.detectAndCompute(photo, None)
-        kp_screen, des_screen = surf.detectAndCompute(screen, None)
-    
-        # Descriptor Matcher
-        try:
-            index_params = dict(algorithm = descMatcher, trees = 5)
-            search_params = dict(checks = 50)
-            flann = cv2.FlannBasedMatcher(index_params, search_params)
-        except:
-            return result
-    
-        # Calc Matches
-        try:
-            matches = flann.knnMatch(des_photo, des_screen, k=2)
-        except:
-            return result
+        matches, kp_photo, kp_screen = self.find_matches_SURF(photo, screen)
     
         match_count = len(matches)
         result.match_count = match_count
@@ -146,31 +128,14 @@ class Matcher():
         return result
     
     
-    def algorithm_ORB(self, photo, screen, screen_colored, descriptor_matcher_name = 'BruteForce-Hamming'):
+    def algorithm_ORB(self, photo, screen, screen_colored):
         result = Match(matcher=Matcher.ORB)
 
         self.log.value_pairs["algorithm"] = "ORB"
         self.log.value_pairs["ORB_nfeatures"] = self.ORB_nfeatures
     
-        # Init algorithm
-        orb = cv2.ORB_create(self.ORB_nfeatures)
-    
-        # Detect and compute
-        kp_photo, des_photo = orb.detectAndCompute(photo, None)
-        kp_screen, des_screen = orb.detectAndCompute(screen, None)
-    
-        # Descriptor Matcher
-        try:
-            descriptor_matcher = cv2.DescriptorMatcher_create(descriptor_matcher_name)
-        except:
-            return result
-    
-        # Calc knn Matches
-        try:
-            matches = descriptor_matcher.knnMatch(des_photo, des_screen, k=2)
-        except:
-            return result
-    
+        matches, kp_photo, kp_screen = self.find_matches_ORB(photo, screen)
+
         match_count = len(matches)
         result.match_count = match_count
 
@@ -255,6 +220,45 @@ class Matcher():
         dimensions = {'x' : minX, 'y' : minY, 'width' : maxX - minX, 'height' : maxY - minY}
 
         return dimensions
+
+    def find_matches_SURF(self, photo, screen):
+        # Init algorithm
+        surf = cv2.xfeatures2dSURF_create(self.SURF_hessian_threshold)
+        surf.setUpright(True)
+    
+        # Detect and compute
+        kp_photo, des_photo = surf.detectAndCompute(photo, None)
+        kp_screen, des_screen = surf.detectAndCompute(screen, None)
+    
+        # Descriptor Matcher
+        try:
+            index_params = dict(algorithm = self.SURF_descriptor_matcher, trees = 5)
+            search_params = dict(checks = 50)
+            flann = cv2.FlannBasedMatcher(index_params, search_params)
+    
+            # Calc Matches
+            matches = flann.knnMatch(des_photo, des_screen, k=2)
+        except:
+            return None
+
+        return matches, kp_photo, kp_screen
+
+    def find_matches_ORB(self, photo, screen):
+        # Init algorithm
+        orb = cv2.ORB_create(self.ORB_nfeatures)
+    
+        # Detect and compute
+        kp_photo, des_photo = orb.detectAndCompute(photo, None)
+        kp_screen, des_screen = orb.detectAndCompute(screen, None)
+    
+        # Descriptor Matcher
+        try:
+            descriptor_matcher = cv2.DescriptorMatcher_create(self.ORB_descriptor_matcher)
+            matches = descriptor_matcher.knnMatch(des_photo, des_screen, k=2)
+        except:
+            return None
+
+        return matches, kp_photo, kp_screen
     
     def save_screenshot(self):
         self.log.value_pairs["ts_save_screenshot_start"] = round(time.time() * 1000)
