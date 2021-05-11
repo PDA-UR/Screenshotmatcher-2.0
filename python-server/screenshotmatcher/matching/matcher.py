@@ -7,16 +7,19 @@ import common.log
 from common.config import Config
 from common.utils import get_current_ms
 
+# result object for the matcher
+# contains the result image as np.array and b64 string
+# as well as some meta data
 class Match():
     def __init__(self, success=False, result_img=None, img_encoded=None, dimensions=None, matcher=None, match_count=None, match_count_good=None):
-        self.timestamp_ms = get_current_ms()
-        self.success = success
-        self.result_img = result_img
-        self.img_encoded = img_encoded
-        self.dimensions = dimensions
-        self.matcher = matcher
-        self.match_count = match_count
-        self.match_count_good = match_count_good 
+        self.timestamp_ms = get_current_ms()     # timestamp of the start of the match
+        self.success = success                   # true if technically successful
+        self.result_img = result_img             # result image as np.array
+        self.img_encoded = img_encoded           # result image as b64 string
+        self.dimensions = dimensions             # dimensions of the result image as dictionary (x, y, width, height)
+        self.matcher = matcher                   # used matcher ('ORB', 'SURF')
+        self.match_count = match_count           # number of found matches
+        self.match_count_good = match_count_good # number of found good matches after Lowe's ratio test
 
 class Matcher():
     SURF = 'SURF'
