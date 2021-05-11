@@ -6,6 +6,7 @@ import threading
 import common.log
 from common.config import Config
 from common.utils import get_current_ms
+from common.log import log_time
 
 # result object for the matcher
 # contains the result image as np.array and b64 string
@@ -32,6 +33,7 @@ class Matcher():
         self.match_dir = './www/results/result-' + match_uid
 
         self.img_encoded = img_encoded
+
         self.algorithm = Config.CURRENT_ALGORITHM
         self.ORB_descriptor_matcher = 'BruteForce-Hamming'
         self.SURF_descriptor_matcher = 1
