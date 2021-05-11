@@ -9,6 +9,7 @@ from common.utils import get_current_ms
 
 class Match():
     def __init__(self, success=False, result_img=None, img_encoded=None, dimensions=None, matcher=None, match_count=None, match_count_good=None):
+        self.timestamp_ms = get_current_ms()
         self.success = success
         self.result_img = result_img
         self.img_encoded = img_encoded
@@ -88,8 +89,7 @@ class Matcher():
 
             if not matches or match_count == 0:
                 raise Exception('no matches found')
-
-            # store all the good matches as per Lowe's ratio test.
+# store all the good matches as per Lowe's ratio test.
             good_matches = self.calculate_lowes_ratio(matches)    
 
             match_count_good = len(good_matches)
@@ -104,7 +104,7 @@ class Matcher():
                 raise Exception('could not calculate homography')
 
             result_img = screen_colored[dimensions['y'] : dimensions['y'] + dimensions['height'],
-                                        dimensions['x'] : dimensions['x'] + dimensions['height']]
+                                        dimensions['x'] : dimensions['x'] + dimensions['width']]
 
             _, buf = cv2.imencode('.jpg', result_img)
             img_encoded = base64.b64encode(buf).decode('ASCII')
