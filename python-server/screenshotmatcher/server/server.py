@@ -81,44 +81,7 @@ class Server():
                 return {'response': 'ok'}
         return {'response' : 'log does not match any match_id'}
 
-    def feedback_route(self):
-        r_json = request.json
-
-        uid = r_json.get('uid')
-        has_result = r_json.get('hasResult')
-        has_screenshot = r_json.get('hasScreenshot')
-        comment = r_json.get('comment')
-        device = r_json.get('device')
-        
-        payload = {
-            'secret': Config.API_SECRET,
-            'identifier': Config.IDENTIFIER,
-            'comment': comment,
-            'hasScreenshot': has_screenshot,
-            'algorithm': Config.CURRENT_ALGORITHM,
-            'device': device
-        }
-       
-        file_payload = [('screenshot', ('screenshot', open(self.results_dir + '/result-' + uid + '/screenshot.png', 'rb'), 'image/png'))]
-
-#        old_file_payload = [
-#            ('photo', ('photo', open(self.results_dir +
-#                                     '/result-' + uid + '/photo.jpg', 'rb'), 'image/jpeg')),
-#            ('screenshot', ('screenshot', open(self.results_dir +
-#                                               '/result-' + uid + '/screenshot.png', 'rb'), 'image/png')),
-#        ]
-
-        if has_result and has_result != 'false':
-            file_payload.append(
-                ('result', ('result', open(self.results_dir +
-                                           '/result-' + uid + '/result.png', 'rb'), 'image/png'))
-            )
-
-        logging.info('sending feedback {}'.format(uid))
-
-        
-        urllib3.disable_warnings()
-        
+    def feedback_route(self):  
         return {'feedbackPosted' : 'true'}
 
 
