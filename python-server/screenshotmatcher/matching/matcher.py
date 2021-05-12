@@ -12,22 +12,22 @@ from common.log import log_time
 # contains the result image as np.array and b64 string
 # as well as some meta data
 class Match():
-    def __init__(self, success=False, result_img=None, img_encoded=None, dimensions=None, matcher=None, match_count=None, match_count_good=None):
-        self.timestamp_ms = get_current_ms()     # timestamp of the start of the match
-        self.success = success                   # true if technically successful
-        self.result_img = result_img             # result image as np.array
-        self.img_encoded = img_encoded           # result image as b64 string
-        self.dimensions = dimensions             # dimensions of the result image as dictionary (x, y, width, height)
-        self.matcher = matcher                   # used matcher ('ORB', 'SURF')
-        self.match_count = match_count           # number of found matches
-        self.match_count_good = match_count_good # number of found good matches after Lowe's ratio test
+    def __init__(self, success=False, result_img=None, img_encoded=None, dimensions=None, matcher=None, match_count=None, match_count_good=None, screenshot_encoded=None):
+        self.timestamp_ms = get_current_ms()            # timestamp of the start of the match
+        self.success = success                          # true if technically successful
+        self.result_img = result_img                    # result image as np.array
+        self.img_encoded = img_encoded                  # result image as b64 string
+        self.screenshot_encoded = screenshot_encoded    # monitor screenshot image as b64 string
+        self.dimensions = dimensions                    # dimensions of the result image as dictionary (x, y, width, height)
+        self.matcher = matcher                          # used matcher ('ORB', 'SURF')
+        self.match_count = match_count                  # number of found matches
+        self.match_count_good = match_count_good        # number of found good matches after Lowe's ratio test
 
 class Matcher():
     SURF = 'SURF'
     ORB = 'ORB'
 
-    def __init__(self, match_uid, img_encoded, log, create_screenshot = True):
-
+    def __init__(self, match_uid, img_encoded, log):
         self.match_uid = match_uid
 
         self.match_dir = './www/results/result-' + match_uid
@@ -42,18 +42,24 @@ class Matcher():
 
         self.log = log
 
-        if create_screenshot:
-            self.screenshot_file = 'screenshot.png'
-            log.value_pairs['ts_screenshot_start'] = get_current_ms()
-            self.screenshot = ImageGrab.grab()
-            log.value_pairs['ts_screenshot_finished'] = get_current_ms()
+        log.value_pairs['ts_screenshot_start'] = get_current_ms()
+        self.screenshot = ImageGrab.grab()
+        self.screenshot_encoded= ""
+        log.value_pairs['ts_screenshot_finished'] = get_current_ms()
+        # save screenshot in separate thread
+        t = threading.Thread(target=self.save_screenshot, args=(), daemon=True)
+        t.start()
 
     def setMatchDir(self, new_dir):
         self.match_dir = new_dir
 
     def save_screenshot(self):
         self.log.value_pairs['ts_save_screenshot_start'] = get_current_ms()
-        self.screenshot.save(self.match_dir + '/' + self.screenshot_file)
+
+        nparr = np.array(self.screenshot)
+        _, buf = cv2.imencode('.jpg', nparr)
+        self.screenshot_encoded = base64.b64encode(buf).decode('ASCII')
+
         self.log.value_pairs['ts_save_screenshot_end'] = get_current_ms()
 
     def match(self):
@@ -65,15 +71,11 @@ class Matcher():
         screen_colored = cv2.cvtColor(np.array(self.screenshot), cv2.COLOR_BGR2RGB)
         self.log.value_pairs['ts_img_convert_end'] = get_current_ms()
 
-        # save screenshot in separate thread
-        t = threading.Thread(target=self.save_screenshot, args=(), daemon=True)
-        t.start()
-
         self.log.value_pairs['ts_matching_start'] = get_current_ms()
-
         match_result = self.match_screenshot(photo, screen, screen_colored)
-
         self.log.value_pairs['ts_matching_end'] = get_current_ms()
+
+        match_result.screenshot_encoded = self.screenshot_encoded
 
         return match_result
 
@@ -94,7 +96,7 @@ class Matcher():
 
             if not matches or match_count == 0:
                 raise Exception('no matches found')
-# store all the good matches as per Lowe's ratio test.
+            # store all the good matches as per Lowe's ratio test.
             good_matches = self.calculate_lowes_ratio(matches)    
 
             match_count_good = len(good_matches)
