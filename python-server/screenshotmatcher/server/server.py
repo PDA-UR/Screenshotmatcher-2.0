@@ -128,15 +128,6 @@ class Server():
         print('Matching took {} ms'.format(time.perf_counter()-t_start))
         end_time = time.perf_counter()
 
-        # Send data to server for logging
-        payload = {
-            'identifier': Config.IDENTIFIER,
-            'hasResult': match_result.success,
-            'algorithm': Config.CURRENT_ALGORITHM,
-            'device': request.values.get('device'),
-            'speed': round(end_time - start_time, 5)
-        }
-
         urllib3.disable_warnings()
         print('{}:\t Generating response.'.format(time.time()))
         print('Time until response: {}\n'.format(time.perf_counter() - t_start))
