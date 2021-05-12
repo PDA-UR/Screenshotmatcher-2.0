@@ -20,7 +20,8 @@ from common.config import Config
 from matching.matcher import Matcher
 from common.utils import allowed_file, get_main_dir, get_current_ms
 
-LOGS_TO_KEEP = 3
+MAX_LOGS = 3
+MAX_SCREENSHOTS = 3
 
 class Server():
     def __init__(self):
@@ -34,6 +35,7 @@ class Server():
         self.results_dir = 'www/results'
 
         self.last_logs = []
+        self.last_screenshots = []
 
         self.app = Flask(__name__, static_url_path='/',
                          static_folder=static_path)
@@ -47,7 +49,7 @@ class Server():
         self.app.add_url_rule(
             '/match', 'match', self.match_route, methods=['POST'])
         self.app.add_url_rule('/logs', 'logs', self.log_route, methods=['POST'])
-        self.app.add_url_rule('/screenshot/<result_id>', 'screenshot/<result_id>', self.screenshot_route)
+        self.app.add_url_rule('/screenshot', 'screenshot', self.screenshot_route)
 
     def start(self):
         self.app.run(host=Config.HOST, port=Config.PORT, threaded=True)
@@ -58,8 +60,8 @@ class Server():
             raise RuntimeError('Not running with the Werkzeug Server')
         _shutdown()
 
-    # Routes
 
+    # Routes
     def index_route(self):
         return redirect('/index.html', code=301)
 
@@ -84,11 +86,10 @@ class Server():
     def feedback_route(self):  
         return {'feedbackPosted' : 'true'}
 
-
     def match_route(self):
         log = common.log.Logger()
         self.last_logs.insert(0, log)
-        if len(self.last_logs) > LOGS_TO_KEEP:
+        if len(self.last_logs) > MAX_LOGS:
             self.last_logs.pop()
 
         t_start = time.perf_counter()
@@ -124,6 +125,11 @@ class Server():
 
         # Start matcher
         match_result = matcher.match()
+
+        # save screenshot temp. for later requests
+        self.last_screenshots.append((uuid, match_result.screenshot_encoded))
+        if len(self.last_screenshots) > MAX_SCREENSHOTS:
+            self.last_screenshots.pop(0)
     
         print('Matching took {} ms'.format(time.perf_counter()-t_start))
         end_time = time.perf_counter()
@@ -151,7 +157,12 @@ class Server():
         if not result_id:
             return 'No match-id given.'
 
-        application_path = get_main_dir()
-                
-        path = os.path.join(application_path, self.results_dir, 'result-{}'.format(result_id))
-        return send_from_directory(path, 'screenshot.png')
+        response = {}
+        for entry in self.last_screenshots:
+            if entry[0] == result_id:
+                response["result"] = entry[1]
+                break
+        if not response.get("result")
+            return 'match-id not found among last matches'
+
+        return Response(json.dumps(response), mimetype='application/json')
