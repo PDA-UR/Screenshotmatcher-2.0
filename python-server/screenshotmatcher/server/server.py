@@ -153,13 +153,14 @@ class Server():
             response['b64'] = match_result.img_encoded
             return Response(json.dumps(response), mimetype='application/json')
 
-    def screenshot_route(self, result_id):
-        if not result_id:
+    def screenshot_route(self):
+        match_id = request.json.get("match_id")
+        if not match_id:
             return 'No match-id given.'
 
         response = {}
         for entry in self.last_screenshots:
-            if entry[0] == result_id:
+            if entry[0] == match_id:
                 response["result"] = entry[1]
                 break
         if not response.get("result")
