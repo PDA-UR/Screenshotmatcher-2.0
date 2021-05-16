@@ -84,17 +84,6 @@
                 android:background="@drawable/round_button"
                 android:src="@drawable/ic_baseline_photo_camera_24"
                 ></ImageButton>
-            <TextView
-                android:id="@+id/capture_button_text"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:textColor="@color/white"
-                android:gravity="center"
-                android:textSize="50dp"
-                android:visibility="invisible"
-                android:text="@string/camera_activity_select_device_back_text_en">
-
-            </TextView>
         </FrameLayout>
 
 
