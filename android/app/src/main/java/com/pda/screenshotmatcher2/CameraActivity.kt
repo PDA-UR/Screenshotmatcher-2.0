@@ -831,17 +831,26 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         mFragmentDarkBackground.visibility = View.VISIBLE
     }
 
-    private fun openGallery() {
+    private fun openGallery(withTransition: Boolean = true, savedImageFiles: File? = null) {
         val galleryFragment = GalleryFragment()
-        this.supportFragmentManager
-            .beginTransaction()
-            .add(R.id.fragment_container_view, galleryFragment, "GalleryFragment")
-            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-            .commit()
+
+        if (withTransition){
+            this.supportFragmentManager
+                .beginTransaction()
+                .add(R.id.fragment_container_view, galleryFragment, "GalleryFragment")
+                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                .commit()
+        } else {
+            this.supportFragmentManager
+                .beginTransaction()
+                .add(R.id.fragment_container_view, galleryFragment, "GalleryFragment")
+                .commit()
+        }
+
         mFragmentDarkBackground.visibility = View.VISIBLE
     }
 
-    fun openPreviewFragment(firstImage: File?, secondImage: File?) {
+    fun openPreviewFragment(firstImage: File?, secondImage: File?, withTransition: Boolean = true) {
         val previewFragment = GalleryPreviewFragment()
 
         val bundle = Bundle()
@@ -849,11 +858,19 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         bundle.putSerializable(SECOND_IMAGE_KEY, secondImage)
         previewFragment.arguments = bundle
 
-        this.supportFragmentManager
-            .beginTransaction()
-            .add(R.id.gallery_fragment_body_layout, previewFragment, "PreviewFragment")
-            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-            .commit()
+        if (withTransition){
+            this.supportFragmentManager
+                .beginTransaction()
+                .add(R.id.gallery_fragment_body_layout, previewFragment, "PreviewFragment")
+                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                .commit()
+        } else {
+            this.supportFragmentManager
+                .beginTransaction()
+                .add(R.id.gallery_fragment_body_layout, previewFragment, "PreviewFragment")
+                .commit()
+        }
+
     }
 
     private fun setupSharedPref() {
@@ -993,7 +1010,20 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun rotateFragments() {
+        rotateGalleryFragment()
         rotateSelectDeviceFragment()
+    }
+
+    private fun rotateGalleryFragment() {
+        val gFrag: GalleryFragment? =
+            supportFragmentManager.findFragmentByTag("GalleryFragment") as GalleryFragment?
+        if (gFrag != null && gFrag.isVisible &&gFrag.getOrientation() != phoneOrientation){
+            var savedImageFiles = gFrag.removeThisFragmentForRotation()
+            openGallery(false)
+            if (savedImageFiles != null) {
+                openPreviewFragment(savedImageFiles[0], savedImageFiles[1])
+            }
+        }
     }
 
     private fun rotateSelectDeviceFragment() {

@@ -45,15 +45,20 @@ class GalleryPreviewFragment : Fragment() {
     private var mFullImageFile: File? = null
     private var mCroppedImageFile: File? = null
     private var numberOfAvailableImages: Int = 0
+    private lateinit var oldBundle: Bundle
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         var bundle: Bundle? = this.arguments
-        if (bundle != null) {
+
+        if (savedInstanceState != null) {
+            getFilesFromBundle(savedInstanceState)
+        } else if (bundle != null) {
             getFilesFromBundle(bundle)
         }
+
         containerView = container as FrameLayout
         return inflater.inflate(R.layout.fragment_gallery_preview, container, false)
     }
@@ -65,6 +70,7 @@ class GalleryPreviewFragment : Fragment() {
     }
 
     private fun getFilesFromBundle(bundle: Bundle) {
+        oldBundle = bundle
         if (bundle.getSerializable(FIRST_IMAGE_KEY) != null) {
             val retrievedFile: File? = bundle.getSerializable(FIRST_IMAGE_KEY) as File?
             when (retrievedFile?.absolutePath?.split("_".toRegex())?.last()) {
@@ -294,5 +300,10 @@ class GalleryPreviewFragment : Fragment() {
         }
         activity?.supportFragmentManager?.beginTransaction()?.remove(this)
             ?.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)?.commit()
+    }
+    fun removeThisFragmentForRotation(): ArrayList<File?> {
+        activity?.supportFragmentManager?.beginTransaction()?.remove(this)
+            ?.commit()
+        return arrayListOf<File?>(mCroppedImageFile, mFullImageFile)
     }
 }
