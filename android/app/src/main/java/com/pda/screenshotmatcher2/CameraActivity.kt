@@ -63,7 +63,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     //Sensors
     private lateinit var mSensorManager : SensorManager
     private lateinit var mAccelerometer : Sensor
-    private var phoneOrientation : Int = 0;
+    public var phoneOrientation : Int = 0;
 
     //Request from builder
     private lateinit var mPreviewRequest: CaptureRequest
@@ -192,6 +192,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
+
         super.onSaveInstanceState(outState)
         outState.putString(getString(R.string.ca_saved_instance_url_key), mServerURL)
         outState.putSerializable(getString(R.string.ca_saved_instance_image_list_key), imageArray)
@@ -235,6 +236,8 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             }
         }
     }
+
+
 
     private fun hideStatusAndActionBars() {
         supportActionBar?.hide()
@@ -692,23 +695,33 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
 
 
-    private fun updateConnectedStatus(isConnected: Boolean) {
+    private fun updateConnectedStatus(isConnected: Boolean, startHeartbeat: Boolean = true) {
         isConnectedToServer = isConnected
         if (isConnected){
             mSelectDeviceButton.background =
                 resources.getDrawable(R.drawable.select_device_connected)
-            mServerUrlList.forEach {
-                if (it.first == mServerURL){
-                    mSelectDeviceButtonText.text = it.second
+
+            if (phoneOrientation == Surface.ROTATION_0) {
+                mServerUrlList.forEach {
+                    if (it.first == mServerURL){
+                        mSelectDeviceButtonText.text = it.second
+                    }
                 }
             }
-            startHeartbeatThread()
+
+            if (startHeartbeat){
+                startHeartbeatThread()
+            }
         } else{
             mServerURL = ""
             runOnUiThread {
                 mSelectDeviceButton.background =
                     resources.getDrawable(R.drawable.select_device_disconnected)
-                mSelectDeviceButtonText.text = getString(R.string.select_device_button_notConnected_en)
+
+                if (phoneOrientation == Surface.ROTATION_0) {
+                    mSelectDeviceButtonText.text =
+                        getString(R.string.select_device_button_notConnected_en)
+                }
             }
         }
     }
@@ -917,20 +930,91 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     }
 
     override fun onSensorChanged(event: SensorEvent?) {
+
         if (event!!.values[1] > 0 && event.values[0].toInt() == 0) {
-            phoneOrientation = Surface.ROTATION_0 //portrait
+
+            if (phoneOrientation != Surface.ROTATION_0){
+                phoneOrientation = Surface.ROTATION_0 //portrait
+                changeOrientation()
+            }
         }
 
         else if (event.values[1] < 0 && event.values[0].toInt() == 0) {
-            phoneOrientation = Surface.ROTATION_180 //portrait reverse
+            if (phoneOrientation != Surface.ROTATION_180) {
+                phoneOrientation = Surface.ROTATION_180 //landscape
+                changeOrientation()
+            }
         }
 
         else if (event.values[0] > 0 && event.values[1].toInt() == 0) {
-            phoneOrientation = Surface.ROTATION_90 //portrait reverse
+            if (phoneOrientation != Surface.ROTATION_90) {
+                phoneOrientation = Surface.ROTATION_90 //landscape
+                changeOrientation()
+            }
         }
 
         else if (event.values[0] < 0 && event.values[1].toInt() == 0) {
-            phoneOrientation = Surface.ROTATION_270 //portrait reverse
+            if (phoneOrientation != Surface.ROTATION_270) {
+                phoneOrientation = Surface.ROTATION_270 //landscape
+                changeOrientation()
+            }
+        }
+    }
+
+    private fun changeOrientation() {
+        when (phoneOrientation) {
+            Surface.ROTATION_0 -> {
+                mSelectDeviceButton.setImageResource(android.R.color.transparent)
+                mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24))
+                updateConnectedStatus(isConnectedToServer, false)
+            }
+            Surface.ROTATION_90 -> {
+                mSelectDeviceButtonText.text = ""
+                mSelectDeviceButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_link_24_landscape))
+                mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24_landscape))
+            }
+            Surface.ROTATION_180 -> {
+                //same as normal portrait
+                mSelectDeviceButton.setImageResource(android.R.color.transparent)
+                mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24))
+                updateConnectedStatus(isConnectedToServer, false)
+            }
+            Surface.ROTATION_270 -> {
+                mSelectDeviceButtonText.text = ""
+                mSelectDeviceButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_link_24_landscape))
+                mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24_landscape2))
+            }
+        }
+        rotateFragments()
+    }
+
+    private fun rotateFragments() {
+        rotateSelectDeviceFragment()
+    }
+
+    private fun rotateSelectDeviceFragment() {
+        val sdFrag: SelectDeviceFragment? =
+            supportFragmentManager.findFragmentByTag("SelectDeviceFragment") as SelectDeviceFragment?
+        if (sdFrag != null && sdFrag.isVisible &&sdFrag.getOrientation() != phoneOrientation){
+            sdFrag.removeThisFragmentForRotation()
+            openSelectDeviceFragment()
+        } else {
+            when (phoneOrientation){
+                Surface.ROTATION_0 -> {
+                    mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24))
+                }
+                Surface.ROTATION_90 -> {
+                    mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24_landscape))
+                }
+                Surface.ROTATION_180 -> {
+                    //same as normal portrait
+                    mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24))
+                }
+                Surface.ROTATION_270 -> {
+                    mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24_landscape2))
+                }
+            }
+
         }
     }
 
