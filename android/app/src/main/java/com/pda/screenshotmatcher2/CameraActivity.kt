@@ -82,7 +82,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var mFragmentDarkBackground: FrameLayout
     private lateinit var mSelectDeviceButtonText: TextView
     private lateinit var mSelectDeviceButtonListener: View.OnClickListener
-    private lateinit var mBackButtonText: TextView
     private lateinit var mSettingsButton: ImageButton
     private lateinit var mGalleryButton: ImageButton
 
@@ -271,7 +270,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             mSettingsButton.setOnClickListener { openSettings() }
             mGalleryButton = findViewById(R.id.camera_activity_gallery_button)
             mGalleryButton.setOnClickListener { openGallery() }
-            mBackButtonText = findViewById(R.id.capture_button_text)
         }
     }
 
@@ -779,22 +777,28 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         Toast.makeText(this, getString(R.string.match_request_error_en), Toast.LENGTH_LONG).show()
     }
 
-    private fun openSelectDeviceFragment() {
+    private fun openSelectDeviceFragment(withTransition: Boolean = true) {
         mSettingsButton.visibility = View.INVISIBLE
-        mCaptureButton.setImageResource(0)
-        mBackButtonText.visibility = View.VISIBLE
+
+        mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_close_48))
 
         val selectDeviceFragment = SelectDeviceFragment()
-        this.supportFragmentManager
-            .beginTransaction()
-            .add(R.id.camera_activity_frameLayout, selectDeviceFragment, "SelectDeviceFragment")
-            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-            .commit()
+        if (withTransition) {
+            this.supportFragmentManager
+                .beginTransaction()
+                .add(R.id.camera_activity_frameLayout, selectDeviceFragment, "SelectDeviceFragment")
+                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                .commit()
+        } else {
+            this.supportFragmentManager
+                .beginTransaction()
+                .add(R.id.camera_activity_frameLayout, selectDeviceFragment, "SelectDeviceFragment")
+                .commit()
+        }
     }
 
     fun onSelectDeviceFragmentClosed() {
         mCaptureButton.setImageResource(R.drawable.ic_baseline_photo_camera_24)
-        mBackButtonText.visibility = View.INVISIBLE
         mCaptureButton.setOnClickListener(mCaptureButtonListener)
         mSelectDeviceButton.setOnClickListener(mSelectDeviceButtonListener)
         mSettingsButton.visibility = View.VISIBLE
@@ -997,7 +1001,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             supportFragmentManager.findFragmentByTag("SelectDeviceFragment") as SelectDeviceFragment?
         if (sdFrag != null && sdFrag.isVisible &&sdFrag.getOrientation() != phoneOrientation){
             sdFrag.removeThisFragmentForRotation()
-            openSelectDeviceFragment()
+            openSelectDeviceFragment(false)
         } else {
             when (phoneOrientation){
                 Surface.ROTATION_0 -> {

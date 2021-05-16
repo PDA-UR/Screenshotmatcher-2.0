@@ -122,7 +122,7 @@ class SelectDeviceFragment : Fragment() {
     }
     public fun removeThisFragmentForRotation() {
         activity?.supportFragmentManager?.beginTransaction()?.remove(this)
-            ?.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)?.commit()
+            ?.commit()
     }
 
 
