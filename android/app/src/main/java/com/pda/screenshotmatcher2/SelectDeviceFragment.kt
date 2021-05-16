@@ -42,13 +42,10 @@ class SelectDeviceFragment : Fragment() {
         containerView = container as FrameLayout
         mView = inflater.inflate(R.layout.fragment_select_device, container, false)
 
-
         rotation = ca.phoneOrientation
-
         if (rotation == 0 || rotation == 2) {
             return mView
         }
-
         return rotateView(rotation * 90, mView)
     }
 
