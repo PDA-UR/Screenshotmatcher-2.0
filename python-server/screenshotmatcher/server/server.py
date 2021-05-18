@@ -49,7 +49,7 @@ class Server():
         self.app.add_url_rule(
             '/match', 'match', self.match_route, methods=['POST'])
         self.app.add_url_rule('/logs', 'logs', self.log_route, methods=['POST'])
-        self.app.add_url_rule('/screenshot', 'screenshot', self.screenshot_route)
+        self.app.add_url_rule('/screenshot', 'screenshot', self.screenshot_route, methods=['POST'])
 
     def start(self):
         self.app.run(host=Config.HOST, port=Config.PORT, threaded=True)
@@ -127,9 +127,10 @@ class Server():
         match_result = matcher.match()
 
         # save screenshot temp. for later requests
-        self.last_screenshots.append((uuid, match_result.screenshot_encoded))
-        if len(self.last_screenshots) > MAX_SCREENSHOTS:
-            self.last_screenshots.pop(0)
+        if match_result.screenshot_encoded:
+            self.last_screenshots.append((uid, match_result.screenshot_encoded))
+            if len(self.last_screenshots) > MAX_SCREENSHOTS:
+                self.last_screenshots.pop(0)
     
         print('Matching took {} ms'.format(time.perf_counter()-t_start))
         end_time = time.perf_counter()
@@ -163,7 +164,7 @@ class Server():
             if entry[0] == match_id:
                 response["result"] = entry[1]
                 break
-        if not response.get("result")
+        if not response.get("result"):
             return 'match-id not found among last matches'
 
         return Response(json.dumps(response), mimetype='application/json')
