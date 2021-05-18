@@ -11,43 +11,34 @@ import threading
 import platform
 
 from cv2 import imwrite
-from flask import Flask, request, redirect, url_for, Response, send_from_directory, send_file
+from flask import Flask, request, redirect, url_for, Response
 from werkzeug.utils import secure_filename
 
 import common.log
 
 from common.config import Config
 from matching.matcher import Matcher
-from common.utils import allowed_file, get_main_dir, get_current_ms
+from common.utils import allowed_file, get_current_ms
 
-LOGS_TO_KEEP = 3
+MAX_LOGS = 3
+MAX_SCREENSHOTS = 3
 
 class Server():
     def __init__(self):
         logging.basicConfig(filename='./match.log', level=logging.DEBUG)
 
-        if Config.IS_DIST:
-            static_path = 'www'
-        else:
-            static_path = '../www'
-
-        self.results_dir = 'www/results'
-
         self.last_logs = []
+        self.last_screenshots = []
 
-        self.app = Flask(__name__, static_url_path='/',
-                         static_folder=static_path)
+        self.app = Flask(__name__)
 
-        self.app.add_url_rule('/', 'index', self.index_route)
         self.app.add_url_rule('/heartbeat', 'heartbeat', self.heartbeat_route)
-        self.app.add_url_rule('/get-url', 'get-url', self.get_url_route)
-
         self.app.add_url_rule('/feedback', 'feedback',
                               self.feedback_route, methods=['POST'])
         self.app.add_url_rule(
             '/match', 'match', self.match_route, methods=['POST'])
         self.app.add_url_rule('/logs', 'logs', self.log_route, methods=['POST'])
-        self.app.add_url_rule('/screenshot/<result_id>', 'screenshot/<result_id>', self.screenshot_route)
+        self.app.add_url_rule('/screenshot', 'screenshot', self.screenshot_route, methods=['POST'])
 
     def start(self):
         self.app.run(host=Config.HOST, port=Config.PORT, threaded=True)
@@ -58,16 +49,10 @@ class Server():
             raise RuntimeError('Not running with the Werkzeug Server')
         _shutdown()
 
+
     # Routes
-
-    def index_route(self):
-        return redirect('/index.html', code=301)
-
     def heartbeat_route(self):
         return 'ok'
-
-    def get_url_route(self):
-        return Config.SERVICE_URL
 
     def log_route(self):
         phone_log = request.json
@@ -84,11 +69,10 @@ class Server():
     def feedback_route(self):  
         return {'feedbackPosted' : 'true'}
 
-
     def match_route(self):
         log = common.log.Logger()
         self.last_logs.insert(0, log)
-        if len(self.last_logs) > LOGS_TO_KEEP:
+        if len(self.last_logs) > MAX_LOGS:
             self.last_logs.pop()
 
         t_start = time.perf_counter()
@@ -107,10 +91,6 @@ class Server():
         log.value_pairs['match_uid'] = uid
         print('{}:\t request get'.format(int(time.time()* 1000)))
 
-        # Create Match dir
-        match_dir = self.results_dir + '/result-' + uid
-        os.mkdir(match_dir)
-
         # Create Matcher instance
         start_time = time.perf_counter()
         matcher = Matcher(uid, b64String, log)
@@ -124,6 +104,12 @@ class Server():
 
         # Start matcher
         match_result = matcher.match()
+
+        # save screenshot temp. for later requests
+        if match_result.screenshot_encoded:
+            self.last_screenshots.append((uid, match_result.screenshot_encoded))
+            if len(self.last_screenshots) > MAX_SCREENSHOTS:
+                self.last_screenshots.pop(0)
     
         print('Matching took {} ms'.format(time.perf_counter()-t_start))
         end_time = time.perf_counter()
@@ -147,11 +133,17 @@ class Server():
             response['b64'] = match_result.img_encoded
             return Response(json.dumps(response), mimetype='application/json')
 
-    def screenshot_route(self, result_id):
-        if not result_id:
+    def screenshot_route(self):
+        match_id = request.json.get("match_id")
+        if not match_id:
             return 'No match-id given.'
 
-        application_path = get_main_dir()
-                
-        path = os.path.join(application_path, self.results_dir, 'result-{}'.format(result_id))
-        return send_from_directory(path, 'screenshot.png')
+        response = {}
+        for entry in self.last_screenshots:
+            if entry[0] == match_id:
+                response["result"] = entry[1]
+                break
+        if not response.get("result"):
+            return 'match-id not found among last matches'
+
+        return Response(json.dumps(response), mimetype='application/json')
