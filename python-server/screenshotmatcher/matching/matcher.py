@@ -190,10 +190,6 @@ class Matcher():
         # Calc Matches
         matches = flann.knnMatch(des_photo, des_screen, k=2)
 
-        print(matches)
-        print(kp_photo)
-        print(kp_screen)
-
         return matches, kp_photo, kp_screen
 
     def find_matches_ORB(self, photo, screen):
