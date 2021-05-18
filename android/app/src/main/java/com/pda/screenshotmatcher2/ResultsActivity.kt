@@ -20,6 +20,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
 import androidx.appcompat.widget.AppCompatImageButton
 import androidx.core.content.FileProvider.getUriForFile
+import com.android.volley.BuildConfig
+import com.android.volley.Request
+import com.android.volley.RequestQueue
+import com.android.volley.toolbox.JsonObjectRequest
+import com.android.volley.toolbox.Volley
+import org.json.JSONObject
 import java.io.File
 
 const val RESULT_ACTIVITY_REQUEST_CODE = 20
@@ -79,11 +85,6 @@ class ResultsActivity : AppCompatActivity() {
         } else {
             displayFullScreenshotOnly = activateFullScreenshotOnlyMode()
         }
-
-        this.registerReceiver(
-            onDownloadComplete,
-            IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
-        )
     }
 
     private fun initViews() {
@@ -317,58 +318,36 @@ class ResultsActivity : AppCompatActivity() {
     }
 
     private fun downloadFullScreenshotInThread() {
+        Log.d("FUG", "downloadFullScreenshot calling")
         Thread {
             downloadFullScreenshot(
                 matchID,
                 lastDateTime,
                 mServerURL,
-                applicationContext
+                applicationContext,
             )
         }.start()
     }
 
-    private val onDownloadComplete: BroadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
-            //Check if download is the one started before
-            if (downloadID == id) {
-                mFullImageFile = File(
-                    getExternalFilesDir(Environment.DIRECTORY_PICTURES),
-                    lastDateTime + "_Full.png"
-                )
-                if (mFullImageFile!!.exists()) {
-                    fullScreenshotDownloaded = true
-                    mFullScreenshot = BitmapFactory.decodeFile(mFullImageFile!!.absolutePath)
-                    fullScreenshotDownloaded = true
-                    //Set ImageView if no cropped screenshot available
-                    if (displayFullScreenshotOnly || mPillNavigationState == 1) {
-                        mScreenshotImageView.setImageBitmap(mFullScreenshot)
-                    } else if (waitingForFullScreenshot) {
-                        //Full screenshot has been requested by the user pressing "save both", save downloaded screenshot to gallery
-                        MediaStore.Images.Media.insertImage(
-                            contentResolver,
-                            mFullScreenshot,
-                            getString(R.string.full_screenshot_title_en),
-                            getString(R.string.screenshot_description_en)
-                        )
-                        Toast.makeText(
-                            applicationContext,
-                            getText(R.string.result_activity_saved_both_en),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                } else {
-                    Toast.makeText(
-                        context,
-                        getText(R.string.http_download_full_error_en),
-                        Toast.LENGTH_LONG
-                    ).show()
-                    if (mPillNavigationState == 1) {
-                        mScreenshotImageView.setImageDrawable(getDrawable(R.drawable.ic_baseline_error_outline_128))
-                    }
-                }
-
-            }
+    private fun onScreenshotDownloaded(bitmap: Bitmap){
+        fullScreenshotDownloaded = true
+        mFullScreenshot = bitmap
+        if (displayFullScreenshotOnly || mPillNavigationState == 1) {
+            mScreenshotImageView.setImageBitmap(mFullScreenshot)
+        }
+        else if(waitingForFullScreenshot){
+            //Full screenshot has been requested by the user pressing "save both", save downloaded screenshot to gallery
+            MediaStore.Images.Media.insertImage(
+                contentResolver,
+                mFullScreenshot,
+                getString(R.string.full_screenshot_title_en),
+                getString(R.string.screenshot_description_en)
+            )
+            Toast.makeText(
+                applicationContext,
+                getText(R.string.result_activity_saved_both_en),
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
@@ -405,9 +384,30 @@ class ResultsActivity : AppCompatActivity() {
             intent.putExtra(RESULT_ACTIVITY_RESULT_CODE, resultData)
             setResult(Activity.RESULT_OK, intent)
         }
-
-        unregisterReceiver(onDownloadComplete)
         finish()
+    }
+
+    private fun downloadFullScreenshot(matchID: String, filename: String, serverURL: String, context: Context){
+        lateinit var screenshot : Bitmap
+        val queue = Volley.newRequestQueue(context)
+        val json = JSONObject()
+        json.put("match_id", matchID)
+        Log.v("FUG", matchID)
+        val jsonOR = JsonObjectRequest(
+            Request.Method.POST, serverURL + SCREENSHOT_DEST, json,
+            { response ->
+                Log.d("FUG", "response")
+                val b64String: String = response.get("result").toString()
+                screenshot = base64ToBitmap(b64String)
+                Log.v("FUG", screenshot.height.toString())
+                onScreenshotDownloaded(screenshot)
+            },
+            { error ->
+                Log.d("FUG", "error")
+                error.printStackTrace()
+            })
+
+        queue.add(jsonOR)
     }
 
     override fun onStop() {
