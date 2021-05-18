@@ -61,6 +61,12 @@ fun verifyPermissions(activity: Activity?) {
     }
 }
 
+fun base64ToBitmap(b64String: String) : Bitmap{
+    val byteArray = Base64.decode(b64String, Base64.DEFAULT)
+    val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
+    return bitmap
+}
+
 fun saveB64ToInternalFile(b64String: String, context: Context){
     val filename = System.currentTimeMillis().toString() + ".jpg"
     val byteArray = Base64.decode(b64String, Base64.DEFAULT)
