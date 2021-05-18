@@ -24,7 +24,9 @@
             android:configChanges="orientation"
             android:screenOrientation="portrait">
         </activity>
-        <activity android:name=".CameraActivity">
+        <activity android:name=".CameraActivity"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|keyboardHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER" />
