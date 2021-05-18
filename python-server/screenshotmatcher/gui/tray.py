@@ -76,12 +76,6 @@ class Tray():
                 if proc_result.returncode != 0:
                     proc_result = subprocess.run('show_qr.bat "{}"'.format(Config.SERVICE_URL), shell=True)
 
-    def onclick_results(self):
-        if Config.IS_DIST:
-            common.utils.open_file_or_dir('./www')
-        else:
-            common.utils.open_file_or_dir(common.utils.getScriptDir(__file__) + '/../www/results')
-
     def setup(self, icon):
         self.icon.visible = True
 
