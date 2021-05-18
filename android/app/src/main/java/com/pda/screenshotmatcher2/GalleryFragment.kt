@@ -9,6 +9,7 @@ import android.widget.GridView
 import android.widget.ImageButton
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
+import java.io.File
 
 class GalleryFragment : Fragment() {
     //Views
@@ -17,6 +18,9 @@ class GalleryFragment : Fragment() {
     private lateinit var mBackButton: ImageButton
     private lateinit var mGridView: GridView
     private lateinit var adapter: GridBaseAdapter
+    private lateinit var mView: View
+    private var rotation: Int = 0
+    private lateinit var ca: CameraActivity
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,7 +35,23 @@ class GalleryFragment : Fragment() {
     ): View? {
         containerView = container as FrameLayout
         containerView.visibility = View.VISIBLE
-        return inflater.inflate(R.layout.fragment_gallery, container, false)
+
+        if (this::mView.isInitialized) return mView
+
+        if (activity is CameraActivity){
+            ca = activity as CameraActivity
+        }
+
+        containerView = container as FrameLayout
+        mView = inflater.inflate(R.layout.fragment_gallery, container, false)
+
+        rotation = ca.phoneOrientation
+        if (rotation == 0 || rotation == 2) {
+            return mView
+        }
+
+        return rotateView(rotation * 90, mView)
+
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -52,6 +72,27 @@ class GalleryFragment : Fragment() {
         }
     }
 
+    private fun rotateView(rotationDeg: Int, v: View): View {
+        var mRotatedView: View = v
+
+        val container = containerView as ViewGroup
+        val w = container.width
+        val h = container.height
+        mRotatedView.rotation = rotationDeg.toFloat();
+        mRotatedView.translationX = ((w - h) / 2).toFloat();
+        mRotatedView.translationY = ((h - w) / 2).toFloat();
+
+        val lp = mView.layoutParams
+        lp.height = w
+        lp.width = h
+        mRotatedView.requestLayout()
+        return mRotatedView
+    }
+
+    public fun getOrientation(): Int {
+        return rotation
+    }
+
     private fun removeThisFragment(removeBackground: Boolean = true) {
         containerView.visibility = View.INVISIBLE
         if (removeBackground) {
@@ -61,5 +102,19 @@ class GalleryFragment : Fragment() {
             ?.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)?.commit()
     }
 
+    fun removeThisFragmentForRotation(): ArrayList<File?>? {
+        val pFrag: GalleryPreviewFragment? =
+            activity?.supportFragmentManager?.findFragmentByTag("PreviewFragment") as GalleryPreviewFragment?
+        if (pFrag != null && pFrag.isVisible){
+            var savedImageFiles =  pFrag.removeThisFragmentForRotation()
+            activity?.supportFragmentManager?.beginTransaction()?.remove(this)
+                ?.commit()
+            return savedImageFiles
+        }
+
+        activity?.supportFragmentManager?.beginTransaction()?.remove(this)
+            ?.commit()
+        return null
+    }
 
 }
