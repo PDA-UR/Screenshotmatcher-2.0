@@ -20,13 +20,7 @@ private const val LOG_DEST = "/logs"
 private const val MATCH_DEST = "/match"
 const val SCREENSHOT_DEST = "/screenshot"
 private const val FEEDBACK_DEST = "/feedback"
-private const val RESULT_DEST = "/results/result-"
 private const val HEARTBEAT_DEST = "/heartbeat"
-var downloadID : Long = 0
-
-interface VolleyCallBack {
-    fun onSuccess(bitmap: Bitmap)
-}
 
 fun sendBitmap(
     bitmap: Bitmap,
@@ -99,7 +93,7 @@ fun sendHeartbeatRequest(serverURL: String, activity: Activity){
 
 
 fun sendLog(serverURL: String, context: Context){
-// Instantiate the RequestQueue.
+    // Instantiate the RequestQueue.
     val queue = Volley.newRequestQueue(context)
     val json = JSONObject(StudyLogger.hashMap)
     val jsonObjectRequest = JsonObjectRequest(Request.Method.POST, serverURL + LOG_DEST, json,
@@ -109,9 +103,7 @@ fun sendLog(serverURL: String, context: Context){
             error.printStackTrace()
         }
     )
-
-
-// Add the request to the RequestQueue.
+    // Add the request to the RequestQueue.
     queue.add(jsonObjectRequest)
 }
 

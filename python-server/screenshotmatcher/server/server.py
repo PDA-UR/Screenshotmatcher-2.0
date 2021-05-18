@@ -11,14 +11,14 @@ import threading
 import platform
 
 from cv2 import imwrite
-from flask import Flask, request, redirect, url_for, Response, send_from_directory, send_file
+from flask import Flask, request, redirect, url_for, Response
 from werkzeug.utils import secure_filename
 
 import common.log
 
 from common.config import Config
 from matching.matcher import Matcher
-from common.utils import allowed_file, get_main_dir, get_current_ms
+from common.utils import allowed_file, get_current_ms
 
 MAX_LOGS = 3
 MAX_SCREENSHOTS = 3
@@ -27,23 +27,12 @@ class Server():
     def __init__(self):
         logging.basicConfig(filename='./match.log', level=logging.DEBUG)
 
-        if Config.IS_DIST:
-            static_path = 'www'
-        else:
-            static_path = '../www'
-
-        self.results_dir = 'www/results'
-
         self.last_logs = []
         self.last_screenshots = []
 
-        self.app = Flask(__name__, static_url_path='/',
-                         static_folder=static_path)
+        self.app = Flask(__name__)
 
-        self.app.add_url_rule('/', 'index', self.index_route)
         self.app.add_url_rule('/heartbeat', 'heartbeat', self.heartbeat_route)
-        self.app.add_url_rule('/get-url', 'get-url', self.get_url_route)
-
         self.app.add_url_rule('/feedback', 'feedback',
                               self.feedback_route, methods=['POST'])
         self.app.add_url_rule(
@@ -62,14 +51,8 @@ class Server():
 
 
     # Routes
-    def index_route(self):
-        return redirect('/index.html', code=301)
-
     def heartbeat_route(self):
         return 'ok'
-
-    def get_url_route(self):
-        return Config.SERVICE_URL
 
     def log_route(self):
         phone_log = request.json
@@ -107,10 +90,6 @@ class Server():
         uid = uuid.uuid4().hex
         log.value_pairs['match_uid'] = uid
         print('{}:\t request get'.format(int(time.time()* 1000)))
-
-        # Create Match dir
-        match_dir = self.results_dir + '/result-' + uid
-        os.mkdir(match_dir)
 
         # Create Matcher instance
         start_time = time.perf_counter()
