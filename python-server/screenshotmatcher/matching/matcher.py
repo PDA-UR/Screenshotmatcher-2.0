@@ -175,7 +175,7 @@ class Matcher():
 
     def find_matches_SURF(self, photo, screen):
         # Init algorithm
-        surf = cv2.xfeatures2dSURF_create(self.THRESHOLDS['SURF'])
+        surf = cv2.xfeatures2d.SURF_create(self.THRESHOLDS['SURF'])
         surf.setUpright(True)
     
         # Detect and compute
