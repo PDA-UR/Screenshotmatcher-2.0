@@ -46,18 +46,15 @@ class Matcher():
         self.screenshot = ImageGrab.grab()
         self.screenshot_encoded= ""
         log.value_pairs['ts_screenshot_finished'] = get_current_ms()
-        # save screenshot in separate thread
-        t = threading.Thread(target=self.save_screenshot, args=(), daemon=True)
-        t.start()
+
 
     def setMatchDir(self, new_dir):
         self.match_dir = new_dir
 
-    def save_screenshot(self):
+    def save_screenshot(self, img):
         self.log.value_pairs['ts_save_screenshot_start'] = get_current_ms()
 
-        nparr = np.array(self.screenshot)
-        _, buf = cv2.imencode('.jpg', nparr)
+        _, buf = cv2.imencode('.jpg', img)
         self.screenshot_encoded = base64.b64encode(buf).decode('ASCII')
 
         self.log.value_pairs['ts_save_screenshot_end'] = get_current_ms()
@@ -69,6 +66,11 @@ class Matcher():
         photo = cv2.imdecode(nparr, cv2.IMREAD_GRAYSCALE)
         screen = cv2.cvtColor(np.array(self.screenshot), cv2.IMREAD_GRAYSCALE)
         screen_colored = cv2.cvtColor(np.array(self.screenshot), cv2.COLOR_BGR2RGB)
+
+        # save screenshot in separate thread. trailing comma is mandatory
+        t = threading.Thread(target=self.save_screenshot, args=(screen_colored,), daemon=True)
+        t.start()
+
         self.log.value_pairs['ts_img_convert_end'] = get_current_ms()
 
         self.log.value_pairs['ts_matching_start'] = get_current_ms()
