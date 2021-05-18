@@ -30,8 +30,6 @@ class Matcher():
     def __init__(self, match_uid, img_encoded, log):
         self.match_uid = match_uid
 
-        self.match_dir = './www/results/result-' + match_uid
-
         self.img_encoded = img_encoded
 
         self.algorithm = Config.CURRENT_ALGORITHM
@@ -46,10 +44,6 @@ class Matcher():
         self.screenshot = ImageGrab.grab()
         self.screenshot_encoded= ""
         log.value_pairs['ts_screenshot_finished'] = get_current_ms()
-
-
-    def setMatchDir(self, new_dir):
-        self.match_dir = new_dir
 
     def save_screenshot(self, img):
         self.log.value_pairs['ts_save_screenshot_start'] = get_current_ms()
@@ -123,8 +117,7 @@ class Matcher():
             result.img_encoded = img_encoded
             result.success = True
         except Exception as e:
-            pass
-            #print(str(e))
+            print(str(e))
         finally:
             return result
 
@@ -196,6 +189,10 @@ class Matcher():
 
         # Calc Matches
         matches = flann.knnMatch(des_photo, des_screen, k=2)
+
+        print(matches)
+        print(kp_photo)
+        print(kp_screen)
 
         return matches, kp_photo, kp_screen
 
