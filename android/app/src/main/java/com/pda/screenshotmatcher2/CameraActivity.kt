@@ -63,7 +63,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     //Sensors
     private lateinit var mSensorManager : SensorManager
     private lateinit var mAccelerometer : Sensor
-    private var phoneOrientation : Int = 0;
+    public var phoneOrientation : Int = 0;
 
     //Request from builder
     private lateinit var mPreviewRequest: CaptureRequest
@@ -82,7 +82,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var mFragmentDarkBackground: FrameLayout
     private lateinit var mSelectDeviceButtonText: TextView
     private lateinit var mSelectDeviceButtonListener: View.OnClickListener
-    private lateinit var mBackButtonText: TextView
     private lateinit var mSettingsButton: ImageButton
     private lateinit var mGalleryButton: ImageButton
 
@@ -192,6 +191,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
+
         super.onSaveInstanceState(outState)
         outState.putString(getString(R.string.ca_saved_instance_url_key), mServerURL)
         outState.putSerializable(getString(R.string.ca_saved_instance_image_list_key), imageArray)
@@ -236,6 +236,8 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
+
+
     private fun hideStatusAndActionBars() {
         supportActionBar?.hide()
         when (Build.VERSION.SDK_INT) {
@@ -268,7 +270,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             mSettingsButton.setOnClickListener { openSettings() }
             mGalleryButton = findViewById(R.id.camera_activity_gallery_button)
             mGalleryButton.setOnClickListener { openGallery() }
-            mBackButtonText = findViewById(R.id.capture_button_text)
         }
     }
 
@@ -692,23 +693,33 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
 
 
-    private fun updateConnectedStatus(isConnected: Boolean) {
+    private fun updateConnectedStatus(isConnected: Boolean, startHeartbeat: Boolean = true) {
         isConnectedToServer = isConnected
         if (isConnected){
             mSelectDeviceButton.background =
                 resources.getDrawable(R.drawable.select_device_connected)
-            mServerUrlList.forEach {
-                if (it.first == mServerURL){
-                    mSelectDeviceButtonText.text = it.second
+
+            if (phoneOrientation == Surface.ROTATION_0) {
+                mServerUrlList.forEach {
+                    if (it.first == mServerURL){
+                        mSelectDeviceButtonText.text = it.second
+                    }
                 }
             }
-            startHeartbeatThread()
+
+            if (startHeartbeat){
+                startHeartbeatThread()
+            }
         } else{
             mServerURL = ""
             runOnUiThread {
                 mSelectDeviceButton.background =
                     resources.getDrawable(R.drawable.select_device_disconnected)
-                mSelectDeviceButtonText.text = getString(R.string.select_device_button_notConnected_en)
+
+                if (phoneOrientation == Surface.ROTATION_0) {
+                    mSelectDeviceButtonText.text =
+                        getString(R.string.select_device_button_notConnected_en)
+                }
             }
         }
     }
@@ -766,22 +777,28 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         Toast.makeText(this, getString(R.string.match_request_error_en), Toast.LENGTH_LONG).show()
     }
 
-    private fun openSelectDeviceFragment() {
+    private fun openSelectDeviceFragment(withTransition: Boolean = true) {
         mSettingsButton.visibility = View.INVISIBLE
-        mCaptureButton.setImageResource(0)
-        mBackButtonText.visibility = View.VISIBLE
+
+        mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_close_48))
 
         val selectDeviceFragment = SelectDeviceFragment()
-        this.supportFragmentManager
-            .beginTransaction()
-            .add(R.id.camera_activity_frameLayout, selectDeviceFragment, "SelectDeviceFragment")
-            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-            .commit()
+        if (withTransition) {
+            this.supportFragmentManager
+                .beginTransaction()
+                .add(R.id.camera_activity_frameLayout, selectDeviceFragment, "SelectDeviceFragment")
+                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                .commit()
+        } else {
+            this.supportFragmentManager
+                .beginTransaction()
+                .add(R.id.camera_activity_frameLayout, selectDeviceFragment, "SelectDeviceFragment")
+                .commit()
+        }
     }
 
     fun onSelectDeviceFragmentClosed() {
         mCaptureButton.setImageResource(R.drawable.ic_baseline_photo_camera_24)
-        mBackButtonText.visibility = View.INVISIBLE
         mCaptureButton.setOnClickListener(mCaptureButtonListener)
         mSelectDeviceButton.setOnClickListener(mSelectDeviceButtonListener)
         mSettingsButton.visibility = View.VISIBLE
@@ -814,17 +831,26 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         mFragmentDarkBackground.visibility = View.VISIBLE
     }
 
-    private fun openGallery() {
+    private fun openGallery(withTransition: Boolean = true, savedImageFiles: File? = null) {
         val galleryFragment = GalleryFragment()
-        this.supportFragmentManager
-            .beginTransaction()
-            .add(R.id.fragment_container_view, galleryFragment, "GalleryFragment")
-            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-            .commit()
+
+        if (withTransition){
+            this.supportFragmentManager
+                .beginTransaction()
+                .add(R.id.fragment_container_view, galleryFragment, "GalleryFragment")
+                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                .commit()
+        } else {
+            this.supportFragmentManager
+                .beginTransaction()
+                .add(R.id.fragment_container_view, galleryFragment, "GalleryFragment")
+                .commit()
+        }
+
         mFragmentDarkBackground.visibility = View.VISIBLE
     }
 
-    fun openPreviewFragment(firstImage: File?, secondImage: File?) {
+    fun openPreviewFragment(firstImage: File?, secondImage: File?, withTransition: Boolean = true) {
         val previewFragment = GalleryPreviewFragment()
 
         val bundle = Bundle()
@@ -832,11 +858,19 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         bundle.putSerializable(SECOND_IMAGE_KEY, secondImage)
         previewFragment.arguments = bundle
 
-        this.supportFragmentManager
-            .beginTransaction()
-            .add(R.id.gallery_fragment_body_layout, previewFragment, "PreviewFragment")
-            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-            .commit()
+        if (withTransition){
+            this.supportFragmentManager
+                .beginTransaction()
+                .add(R.id.gallery_fragment_body_layout, previewFragment, "PreviewFragment")
+                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                .commit()
+        } else {
+            this.supportFragmentManager
+                .beginTransaction()
+                .add(R.id.gallery_fragment_body_layout, previewFragment, "PreviewFragment")
+                .commit()
+        }
+
     }
 
     private fun setupSharedPref() {
@@ -917,20 +951,104 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     }
 
     override fun onSensorChanged(event: SensorEvent?) {
+
         if (event!!.values[1] > 0 && event.values[0].toInt() == 0) {
-            phoneOrientation = Surface.ROTATION_0 //portrait
+
+            if (phoneOrientation != Surface.ROTATION_0){
+                phoneOrientation = Surface.ROTATION_0 //portrait
+                changeOrientation()
+            }
         }
 
         else if (event.values[1] < 0 && event.values[0].toInt() == 0) {
-            phoneOrientation = Surface.ROTATION_180 //portrait reverse
+            if (phoneOrientation != Surface.ROTATION_180) {
+                phoneOrientation = Surface.ROTATION_180 //landscape
+                changeOrientation()
+            }
         }
 
         else if (event.values[0] > 0 && event.values[1].toInt() == 0) {
-            phoneOrientation = Surface.ROTATION_90 //portrait reverse
+            if (phoneOrientation != Surface.ROTATION_90) {
+                phoneOrientation = Surface.ROTATION_90 //landscape
+                changeOrientation()
+            }
         }
 
         else if (event.values[0] < 0 && event.values[1].toInt() == 0) {
-            phoneOrientation = Surface.ROTATION_270 //portrait reverse
+            if (phoneOrientation != Surface.ROTATION_270) {
+                phoneOrientation = Surface.ROTATION_270 //landscape
+                changeOrientation()
+            }
+        }
+    }
+
+    private fun changeOrientation() {
+        when (phoneOrientation) {
+            Surface.ROTATION_0 -> {
+                mSelectDeviceButton.setImageResource(android.R.color.transparent)
+                mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24))
+                updateConnectedStatus(isConnectedToServer, false)
+            }
+            Surface.ROTATION_90 -> {
+                mSelectDeviceButtonText.text = ""
+                mSelectDeviceButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_link_24_landscape))
+                mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24_landscape))
+            }
+            Surface.ROTATION_180 -> {
+                //same as normal portrait
+                mSelectDeviceButton.setImageResource(android.R.color.transparent)
+                mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24))
+                updateConnectedStatus(isConnectedToServer, false)
+            }
+            Surface.ROTATION_270 -> {
+                mSelectDeviceButtonText.text = ""
+                mSelectDeviceButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_link_24_landscape))
+                mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24_landscape2))
+            }
+        }
+        rotateFragments()
+    }
+
+    private fun rotateFragments() {
+        rotateGalleryFragment()
+        rotateSelectDeviceFragment()
+    }
+
+    private fun rotateGalleryFragment() {
+        val gFrag: GalleryFragment? =
+            supportFragmentManager.findFragmentByTag("GalleryFragment") as GalleryFragment?
+        if (gFrag != null && gFrag.isVisible &&gFrag.getOrientation() != phoneOrientation){
+            var savedImageFiles = gFrag.removeThisFragmentForRotation()
+            openGallery(false)
+            if (savedImageFiles != null) {
+                openPreviewFragment(savedImageFiles[0], savedImageFiles[1])
+            }
+        }
+    }
+
+    private fun rotateSelectDeviceFragment() {
+        val sdFrag: SelectDeviceFragment? =
+            supportFragmentManager.findFragmentByTag("SelectDeviceFragment") as SelectDeviceFragment?
+        if (sdFrag != null && sdFrag.isVisible &&sdFrag.getOrientation() != phoneOrientation){
+            sdFrag.removeThisFragmentForRotation()
+            openSelectDeviceFragment(false)
+        } else {
+            when (phoneOrientation){
+                Surface.ROTATION_0 -> {
+                    mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24))
+                }
+                Surface.ROTATION_90 -> {
+                    mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24_landscape))
+                }
+                Surface.ROTATION_180 -> {
+                    //same as normal portrait
+                    mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24))
+                }
+                Surface.ROTATION_270 -> {
+                    mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24_landscape2))
+                }
+            }
+
         }
     }
 
