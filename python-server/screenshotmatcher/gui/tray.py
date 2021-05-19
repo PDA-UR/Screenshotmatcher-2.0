@@ -65,17 +65,6 @@ class Tray():
     def onclick_quit(self):
         self.icon.stop()
 
-    def onclick_qr(self):
-        if Config.IS_DIST:
-            os.system('show_qr "{}"'.format(Config.SERVICE_URL))
-        else:
-            if platform.system() == 'Linux':
-                os.system('python3 show_qr.py "{}"'.format(Config.SERVICE_URL))
-            else:
-                proc_result = subprocess.run('show_qr.py "{}"'.format(Config.SERVICE_URL), shell=True)
-                if proc_result.returncode != 0:
-                    proc_result = subprocess.run('show_qr.bat "{}"'.format(Config.SERVICE_URL), shell=True)
-
     def setup(self, icon):
         self.icon.visible = True
 
