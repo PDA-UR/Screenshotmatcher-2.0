@@ -1,10 +1,5 @@
-import socket
-import os
-import sys
-import platform
-import subprocess
-import colored
 import time
+import socket
 
 def get_current_ms():
     return round(time.time() * 1000)
