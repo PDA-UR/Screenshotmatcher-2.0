@@ -3,7 +3,7 @@ import common.utils
 class Config():
     APP_NAME = 'Screenshot Matcher'
     CURRENT_VERSION = 'v1.1.0'
-    ICON_PATH = 'gui/icon.png'
+    ICON_PATH = '../res/tray_icon.png'
     HOST = common.utils.get_current_ip_address()
     LOG_HOST = 'https://132.199.132.34:49051/'
     PORT = 49049
