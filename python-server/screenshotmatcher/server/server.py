@@ -3,7 +3,6 @@ import sys
 import uuid
 import json
 import requests
-import urllib3
 import logging
 import time
 import timeit
@@ -12,24 +11,19 @@ import platform
 
 from cv2 import imwrite
 from flask import Flask, request, redirect, url_for, Response
-from werkzeug.utils import secure_filename
 
 import common.log
 
 from common.config import Config
 from matching.matcher import Matcher
-from common.utils import allowed_file, get_current_ms
-
-MAX_LOGS = 3
-MAX_SCREENSHOTS = 3
+from common.utils import get_current_ms
 
 class Server():
     def __init__(self):
-        logging.basicConfig(filename='./match.log', level=logging.DEBUG)
-
         self.last_logs = []
         self.last_screenshots = []
-
+        self.MAX_LOGS = 3
+        self.MAX_SCREENSHOTS = 3
         self.app = Flask(__name__)
 
         self.app.add_url_rule('/heartbeat', 'heartbeat', self.heartbeat_route)
@@ -66,34 +60,33 @@ class Server():
                 return {'response': 'ok'}
         return {'response' : 'log does not match any match_id'}
 
+    # Dummy implementation
     def feedback_route(self):  
         return {'feedbackPosted' : 'true'}
 
     def match_route(self):
+        # Create a logger for this match
         log = common.log.Logger()
         self.last_logs.insert(0, log)
-        if len(self.last_logs) > MAX_LOGS:
+        if len(self.last_logs) > self.MAX_LOGS:
             self.last_logs.pop()
 
-        t_start = time.perf_counter()
-        print('{}:\t request get'.format(int(time.time()* 1000)))
+        # Get the base64 string encoded photo
         log.value_pairs['ts_request_received'] = get_current_ms()
         r_json = request.json
         b64String = r_json.get('b64')
         log.value_pairs['ts_photo_received'] = get_current_ms()
-        print('{}:\t b64 string with size {} get'.format(time.time(), sys.getsizeof(b64String)))
-        
         if b64String is None:
             return {'error' : 'no base64 string attached.'}
 
         # Create match uid
         uid = uuid.uuid4().hex
         log.value_pairs['match_uid'] = uid
-        print('{}:\t request get'.format(int(time.time()* 1000)))
 
         # Create Matcher instance
         start_time = time.perf_counter()
         matcher = Matcher(uid, b64String, log)
+
         # Override default values if options are given
         if r_json.get('algorithm') :
             matcher.algorithm = r_json.get('algorithm')
@@ -105,34 +98,27 @@ class Server():
         # Start matcher
         match_result = matcher.match()
 
-        # save screenshot temp. for later requests
+        # Save screenshot temporarily.
         if match_result.screenshot_encoded:
             self.last_screenshots.append((uid, match_result.screenshot_encoded))
-            if len(self.last_screenshots) > MAX_SCREENSHOTS:
+            if len(self.last_screenshots) > self.MAX_SCREENSHOTS:
                 self.last_screenshots.pop(0)
     
-        print('Matching took {} ms'.format(time.perf_counter()-t_start))
-        end_time = time.perf_counter()
-
-        urllib3.disable_warnings()
-        print('{}:\t Generating response.'.format(time.time()))
-        print('Time until response: {}\n'.format(time.perf_counter() - t_start))
-
+        # Generate response
         response = {'uid': uid}
         log.value_pairs['ts_response_sent'] = get_current_ms()
         if not match_result.success:
             log.value_pairs['match_success'] = False
-
             response['hasResult'] = False
             response['uid'] = uid
             return Response(json.dumps(response), mimetype='application/json')
         else:
             log.value_pairs['match_success'] = True
-
             response['hasResult'] = True
             response['b64'] = match_result.img_encoded
             return Response(json.dumps(response), mimetype='application/json')
 
+    # Return a screenshot with the sae match_id as in the http POST request
     def screenshot_route(self):
         match_id = request.json.get("match_id")
         if not match_id:
