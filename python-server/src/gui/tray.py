@@ -18,13 +18,6 @@ class Tray():
             self.app_name,
             icon=self.get_icon(),
             menu=menu(
-                # item(
-                #     'Show QR code',
-                #     lambda icon: self.onclick_qr()),
-                item(
-                    'Open Results Dir',
-                    lambda icon: self.onclick_results()),
-                menu.SEPARATOR,
                 item(
                     'Matching Algorithm',
                     lambda icon: None,
