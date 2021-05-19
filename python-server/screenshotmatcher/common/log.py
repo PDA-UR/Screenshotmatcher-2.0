@@ -1,4 +1,5 @@
 import requests
+import urllib3
 from common.config import Config
 
 class Logger():
@@ -12,6 +13,7 @@ class Logger():
     def send_log(self):
         print('sending log data:')
         print(self.value_pairs)
+        urllib3.disable_warnings()
         requests.post(url=Config.LOG_HOST, json=self.value_pairs, verify=False)
 
 # function decorator to log time needed to execute a function
