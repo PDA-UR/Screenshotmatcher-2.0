@@ -1,3 +1,4 @@
 @echo off
 pip install pyinstaller
-pyinstaller ./screenshotmatcher/main.py --onedir --window --name Screenshotmatcher
+
+pyinstaller ./src/main.py --window --onedir --name Screenshotmatcher --icon="./res/tray_icon.ico"
