@@ -1,15 +1,8 @@
 #!/usr/bin/python3
-# -*- coding: utf-8 -*-
-
-# Import third party modules
 import threading
-
-# Import app config
-from common.config import Config
-
-# Import app parts
 import gui.tray
 import server.server_discovery as discovery
+from common.config import Config
 from matching.matcher import Matcher
 from server.server import Server
 

@@ -1,19 +1,7 @@
-import os
-import sys
 import uuid
 import json
-import requests
-import logging
-import time
-import timeit
-import threading
-import platform
-
-from cv2 import imwrite
-from flask import Flask, request, redirect, url_for, Response
-
+from flask import Flask, request, Response
 import common.log
-
 from common.config import Config
 from matching.matcher import Matcher
 from common.utils import get_current_ms
@@ -42,7 +30,6 @@ class Server():
         if _shutdown is None:
             raise RuntimeError('Not running with the Werkzeug Server')
         _shutdown()
-
 
     # Routes
     def heartbeat_route(self):
@@ -84,7 +71,6 @@ class Server():
         log.value_pairs['match_uid'] = uid
 
         # Create Matcher instance
-        start_time = time.perf_counter()
         matcher = Matcher(uid, b64String, log)
 
         # Override default values if options are given
