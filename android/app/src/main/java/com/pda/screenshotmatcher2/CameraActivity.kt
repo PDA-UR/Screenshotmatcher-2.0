@@ -14,7 +14,6 @@ import android.hardware.SensorManager
 import android.hardware.camera2.*
 import android.media.ImageReader
 import android.os.*
-import android.util.Log
 import android.util.Size
 import android.view.*
 import android.widget.FrameLayout
@@ -106,6 +105,9 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     var mHandler: Handler? = null
     var looper: Looper? = null
 
+    //Boolean for checking the orientation
+    var checkSensor: Boolean = true
+
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -127,6 +129,8 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             thread { fillUpImageList() }
         }
     }
+
+
 
     private fun initNetworkHandler() {
         handlerThread = HandlerThread("NetworkThread")
@@ -211,8 +215,14 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         super.onResume()
         initNetworkHandler()
         mAccelerometer?.also { accel ->
-            mSensorManager.registerListener(this, accel, SensorManager.SENSOR_DELAY_NORMAL)
+            mSensorManager.registerListener(this, accel, SensorManager.SENSOR_DELAY_UI)
         }
+        Handler().postDelayed(object : Runnable {
+            override fun run() {
+                checkSensor = true
+                Handler().postDelayed(this, 1000)
+            }
+        }, 1000)
     }
 
     override fun onPause() {
@@ -983,30 +993,34 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun changeOrientation() {
-        when (phoneOrientation) {
-            Surface.ROTATION_0 -> {
-                mSelectDeviceButton.setImageResource(android.R.color.transparent)
-                mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24))
-                updateConnectedStatus(isConnectedToServer, false)
+        if (checkSensor){
+            when (phoneOrientation) {
+                Surface.ROTATION_0 -> {
+                    mSelectDeviceButton.setImageResource(android.R.color.transparent)
+                    mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24))
+                    updateConnectedStatus(isConnectedToServer, false)
+                }
+                Surface.ROTATION_90 -> {
+                    mSelectDeviceButtonText.text = ""
+                    mSelectDeviceButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_link_24_landscape))
+                    mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24_landscape))
+                }
+                Surface.ROTATION_180 -> {
+                    //same as normal portrait
+                    mSelectDeviceButton.setImageResource(android.R.color.transparent)
+                    mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24))
+                    updateConnectedStatus(isConnectedToServer, false)
+                }
+                Surface.ROTATION_270 -> {
+                    mSelectDeviceButtonText.text = ""
+                    mSelectDeviceButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_link_24_landscape))
+                    mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24_landscape2))
+                }
             }
-            Surface.ROTATION_90 -> {
-                mSelectDeviceButtonText.text = ""
-                mSelectDeviceButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_link_24_landscape))
-                mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24_landscape))
-            }
-            Surface.ROTATION_180 -> {
-                //same as normal portrait
-                mSelectDeviceButton.setImageResource(android.R.color.transparent)
-                mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24))
-                updateConnectedStatus(isConnectedToServer, false)
-            }
-            Surface.ROTATION_270 -> {
-                mSelectDeviceButtonText.text = ""
-                mSelectDeviceButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_link_24_landscape))
-                mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24_landscape2))
-            }
+            rotateFragments()
+            checkSensor = false
         }
-        rotateFragments()
+
     }
 
     private fun rotateFragments() {
