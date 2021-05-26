@@ -9,8 +9,6 @@ HOST = "0.0.0.0"
 PORT = 49051
 FILENAME = "study_log.csv"
 FIELDS = [
-    'ORB_nfeatures',
-    'SURF_hessian_threshold',
     'algorithm',
     'client_id',
     'feedback_sent',
@@ -28,6 +26,7 @@ FIELDS = [
     'tc_http_response',
     'tc_image_captured',
     'tc_result_shown',
+    'threshold',
     'ts_img_convert_end',
     'ts_img_convert_start',
     'ts_matching_end',
