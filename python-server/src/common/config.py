@@ -9,3 +9,4 @@ class Config():
     SERVICE_URL = 'http://{}:{}'.format(HOST, PORT)
     DEFAULT_ALGORITHM = 'ORB'
     CURRENT_ALGORITHM = DEFAULT_ALGORITHM
+    PARTICIPANT_ID = ""
