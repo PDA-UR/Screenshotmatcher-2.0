@@ -20,7 +20,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
 import androidx.appcompat.widget.AppCompatImageButton
 import androidx.core.content.FileProvider.getUriForFile
-import com.android.volley.BuildConfig
 import com.android.volley.Request
 import com.android.volley.RequestQueue
 import com.android.volley.toolbox.JsonObjectRequest
@@ -46,7 +45,7 @@ class ResultsActivity : AppCompatActivity() {
     private lateinit var mSaveOneButtonText: TextView
     private lateinit var mRetakeImageButton: AppCompatButton
 
-    private var mFullImageFile: File? = null
+    private lateinit var mFullImageFile: File
     private lateinit var mCroppedImageFile: File
     private lateinit var mServerURL: String
     private lateinit var lastDateTime: String
@@ -154,7 +153,7 @@ class ResultsActivity : AppCompatActivity() {
                 MediaStore.Images.Media.insertImage(
                     contentResolver,
                     mFullScreenshot,
-                    mFullImageFile?.name,
+                    mFullImageFile.name,
                     getString(R.string.screenshot_description_en)
                 )
                 StudyLogger.hashMap["save_full"] = true
@@ -197,7 +196,7 @@ class ResultsActivity : AppCompatActivity() {
                 MediaStore.Images.Media.insertImage(
                     contentResolver,
                     mFullScreenshot,
-                    mFullImageFile?.name,
+                    mFullImageFile.name,
                     getString(R.string.screenshot_description_en)
                 )
                 Toast.makeText(
@@ -220,6 +219,8 @@ class ResultsActivity : AppCompatActivity() {
         if (mPillNavigationState == -1) {
             //Cropped screenshot needs to be shared
             StudyLogger.hashMap["share_match"] = true
+
+            saveCurrentPreviewImage()
             //Start sharing
             val contentUri =
                 getUriForFile(this, BuildConfig.APPLICATION_ID + ".fileprovider", mCroppedImageFile)
@@ -235,12 +236,14 @@ class ResultsActivity : AppCompatActivity() {
             if (fullScreenshotDownloaded) {
                 //Full screenshot needs to be shared
                 StudyLogger.hashMap["share_full"] = true
+
+                saveFullImageToAppDir()
                 //Start sharing
                 val contentUri =
                     getUriForFile(
                         this,
                         BuildConfig.APPLICATION_ID + ".fileprovider",
-                        mFullImageFile!!
+                        mFullImageFile
                     )
                 val sendIntent = Intent().apply {
                     this.action = Intent.ACTION_SEND
@@ -317,6 +320,16 @@ class ResultsActivity : AppCompatActivity() {
         }
     }
 
+    private fun saveFullImageToAppDir() {
+        if (!::mFullImageFile.isInitialized) {
+            mFullImageFile = File(
+                getExternalFilesDir(Environment.DIRECTORY_PICTURES),
+                lastDateTime + "_Full.png"
+            )
+            saveBitmapToFile(mFullImageFile, mFullScreenshot)
+        }
+    }
+
     private fun downloadFullScreenshotInThread() {
         Log.d("FUG", "downloadFullScreenshot calling")
         Thread {
@@ -369,7 +382,9 @@ class ResultsActivity : AppCompatActivity() {
         val intent = Intent()
         var resultData: ArrayList<File> = ArrayList()
         if (!hasSharedImage) {
-            mFullImageFile?.delete()
+            if (::mFullImageFile.isInitialized) {
+                mFullImageFile.delete()
+            }
             if (::mCroppedImageFile.isInitialized) {
                 mCroppedImageFile.delete()
             }
@@ -378,8 +393,8 @@ class ResultsActivity : AppCompatActivity() {
             if (::mCroppedImageFile.isInitialized) {
                 resultData.add(mCroppedImageFile)
             }
-            if (mFullImageFile != null) {
-                resultData.add(mFullImageFile!!)
+            if (::mFullImageFile.isInitialized) {
+                resultData.add(mFullImageFile)
             }
             intent.putExtra(RESULT_ACTIVITY_RESULT_CODE, resultData)
             setResult(Activity.RESULT_OK, intent)
