@@ -42,6 +42,8 @@ class Server():
                 for key,value in phone_log.items():
                     log.value_pairs[key] = value
                 log.value_pairs.pop('match_uid', None)  # remove duplicate match_id entry
+                # overwrite cid with pid. hotfix
+                log.value_pairs["client_id"] = Config.PARTICIPANT_ID
                 log.send_log()
                 self.last_logs.remove(log)
                 return {'response': 'ok'}
