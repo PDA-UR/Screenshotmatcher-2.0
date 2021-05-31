@@ -88,3 +88,5 @@ lint/tmp/
 *.swo
 .vscode/settings.json
 .DS_STORE
+
+python-server/src/pid.txt
