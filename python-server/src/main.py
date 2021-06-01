@@ -3,7 +3,7 @@ import threading
 import gui.tray
 import server.server_discovery as discovery
 from common.config import Config
-from common.utils import set_participant_id
+from common.utility import set_participant_id
 from matching.matcher import Matcher
 from server.server import Server
 
