@@ -76,8 +76,8 @@ def create_entry(json):
 
 def save_faulty_data(data):
     with open("value_errors.txt", "a") as vef:
-        for k,v in entry:
-            line = k + " " + v + "\n"
+        for k,v in data.items():
+            line = k + " " + str(v) + "\n"
             vef.write(line)
         vef.write("\n") # write empty line to seperate individual errors
 
