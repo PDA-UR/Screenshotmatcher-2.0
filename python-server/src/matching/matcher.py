@@ -43,6 +43,8 @@ class Matcher():
         log.value_pairs['ts_screenshot_start'] = get_current_ms()
         self.screenshot = ImageGrab.grab()
         self.screenshot_encoded= ""
+        log.value_pairs['pc_screen_width'] = self.screenshot.width
+        log.value_pairs['pc_screen_height'] = self.screenshot.height
         log.value_pairs['ts_screenshot_finished'] = get_current_ms()
 
     def save_screenshot(self, img):

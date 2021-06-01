@@ -91,3 +91,5 @@ lint/tmp/
 
 python-server/src/pid.txt
 python-server/pid.txt
+android/app/release/app-release.apk
+android/app/release/output-metadata.json

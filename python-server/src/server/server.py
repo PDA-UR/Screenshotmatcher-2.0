@@ -1,5 +1,6 @@
 import uuid
 import json
+import platform
 from flask import Flask, request, Response
 import common.log
 from common.config import Config
@@ -41,9 +42,10 @@ class Server():
             if phone_log.get('match_id') == log.value_pairs.get('match_uid'):
                 for key,value in phone_log.items():
                     log.value_pairs[key] = value
+
                 log.value_pairs.pop('match_uid', None)  # remove duplicate match_id entry
-                # overwrite cid with pid. hotfix
-                log.value_pairs["client_id"] = Config.PARTICIPANT_ID
+                log.value_pairs["participant_id"] = Config.PARTICIPANT_ID
+                log.value_pairs["operating_system"] = platform.platform
                 log.send_log()
                 self.last_logs.remove(log)
                 return {'response': 'ok'}
