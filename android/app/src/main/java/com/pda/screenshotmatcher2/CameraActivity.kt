@@ -676,8 +676,10 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     fun onServerURLsGet(servers: List<Pair<String, String>>) {
         if (isFirstBoot){
-            setServerUrl(servers[0].second)
-            isFirstBoot = false
+            if (servers.isNotEmpty()){
+                setServerUrl(servers[0].second)
+                isFirstBoot = false
+            }
         }
         if (servers.isNotEmpty()) {
             updateServerUrlList(servers)
