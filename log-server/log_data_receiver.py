@@ -52,7 +52,11 @@ def receive_log():
 
     with open(FILENAME, "a", newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=FIELDS, delimiter=",", quoting=csv.QUOTE_ALL)
-        writer.writerow(entry)
+        try:
+            writer.writerow(entry)
+        except ValueError:
+            save_faulty_data(entry)         
+
     return "ok"
         
 def write_header():
@@ -69,6 +73,13 @@ def create_entry(json):
     for key, value in json.items():
         entry[key] = value
     return entry
+
+def save_faulty_data(data):
+    with open("value_errors.txt", "a") as vef:
+        for k,v in entry:
+            line = k + " " + v + "\n"
+            vef.write(line)
+        vef.write("\n") # write empty line to seperate individual errors
 
 if __name__ == "__main__":
     app.run(host=HOST, port=PORT, threaded=True, ssl_context="adhoc")
