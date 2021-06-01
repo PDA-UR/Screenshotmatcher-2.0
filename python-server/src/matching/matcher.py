@@ -5,7 +5,7 @@ import cv2
 import threading
 import common.log
 from common.config import Config
-from common.utils import get_current_ms
+from common.utility import get_current_ms
 from common.log import log_time
 
 # result object for the matcher

@@ -5,7 +5,7 @@ import os
 import subprocess
 import platform
 import base64
-import common.utils
+import common.utility
 from common.config import Config
 
 class Tray():
