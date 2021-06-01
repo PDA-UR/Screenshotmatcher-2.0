@@ -106,6 +106,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     //Boolean for checking the orientation
     var checkSensor: Boolean = true
+    var isFirstBoot: Boolean = true
 
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -126,6 +127,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         if (!this::imageArray.isInitialized) {
             thread { fillUpImageList() }
         }
+
     }
 
 
@@ -673,6 +675,10 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     }
 
     fun onServerURLsGet(servers: List<Pair<String, String>>) {
+        if (isFirstBoot){
+            setServerUrl(servers[0].second)
+            isFirstBoot = false
+        }
         if (servers.isNotEmpty()) {
             updateServerUrlList(servers)
             if (isConnectedToServer && handlerThread!!.isAlive){
