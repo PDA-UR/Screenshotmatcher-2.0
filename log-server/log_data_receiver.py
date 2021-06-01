@@ -10,11 +10,14 @@ PORT = 49051
 FILENAME = "study_log.csv"
 FIELDS = [
     'algorithm',
-    'client_id',
     'feedback_sent',
     'long_side',
     'match_id',
     'match_success',
+    'operating_system',
+    'participant_id',
+    'pc_screen_height',
+    'pc_screen_width',
     'preview_height',
     'preview_width',
     'save_full',
