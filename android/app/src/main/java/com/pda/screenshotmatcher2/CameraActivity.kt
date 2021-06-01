@@ -87,7 +87,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     private var mServerURL: String = ""
     private var isConnectedToServer = false
     private lateinit var mServerUrlList: List<Pair<String, String>>
-    private var mUserID: String = ""
     private var startTime: Long = 0
     private var isCapturing: Boolean = false
 
@@ -115,7 +114,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         setContentView(R.layout.activity_camera)
         verifyPermissions(this)
         setupSharedPref()
-        getUserID()
         initViews()
         setViewListeners()
         initNetworkHandler()
@@ -317,7 +315,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             if (!this::mCaptureButtonListener.isInitialized){
                 mCaptureButtonListener = View.OnClickListener {
                     if (!isCapturing){
-                        StudyLogger.hashMap["client_id"] = mUserID
                         StudyLogger.hashMap["tc_button_pressed"] = System.currentTimeMillis()
                         captureImageWithPreviewExtraction()
                     }
@@ -338,7 +335,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
-            StudyLogger.hashMap["client_id"] = mUserID
             StudyLogger.hashMap["tc_button_pressed"] = System.currentTimeMillis()
             captureImageWithPreviewExtraction()
         }
@@ -667,18 +663,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             val greyImg = rescale(mBitmap, IMG_TARGET_SIZE)
             val matchingOptions: HashMap<Any?, Any?>? = getMatchingOptionsFromPref()
             sendBitmap(greyImg, mServerURL, this, matchingOptions)
-        }
-    }
-
-
-    private fun getUserID() {
-        val sharedPreferences =
-            this.getSharedPreferences("com.pda.screenshotmatcher2", Context.MODE_PRIVATE)
-        mUserID = sharedPreferences.getString("uid", "").toString()
-        if (mUserID.isEmpty()) {
-            val allowedChars = ('A'..'Z') + ('a'..'z') + ('0'..'9')
-            mUserID = (1..20).map { allowedChars.random() }.joinToString("")
-            sharedPreferences.edit().putString("uid", mUserID).apply()
         }
     }
 
