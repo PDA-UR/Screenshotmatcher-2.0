@@ -1,6 +1,8 @@
 package com.pda.screenshotmatcher2
 
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.provider.MediaStore
@@ -14,6 +16,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.AppCompatButton
 import androidx.appcompat.widget.AppCompatImageButton
+import androidx.core.app.ShareCompat
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
@@ -229,14 +232,30 @@ class GalleryPreviewFragment : Fragment() {
                     BuildConfig.APPLICATION_ID + ".fileprovider",
                     mCroppedImageFile!!
                 )
-            val sendIntent = Intent().apply {
-                this.action = Intent.ACTION_SEND
-                this.putExtra(Intent.EXTRA_STREAM, contentUri)
-                this.type = "image/png"
-                this.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            val sendIntent = ShareCompat.IntentBuilder.from(requireContext() as CameraActivity)
+                .setType("image/png")
+                .setStream(contentUri)
+                .createChooserIntent()
+
+
+            val resInfoList: List<ResolveInfo> = requireContext().packageManager
+                .queryIntentActivities(sendIntent, PackageManager.MATCH_DEFAULT_ONLY)
+
+            for (resolveInfo in resInfoList) {
+                val packageName: String = resolveInfo.activityInfo.packageName
+                requireContext().grantUriPermission(
+                    packageName,
+                    contentUri,
+                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
             }
             val shareIntent = Intent.createChooser(sendIntent,null)
             startActivity(shareIntent)
+
+
+            //val shareIntent = Intent.createChooser(sendIntent,"Share")
+            startActivity(shareIntent)
+
         } else {
             if (mFullImageFile != null) {
                 val contentUri =
