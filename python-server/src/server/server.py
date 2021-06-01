@@ -4,7 +4,7 @@ from flask import Flask, request, Response
 import common.log
 from common.config import Config
 from matching.matcher import Matcher
-from common.utils import get_current_ms
+from common.utility import get_current_ms
 
 class Server():
     def __init__(self):
