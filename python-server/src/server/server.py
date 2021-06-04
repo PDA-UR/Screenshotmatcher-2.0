@@ -112,7 +112,7 @@ class Server():
     def screenshot_route(self):
         match_id = request.json.get("match_id")
         if not match_id:
-            return 'No match-id given.'
+            response["result"] = 'No match-id given.'
 
         response = {}
         for entry in self.last_screenshots:
@@ -120,6 +120,6 @@ class Server():
                 response["result"] = entry[1]
                 break
         if not response.get("result"):
-            return 'match-id not found among last matches'
+            response["result"] = 'match-id not found among last matches'
 
         return Response(json.dumps(response), mimetype='application/json')
