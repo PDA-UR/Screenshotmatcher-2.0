@@ -1,5 +1,9 @@
 #!/usr/bin/python3
+import sys
+import psutil
 import threading
+import ctypes
+
 import gui.tray
 import server.server_discovery as discovery
 from common.config import Config
@@ -29,4 +33,13 @@ def main():
     tray.run()
 
 if __name__ == "__main__":
+    # program already running. abort.
+    procs = [p for p in psutil.process_iter() if ('python.exe' in p.name() and __file__ in p.cmdline()) or 'Screenshotmatcher.exe' in p.name()]
+    if len(procs) > 1:
+        # EXE
+        ctypes.windll.user32.MessageBoxW(0, "Screenshotmatcher.exe is already running.", "Screenshotmatcher.exe", 0)
+        # otherwise
+        print("Screenshotmatcher.py is already running.")
+        sys.exit(1)
+
     main()
