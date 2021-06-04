@@ -23,5 +23,6 @@ Werkzeug==1.0.1
 temp==2020.4.16
 colored==1.4.2
 matplotlib==3.0.3
+psutil==5.8.0
 
 opencv-contrib-python==3.4.2.16
