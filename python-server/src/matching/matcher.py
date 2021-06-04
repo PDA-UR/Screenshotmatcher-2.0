@@ -36,7 +36,7 @@ class Matcher():
         self.ORB_descriptor_matcher = 'BruteForce-Hamming'
         self.SURF_descriptor_matcher = 1
         self.THRESHOLDS = {'ORB' : 2000, 'SURF' : 3500}
-        self.MIN_GOOD_MATCHES = {'ORB' : 40, 'SURF' : 10}
+        self.MIN_GOOD_MATCHES = {'ORB' : 20, 'SURF' : 10}
 
         self.log = log
 
@@ -109,6 +109,14 @@ class Matcher():
 
             if not dimensions:
                 raise Exception('could not calculate homography')
+
+            width = dimensions.get("width")
+            height = dimensions.get("height")
+            
+            if width < 150 or height < 150:
+                raise Exception('match result to small to be valid')
+            if max(width, height) > 3 * min(width, height):
+                raise Exception("long side > 3x short size. bad match.")
 
             result_img = screen_colored[dimensions['y'] : dimensions['y'] + dimensions['height'],
                                         dimensions['x'] : dimensions['x'] + dimensions['width']]
