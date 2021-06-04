@@ -73,6 +73,8 @@ class Matcher():
         match_result = self.match_screenshot(photo, screen, screen_colored)
         self.log.value_pairs['ts_matching_end'] = get_current_ms()
 
+        t.join() # make sure the screenshot is saved before a result is returned
+
         match_result.screenshot_encoded = self.screenshot_encoded
 
         return match_result
