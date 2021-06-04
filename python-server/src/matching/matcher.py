@@ -36,7 +36,7 @@ class Matcher():
         self.ORB_descriptor_matcher = 'BruteForce-Hamming'
         self.SURF_descriptor_matcher = 1
         self.THRESHOLDS = {'ORB' : 2000, 'SURF' : 3500}
-        self.MIN_GOOD_MATCHES = {'ORB' : 20, 'SURF' : 10}
+        self.MIN_GOOD_MATCHES = {'ORB' : 40, 'SURF' : 10}
 
         self.log = log
 
