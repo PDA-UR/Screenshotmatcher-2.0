@@ -136,6 +136,7 @@ class ResultsActivity : AppCompatActivity() {
         if (!displayFullScreenshotOnly) {
             saveCroppedImageToAppDir()
         }
+        Log.d("RA", mPillNavigationState.toString())
         if (mPillNavigationState == -1) {
             //Save cropped screenshot to gallery
             MediaStore.Images.Media.insertImage(
@@ -151,6 +152,7 @@ class ResultsActivity : AppCompatActivity() {
                 Toast.LENGTH_SHORT
             ).show()
         } else {
+            saveFullImageToAppDir()
             //Save full screenshot to gallery
             if (fullScreenshotDownloaded) {
                 MediaStore.Images.Media.insertImage(
@@ -195,6 +197,7 @@ class ResultsActivity : AppCompatActivity() {
                 getString(R.string.screenshot_description_en)
             )
             if (fullScreenshotDownloaded) {
+                saveFullImageToAppDir()
                 //Save full screenshot if it has been downloaded already
                 MediaStore.Images.Media.insertImage(
                     contentResolver,
@@ -362,7 +365,9 @@ class ResultsActivity : AppCompatActivity() {
         if (displayFullScreenshotOnly || mPillNavigationState == 1) {
             mScreenshotImageView.setImageBitmap(mFullScreenshot)
         }
+
         else if(waitingForFullScreenshot){
+            saveFullImageToAppDir()
             //Full screenshot has been requested by the user pressing "save both", save downloaded screenshot to gallery
             MediaStore.Images.Media.insertImage(
                 contentResolver,
