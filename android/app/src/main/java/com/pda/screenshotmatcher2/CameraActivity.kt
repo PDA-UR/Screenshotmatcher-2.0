@@ -14,6 +14,7 @@ import android.hardware.SensorManager
 import android.hardware.camera2.*
 import android.media.ImageReader
 import android.os.*
+import android.util.Log
 import android.util.Size
 import android.view.*
 import android.widget.FrameLayout
@@ -548,7 +549,8 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         val mSavedWidthOfView: Int = sp.getInt(keyWidthView, 0)
         val mSavedHeightOfView: Int = sp.getInt(keyHeightView, 0)
 
-        if ((mSavedWidth != 0 && mSavedHeight != 0) && (mSavedWidthOfView == w && mSavedHeightOfView == h)) {
+        //disabling saving for now
+        if ((mSavedWidth != 0 && mSavedHeight != 0) && (mSavedWidthOfView == w && mSavedHeightOfView == h) && false) {
             return Size(mSavedWidth, mSavedHeight)
         } else {
             sp.edit().putInt(keyWidthView, w).apply()
@@ -559,10 +561,13 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             val notBigEnough: MutableList<Size> = ArrayList()
 
             for (option in choices) {
+                var ratioChecked = option.height / option.width
+                var ratioView = textureViewHeight/textureViewWidth
                 if (option.width <= maxWidth && option.height <= maxHeight && option.height == option.width * h / w
                 ) {
                     if (option.width >= textureViewWidth &&
-                        option.height >= textureViewHeight
+                        option.height >= textureViewHeight &&
+                        ratioChecked == ratioView
                     ) {
                         bigEnough.add(option)
                     } else {
