@@ -128,7 +128,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         if (!this::imageArray.isInitialized) {
             thread { fillUpImageList() }
         }
-
     }
 
 
@@ -193,6 +192,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             l.add(Pair(urlList[i], hostList?.get(i)) as Pair<String, String>)
         }
         initNetworkHandler()
+
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -228,6 +228,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onPause() {
         super.onPause()
+        handlerThread?.quitSafely()
         mSensorManager.unregisterListener(this)
     }
 
@@ -620,6 +621,11 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         super.onStop()
         handlerThread?.quitSafely()
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        handlerThread?.quitSafely()
+    }
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -664,12 +670,18 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             }
         }
 
-        if (mBitmap != null) {
-            StudyLogger.hashMap["tc_image_captured"] = System.currentTimeMillis()   // image is in memory
-            StudyLogger.hashMap["long_side"] = IMG_TARGET_SIZE
-            val greyImg = rescale(mBitmap, IMG_TARGET_SIZE)
-            val matchingOptions: HashMap<Any?, Any?>? = getMatchingOptionsFromPref()
-            sendBitmap(greyImg, mServerURL, this, matchingOptions)
+        if (mBitmap != null && mServerURL != null) {
+            if (mServerURL != ""){
+                StudyLogger.hashMap["tc_image_captured"] = System.currentTimeMillis()   // image is in memory
+                StudyLogger.hashMap["long_side"] = IMG_TARGET_SIZE
+                val greyImg = rescale(mBitmap, IMG_TARGET_SIZE)
+                val matchingOptions: HashMap<Any?, Any?>? = getMatchingOptionsFromPref()
+                sendBitmap(greyImg, mServerURL, this, matchingOptions)
+            } else {
+                onMatchRequestError()
+            }
+        } else {
+            onMatchRequestError()
         }
     }
 
