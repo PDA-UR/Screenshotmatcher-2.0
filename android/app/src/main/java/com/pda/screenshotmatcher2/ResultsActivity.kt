@@ -446,6 +446,7 @@ class ResultsActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
+
         sendLog(mServerURL, this)
         StudyLogger.hashMap.clear()
     }

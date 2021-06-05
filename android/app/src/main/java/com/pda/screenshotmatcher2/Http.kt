@@ -59,7 +59,7 @@ fun sendBitmap(
                         }
                     }
                 } catch (e: InvocationTargetException) {
-                    e.printStackTrace()
+                    Log.d("HTTP", "b64 string error")
                 }
             } else if (activity is CameraActivity) {
                 activity.openErrorFragment(response.get("uid").toString())
@@ -73,7 +73,10 @@ fun sendBitmap(
         })
 
     StudyLogger.hashMap["tc_http_request"] = System.currentTimeMillis()
-    queue.add(jsonOR)
+    if (serverURL != null){
+        queue.add(jsonOR)
+    } else Log.d("HTTP", "no url")
+
 }
 
 fun sendHeartbeatRequest(serverURL: String, activity: Activity){
