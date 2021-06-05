@@ -103,7 +103,7 @@ fun sendLog(serverURL: String, context: Context){
         { _ ->
         },
         { error ->
-            error.printStackTrace()
+            Log.d("log", "Error sending Study Log, server offline")
         }
     )
     // Add the request to the RequestQueue.
