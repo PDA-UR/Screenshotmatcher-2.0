@@ -2,7 +2,7 @@ import time
 import socket
 import os
 import tkinter as tk
-from tkinter import simpledialog
+from tkinter import simpledialog, messagebox
 
 def get_current_ms():
     return round(time.time() * 1000)
@@ -29,15 +29,28 @@ def set_participant_id():
     with open("pid.txt", "r") as f:
         _id = f.readline()
         if _id:
-            return _id
+            try:
+                int(_id)
+                return _id
+            except ValueError:
+                pass
 
+    _input = ask_for_id()
+    if not _input:
+        return None
+    
+    with open("pid.txt", "w") as f:
+        f.write(str(_input))
+        return _input
+
+def ask_for_id():
     ROOT = tk.Tk()
     ROOT.withdraw()
     _input = simpledialog.askinteger(
         title="Input ID",
         prompt="Please enter your participant ID:"
     )
+    if not _input:
+        messagebox.showerror("Entry error", "No participant ID entered. Closing.")  
 
-    with open("pid.txt", "w") as f:
-        f.write(str(_input))
-        return _input
+    return _input
