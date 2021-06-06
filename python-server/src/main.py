@@ -13,7 +13,11 @@ from server.server import Server
 
 def main():
     # Set the participant ID
-    Config.PARTICIPANT_ID = set_participant_id()
+    _id = set_participant_id()
+    if _id:
+        Config.PARTICIPANT_ID = _id
+    else:
+        return 0
     
     # Init Server
     server = Server()
