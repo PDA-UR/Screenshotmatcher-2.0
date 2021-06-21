@@ -62,7 +62,7 @@ fun sendBitmap(
                     Log.d("HTTP", "b64 string error")
                 }
             } else if (activity is CameraActivity) {
-                activity.openErrorFragment(response.get("uid").toString())
+                activity.openErrorFragment(response.get("uid").toString(), bitmap)
             }
         },
         { error ->

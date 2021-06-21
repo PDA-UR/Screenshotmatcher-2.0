@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="gallery_en">Gallerie</string>
+    <string name="gallery_en">Galerie</string>
     <string name="preview_fragment_only_one_available_en">Nur ein Bild ist verfügbar</string>
     <string name="permission_request_en">Bitte geben Sie der App die benötigten Rechte</string>
     <string name="heartbeat_fail_en">Verbindung zum Server wurde getrennt</string>
