@@ -19,7 +19,7 @@ class SelectDeviceFragment : Fragment() {
     private var mServerList: ArrayList<String> = ArrayList()
     private lateinit var mView: View
     private var rotation: Int = 0
-
+    private var removeForRotation: Boolean = false
     private lateinit var lastSelectedItem: TextView
 
     private lateinit var ca: CameraActivity
@@ -118,9 +118,19 @@ class SelectDeviceFragment : Fragment() {
             ?.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)?.commit()
     }
     public fun removeThisFragmentForRotation() {
+        removeForRotation = true
         activity?.supportFragmentManager?.beginTransaction()?.remove(this)
             ?.commit()
     }
+
+    override fun onDestroy() {
+        if(!removeForRotation){
+            var ca: CameraActivity = requireActivity() as CameraActivity
+            ca.onSelectDeviceFragmentClosed()
+        }
+        super.onDestroy()
+    }
+
 
 
 

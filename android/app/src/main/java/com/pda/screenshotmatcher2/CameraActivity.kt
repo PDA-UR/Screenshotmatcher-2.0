@@ -24,6 +24,7 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import androidx.preference.PreferenceManager
 import java.io.File
@@ -341,6 +342,8 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
             StudyLogger.hashMap["tc_button_pressed"] = System.currentTimeMillis()
             captureImageWithPreviewExtraction()
+        } else if (keyCode == KeyEvent.KEYCODE_BACK) {
+            onBackPressed()
         }
         return true
     }
@@ -694,6 +697,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     fun onServerURLsGet(servers: List<Pair<String, String>>) {
         if (isFirstBoot){
             if (servers.isNotEmpty()){
+                mServerUrlList = servers
                 setServerUrl(servers[0].second)
                 isFirstBoot = false
             }
@@ -824,12 +828,14 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     }
 
 
-    fun openErrorFragment(uid: String) {
+    fun openErrorFragment(uid: String, extractedImage: Bitmap) {
         isCapturing = false
+        val EXTRACTED_IMAGE_KEY = "bmp"
         val errorFragment = ErrorFragment()
         val bundle = Bundle()
         bundle.putString(UID_KEY, uid)
         bundle.putString(URL_KEY, mServerURL)
+        bundle.putParcelable(EXTRACTED_IMAGE_KEY, extractedImage)
         errorFragment.arguments = bundle
 
         this.supportFragmentManager
@@ -1075,6 +1081,23 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
+    override fun onBackPressed() {
+
+        val all_frags: List<Fragment> = getSupportFragmentManager().getFragments();
+        if (all_frags != null) {
+            if (all_frags.isEmpty()) {
+                super.onBackPressed()
+            } else {
+                for (frag: Fragment in all_frags) {
+                    supportFragmentManager.beginTransaction().remove(frag).commit()
+
+                }
+
+            }
+        } else {
+            super.onBackPressed();
+        }
+    }
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
         return
     }

@@ -25,6 +25,8 @@ lateinit var mTextInputField: EditText
 lateinit var uid: String
 lateinit var url: String
 
+var removeForRotation: Boolean = false
+
 class FeedbackFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -101,11 +103,17 @@ class FeedbackFragment : Fragment() {
     }
 
     private fun removeThisFragment(removeBackground: Boolean = true) {
-        containerView.visibility = View.INVISIBLE
-        if (removeBackground){mFragmentBackground.visibility = View.INVISIBLE}
+
         activity?.supportFragmentManager
             ?.beginTransaction()
             ?.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)
-            ?.remove(this)?.commit();
+            ?.remove(this)?.commit()
+    }
+
+    override fun onDestroy() {
+        containerView.visibility = View.INVISIBLE
+        mFragmentBackground.visibility = View.INVISIBLE
+
+        super.onDestroy()
     }
 }
