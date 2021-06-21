@@ -21,6 +21,7 @@ class GalleryFragment : Fragment() {
     private lateinit var mView: View
     private var rotation: Int = 0
     private lateinit var ca: CameraActivity
+    private var removeForRotation: Boolean = false
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -94,6 +95,7 @@ class GalleryFragment : Fragment() {
     }
 
     private fun removeThisFragment(removeBackground: Boolean = true) {
+        this.removeForRotation = !removeBackground
         containerView.visibility = View.INVISIBLE
         if (removeBackground) {
             mFragmentBackground.visibility = View.INVISIBLE
@@ -103,6 +105,7 @@ class GalleryFragment : Fragment() {
     }
 
     fun removeThisFragmentForRotation(): ArrayList<File?>? {
+        removeForRotation = true
         val pFrag: GalleryPreviewFragment? =
             activity?.supportFragmentManager?.findFragmentByTag("PreviewFragment") as GalleryPreviewFragment?
         if (pFrag != null && pFrag.isVisible){
@@ -115,6 +118,14 @@ class GalleryFragment : Fragment() {
         activity?.supportFragmentManager?.beginTransaction()?.remove(this)
             ?.commit()
         return null
+    }
+
+    override fun onDestroy() {
+        if (!removeForRotation){
+            containerView.visibility = View.INVISIBLE
+            mFragmentBackground.visibility = View.INVISIBLE
+        }
+        super.onDestroy()
     }
 
 }

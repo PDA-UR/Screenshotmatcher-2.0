@@ -1,6 +1,9 @@
 package com.pda.screenshotmatcher2
 
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -8,8 +11,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.FrameLayout
+import android.widget.ImageView
+import androidx.constraintlayout.widget.Placeholder
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
+import com.bumptech.glide.Glide
 
 
 const val UID_KEY: String = "UID"
@@ -22,10 +28,14 @@ class ErrorFragment : Fragment() {
     lateinit var mFullImageButton: Button
     lateinit var containerView: FrameLayout
     lateinit var mFragmentBackground: FrameLayout
+    lateinit var mErrorImageView: ImageView
 
     //Full screenshot info
     lateinit var uid: String
     lateinit var url: String
+    lateinit var bmp: Bitmap
+
+    private var removeForRotation: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,6 +43,11 @@ class ErrorFragment : Fragment() {
         if (bundle != null) {
             uid = bundle.getString(UID_KEY, "undefined")
             url = bundle.getString(URL_KEY, "undefined")
+            if (bundle.getParcelable<Bitmap>("bmp") == null){
+                bmp = BitmapFactory.decodeResource(context?.resources, R.drawable.ic_comic_characters_sad)
+            } else {
+                bmp = bundle.getParcelable<Bitmap>("bmp")!!
+            }
         }
     }
 
@@ -51,6 +66,11 @@ class ErrorFragment : Fragment() {
         mFragmentBackground = activity?.findViewById(R.id.ca_dark_background)!!
         mFragmentBackground.setOnClickListener { removeThisFragment(true) }
         mFragmentBackground.visibility = View.VISIBLE
+        mErrorImageView = requireView().findViewById(R.id.errorFragmentImage)
+        Glide.with(requireActivity())
+            .load(bmp)
+            .centerCrop()
+            .into(mErrorImageView)
     }
 
     private fun openResultsActivity() {
@@ -87,10 +107,13 @@ class ErrorFragment : Fragment() {
     }
 
     private fun removeThisFragment(removeBackground: Boolean = true) {
-        containerView.visibility = View.INVISIBLE
-        if (removeBackground) {
+        removeForRotation = !removeBackground
+
+        if(!removeForRotation){
             mFragmentBackground.visibility = View.INVISIBLE
+
         }
+        containerView.visibility = View.INVISIBLE
         activity?.supportFragmentManager?.beginTransaction()?.remove(this)
             ?.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)?.commit()
     }
@@ -99,5 +122,14 @@ class ErrorFragment : Fragment() {
         super.onStop()
         sendLog(url, requireContext())
         StudyLogger.hashMap.clear()
+    }
+
+    override fun onDestroy() {
+        if(!removeForRotation){
+            mFragmentBackground.visibility = View.INVISIBLE
+
+        }
+        containerView.visibility = View.INVISIBLE
+        super.onDestroy()
     }
 }

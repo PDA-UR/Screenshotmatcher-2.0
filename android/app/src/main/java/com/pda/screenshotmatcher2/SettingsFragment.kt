@@ -13,6 +13,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
     lateinit var mFragmentBackground: FrameLayout
     lateinit var containerView: CardView
+    private var removeForRotation: Boolean = true
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.root_preferences, rootKey)
@@ -33,17 +34,21 @@ class SettingsFragment : PreferenceFragmentCompat() {
         mFragmentBackground = activity?.findViewById(R.id.ca_dark_background)!!
         mFragmentBackground.setOnClickListener { removeThisFragment(true) }
         mFragmentBackground.visibility = View.VISIBLE
-
-
     }
 
     private fun removeThisFragment(removeBackground: Boolean = true) {
-        containerView.visibility = View.INVISIBLE
-        if (removeBackground) {
-            mFragmentBackground.visibility = View.INVISIBLE
-        }
+        removeForRotation = removeBackground
+
         activity?.supportFragmentManager?.beginTransaction()?.remove(this)
             ?.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)?.commit()
+    }
+
+    override fun onDestroy() {
+        if (removeForRotation) {
+            containerView.visibility = View.INVISIBLE
+            mFragmentBackground.visibility = View.INVISIBLE
+        }
+        super.onDestroy()
     }
 
 }
