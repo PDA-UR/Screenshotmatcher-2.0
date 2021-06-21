@@ -94,6 +94,5 @@ python-server/pid.txt
 android/app/release/app-release.apk
 android/app/release/output-metadata.json
 android/app/build/outputs/apk/debug/output-metadata.json
-*.apk
 log-server/study_log.csv
 log-server/value_errors.txt
