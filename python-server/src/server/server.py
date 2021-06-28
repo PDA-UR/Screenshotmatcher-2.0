@@ -6,6 +6,7 @@ import common.log
 from common.config import Config
 from matching.matcher import Matcher
 from common.utility import get_current_ms
+from common.utility import get_current_ms, is_device_allowed
 
 class Server():
     def __init__(self):
@@ -56,6 +57,10 @@ class Server():
         return {'feedbackPosted' : 'true'}
 
     def match_route(self):
+        # Check if this device is permitted to request
+        if not is_device_allowed():
+            return {"error" : "Permission denied."}
+
         # Create a logger for this match
         log = common.log.Logger()
         self.last_logs.insert(0, log)
