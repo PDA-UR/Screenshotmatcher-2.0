@@ -10,3 +10,5 @@ class Config():
     DEFAULT_ALGORITHM = 'ORB'
     CURRENT_ALGORITHM = DEFAULT_ALGORITHM
     PARTICIPANT_ID = ""
+    FULL_SCREENSHOTS_ENABLED = True
+    UNKNOWN_DEVICE_HANDLING = 0 # 0: ask, 1: allow all, 2: block all
