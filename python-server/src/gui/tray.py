@@ -12,42 +12,55 @@ class Tray():
     def __init__(self, app_name):
         self.app_name = app_name
 
-        self.ALGORITHM_STATE = Config.CURRENT_ALGORITHM
-
         self.icon = Icon(
             self.app_name,
             icon=self.get_icon(),
             menu=menu(
                 item(
-                    'Matching Algorithm',
-                    lambda icon: None,
-                    enabled=False),
+                    'Enable Full Screenshots',
+                    lambda item: self.toggle_full_screenshots_enabled(),
+                    checked= lambda item: Config.FULL_SCREENSHOTS_ENABLED
+                ),
+                menu.SEPARATOR,
                 item(
-                    'SURF (Precise)',
-                    self.set_state('SURF'),
-                    checked=self.get_state('SURF'),
-                    radio=True),
+                    'Unknown device requests',
+                    lambda item: None,
+                    enabled=False
+                ),
                 item(
-                    'ORB (Fast)',
-                    self.set_state('ORB'),
-                    checked=self.get_state('ORB'),
-                    radio=True),
+                    'Decide individually',  # 0
+                    lambda item: self.set_unknown_device_handling(0),
+                    checked= lambda item:self.get_unknown_device_handling(0),
+                    radio=True
+                ),
+                item(
+                    'Allow all',            # 1
+                    lambda item: self.set_unknown_device_handling(1),
+                    checked= lambda item:self.get_unknown_device_handling(1),
+                    radio=True
+                ),
+                item(
+                    'Block all',            # 2
+                    lambda item: self.set_unknown_device_handling(2),
+                    checked= lambda item:self.get_unknown_device_handling(2),
+                    radio=True
+                ),
                 menu.SEPARATOR,
                 item(
                     'Quit',
-                    lambda icon: self.onclick_quit())))
+                    lambda icon: self.onclick_quit()
+                )
+            )
+        )
 
-    def set_state(self, v):
-        def inner(icon, item):
-            self.ALGORITHM_STATE = v
-            print('Switching Algorithm to %s' % self.ALGORITHM_STATE)
-            Config.CURRENT_ALGORITHM = self.ALGORITHM_STATE
-        return inner
+    def toggle_full_screenshots_enabled(self):
+        Config.FULL_SCREENSHOTS_ENABLED = not Config.FULL_SCREENSHOTS_ENABLED
 
-    def get_state(self, v):
-        def inner(item):
-            return self.ALGORITHM_STATE == v
-        return inner
+    def set_unknown_device_handling(self, value):
+        Config.UNKNOWN_DEVICE_HANDLING = value
+
+    def get_unknown_device_handling(self, value):
+        return value == Config.UNKNOWN_DEVICE_HANDLING
 
     def get_icon(self):
         return Image.open(BytesIO(base64.b64decode(self.get_app_icon())))
