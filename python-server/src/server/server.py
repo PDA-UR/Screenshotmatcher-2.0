@@ -5,7 +5,6 @@ from flask import Flask, request, Response
 import common.log
 from common.config import Config
 from matching.matcher import Matcher
-from common.utility import get_current_ms
 from common.utility import get_current_ms, is_device_allowed
 
 class Server():
@@ -57,19 +56,21 @@ class Server():
         return {'feedbackPosted' : 'true'}
 
     def match_route(self):
-        # Check if this device is permitted to request
-        if not is_device_allowed():
-            return {"error" : "Permission denied."}
-
         # Create a logger for this match
         log = common.log.Logger()
         self.last_logs.insert(0, log)
         if len(self.last_logs) > self.MAX_LOGS:
             self.last_logs.pop()
+        log.value_pairs['ts_request_received'] = get_current_ms()
+
+        # convert the json data
+        r_json = request.json
+
+        # Check if this device is permitted to request
+        if not is_device_allowed(r_json.get("MAC_address")):
+            return {"error" : "Permission denied."}
 
         # Get the base64 string encoded photo
-        log.value_pairs['ts_request_received'] = get_current_ms()
-        r_json = request.json
         b64String = r_json.get('b64')
         log.value_pairs['ts_photo_received'] = get_current_ms()
         if b64String is None:
