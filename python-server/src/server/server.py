@@ -115,6 +115,9 @@ class Server():
 
     # Return a screenshot with the sae match_id as in the http POST request
     def screenshot_route(self):
+        if not Config.FULL_SCREENSHOTS_ENABLED:
+            response["result"] = "Full screenshots are disabled."
+
         match_id = request.json.get("match_id")
         if not match_id:
             response["result"] = 'No match-id given.'
