@@ -96,3 +96,5 @@ android/app/release/output-metadata.json
 android/app/build/outputs/apk/debug/output-metadata.json
 log-server/study_log.csv
 log-server/value_errors.txt
+python-server/src/blacklist.txt
+python-server/src/whitelist.txt

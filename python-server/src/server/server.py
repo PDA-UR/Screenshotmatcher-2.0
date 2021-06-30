@@ -65,9 +65,11 @@ class Server():
 
         # convert the json data
         r_json = request.json
-
+        
         # Check if this device is permitted to request
-        if not is_device_allowed(r_json.get("MAC_address")):
+        device_id = r_json.get("device_id")
+        device_name = r_json.get("device_name")
+        if not is_device_allowed(Config.UNKNOWN_DEVICE_HANDLING, device_id, device_name):
             return {"error" : "Permission denied."}
 
         # Get the base64 string encoded photo
