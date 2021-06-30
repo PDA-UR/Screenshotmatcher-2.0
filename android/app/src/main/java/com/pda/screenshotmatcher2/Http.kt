@@ -8,13 +8,13 @@ import android.util.Log
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.android.volley.Request
-import com.android.volley.RequestQueue
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.lang.reflect.InvocationTargetException
+import kotlin.collections.HashMap
 
 private const val LOG_DEST = "/logs"
 private const val MATCH_DEST = "/match"
@@ -38,7 +38,17 @@ fun sendBitmap(
         json.put(key.toString(), value.toString())
     }
     // keys: "algorithm", "ORB_nfeatures", "SURF_hessian_threshold"
+
+    // add the device name
+    json.put("device_name", getDeviceName())
+
+    // add device ID for verification
+    val id = getDeviceID(activity.applicationContext)
+    json.put("device_id", id)
+
+    // add the image
     json.put("b64", b64Image)
+
     val jsonOR = JsonObjectRequest(
         Request.Method.POST, serverURL + MATCH_DEST, json,
         { response ->
