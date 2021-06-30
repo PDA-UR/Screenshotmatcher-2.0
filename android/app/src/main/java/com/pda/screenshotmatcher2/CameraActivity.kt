@@ -117,9 +117,11 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         setContentView(R.layout.activity_camera)
         verifyPermissions(this)
         setupSharedPref()
+        createDeviceID(this)
         initViews()
         setViewListeners()
         initNetworkHandler()
+
         mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
 

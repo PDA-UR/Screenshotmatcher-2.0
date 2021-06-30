@@ -13,6 +13,7 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Base64
+import android.util.Log
 import androidx.core.app.ActivityCompat
 import java.io.File
 import java.io.FileOutputStream
@@ -20,9 +21,7 @@ import java.io.IOException
 import java.io.OutputStream
 import java.text.SimpleDateFormat
 import java.util.*
-
-
-const val IMG_DIR : String = "Pictures/ScreenshotMatcher"
+import kotlin.Exception
 
 private val PERMISSIONS = arrayOf<String>(
     Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -93,4 +92,26 @@ fun rotateBitmapAndAdjustRatio(bitmap: Bitmap, deg: Float): Bitmap{
     var mBitmap = Bitmap.createScaledBitmap(bitmap, height, width, false)
     mBitmap = Bitmap.createBitmap(mBitmap, 0, 0, height, width, Matrix().apply { postRotate(deg) }, true)
     return mBitmap
+}
+
+fun createDeviceID(context: Context) {
+    val prefs = context.getSharedPreferences("device_id", Context.MODE_PRIVATE)
+    val savedID = prefs.getString("ID", "")
+
+    // ensure we only create a new ID when the app is run for the very first time
+    if (!savedID.isNullOrEmpty()) return
+
+    val id = UUID.randomUUID().toString()
+    prefs.edit().putString("ID", id).apply()
+}
+
+fun getDeviceID(context: Context) : String{
+    val prefs = context.getSharedPreferences("device_id", Context.MODE_PRIVATE)
+    val savedID = prefs.getString("ID", "")
+    if(savedID.isNullOrEmpty()) {
+        throw Exception("device ID is NULL")
+    }
+    else {
+        return savedID
+    }
 }
