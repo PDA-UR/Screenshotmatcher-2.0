@@ -4,6 +4,8 @@ import os
 import tkinter as tk
 import tkinter.ttk as ttk
 
+user_response = ""
+
 def get_current_ms():
     return round(time.time() * 1000)
 
@@ -73,30 +75,28 @@ def is_device_in_list(device_id, filename):
     if not os.path.isfile(filename):
         return False
 
-    with open(filename, "w+") as f:
+    with open(filename, "r") as f:
         for line in f.readlines():
-            if line == device_id:
+            if line[:-1] == device_id:  # remove \n for comparison
                 return True
         return False
 
-def add_device_to_list(device_id, filename, user_response):
+def add_device_to_list(device_id, filename):
     if not os.path.isfile(filename):
         with open(filename, "w+") as f:
-            pass
+            f.write("# File must end with an empty line")
+            f.write("\n")
     
     with open(filename, "a+") as f:
-        f.write(device_id + "\n")
+            f.write(device_id)
+            f.write("\n")
 
-    if filename == "whitelist.txt":
-        user_response = "allow"
-    elif filename == "blacklist.txt":
-        user_response = "block"
-
-def set_user_response(var, val):
-    var = val
+def set_user_response(val):
+    global user_response
+    user_response = val
 
 def request_permission_for_device(device_id, device_name):
-    user_response = ""
+    set_user_response("")
     prompt_text = "The device \"{}\" is asking for permission to connect to ScreenshotMatcher.\n(ID: {})".format(device_name, device_id)
     ROOT = tk.Tk()
 
@@ -135,19 +135,30 @@ def request_permission_for_device(device_id, device_name):
     btn_allow = ttk.Button(
         button_frame,
         text="Allow",
-        command=add_device_to_list(device_id, "whitelist.txt", user_response),
+        command=lambda:[
+            add_device_to_list(device_id, "whitelist.txt"),
+            set_user_response("allow"),
+            ROOT.destroy()
+        ],
         style="Button.TButton"
     )
     btn_allow_once = ttk.Button(
         button_frame,
         text="Allow once",
-        command=set_user_response(user_response, "allow once"),
+        command=lambda:[
+            set_user_response("allow once"),
+            ROOT.destroy()
+        ],
         style="Button.TButton"
     )
     btn_block = ttk.Button(
         button_frame,
         text="Block",
-        command=add_device_to_list(device_id, "blacklist.txt", user_response),
+        command=lambda:[
+            add_device_to_list(device_id, "blacklist.txt"),
+            set_user_response("block"),
+            ROOT.destroy(),
+        ],
         style="Button.TButton"
     )
 
@@ -159,3 +170,5 @@ def request_permission_for_device(device_id, device_name):
     btn_block.pack(side="left", anchor="center", padx=5)
 
     ROOT.mainloop()
+
+    return user_response
