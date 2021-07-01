@@ -802,6 +802,11 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         Toast.makeText(this, getString(R.string.match_request_error_en), Toast.LENGTH_LONG).show()
     }
 
+    fun onPermissionDenied() {
+        isCapturing = false
+        Toast.makeText(this, "Permission denied from server.", Toast.LENGTH_LONG).show()
+    }
+
     private fun openSelectDeviceFragment(withTransition: Boolean = true) {
         mSettingsButton.visibility = View.INVISIBLE
 

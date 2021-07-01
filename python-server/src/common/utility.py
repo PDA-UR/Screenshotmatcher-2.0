@@ -88,8 +88,8 @@ def add_device_to_list(device_id, filename):
             f.write("\n")
     
     with open(filename, "a+") as f:
-            f.write(device_id)
-            f.write("\n")
+        f.write(device_id)
+        f.write("\n")
 
 def set_user_response(val):
     global user_response

@@ -348,7 +348,6 @@ class ResultsActivity : AppCompatActivity() {
     }
 
     private fun downloadFullScreenshotInThread() {
-        Log.d("FUG", "downloadFullScreenshot calling")
         Thread {
             downloadFullScreenshot(
                 matchID,
@@ -426,22 +425,29 @@ class ResultsActivity : AppCompatActivity() {
         val queue = Volley.newRequestQueue(context)
         val json = JSONObject()
         json.put("match_id", matchID)
-        Log.v("FUG", matchID)
         val jsonOR = JsonObjectRequest(
             Request.Method.POST, serverURL + SCREENSHOT_DEST, json,
             { response ->
-                Log.d("FUG", "response")
-                val b64String: String = response.get("result").toString()
-                screenshot = base64ToBitmap(b64String)
-                Log.v("FUG", screenshot.height.toString())
-                onScreenshotDownloaded(screenshot)
+                if(response.has("error")) {
+                    if(response.getString("error") == "disabled_by_host_error") {
+                        onFullScreenshotDenied()
+                    }
+                }
+                else {
+                    val b64String: String = response.get("result").toString()
+                    screenshot = base64ToBitmap(b64String)
+                    onScreenshotDownloaded(screenshot)
+                }
             },
             { error ->
-                Log.d("FUG", "error")
                 error.printStackTrace()
             })
 
         queue.add(jsonOR)
+    }
+
+    fun onFullScreenshotDenied() {
+        Toast.makeText(this, "Full screenshots not allowed by this PC.", Toast.LENGTH_LONG).show()
     }
 
     override fun onStop() {
