@@ -70,13 +70,14 @@ class Server():
         device_id = r_json.get("device_id")
         device_name = r_json.get("device_name")
         if not is_device_allowed(Config.UNKNOWN_DEVICE_HANDLING, device_id, device_name):
-            return {"error" : "Permission denied."}
+            error = {"error" : "permission_error"}
+            return Response(json.dumps(error), mimetype='application/json')
 
         # Get the base64 string encoded photo
         b64String = r_json.get('b64')
         log.value_pairs['ts_photo_received'] = get_current_ms()
         if b64String is None:
-            return {'error' : 'no base64 string attached.'}
+            return {'error' : 'missing_image_error'}
 
         # Create match uid
         uid = uuid.uuid4().hex
@@ -118,19 +119,19 @@ class Server():
 
     # Return a screenshot with the sae match_id as in the http POST request
     def screenshot_route(self):
-        if not Config.FULL_SCREENSHOTS_ENABLED:
-            response["result"] = "Full screenshots are disabled."
-
-        match_id = request.json.get("match_id")
-        if not match_id:
-            response["result"] = 'No match-id given.'
-
         response = {}
-        for entry in self.last_screenshots:
-            if entry[0] == match_id:
-                response["result"] = entry[1]
-                break
-        if not response.get("result"):
-            response["result"] = 'match-id not found among last matches'
+        if not Config.FULL_SCREENSHOTS_ENABLED:
+            response["error"] = "disabled_by_host_error"
+        else:
+            match_id = request.json.get("match_id")
+            if not match_id:
+                response["error"] = 'No match-id given.'
+            else:
+                for entry in self.last_screenshots:
+                    if entry[0] == match_id:
+                        response["result"] = entry[1]
+                        break
+                if not response.get("result"):
+                    response["error"] = 'match-id not found among last matches.'
 
         return Response(json.dumps(response), mimetype='application/json')
