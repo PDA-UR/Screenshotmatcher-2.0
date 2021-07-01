@@ -5,6 +5,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 
 user_response = ""
+prompt_open = False
 
 def get_current_ms():
     return round(time.time() * 1000)
@@ -66,10 +67,9 @@ def is_device_allowed(current_setting, device_id, device_name):
         return True
     if is_device_in_list(device_id, "blacklist.txt"):
         return False
-    if current_setting == 0:    # ask permission
+    if current_setting == 0 and not prompt_open:    # ask permission
         allowed = request_permission_for_device(device_id, device_name)
         return allowed
-    
 
 def is_device_in_list(device_id, filename):
     if not os.path.isfile(filename):
@@ -92,13 +92,16 @@ def add_device_to_list(device_id, filename):
         f.write("\n")
 
 def set_user_response(val):
-    global user_response
+    global user_response, prompt_open
     user_response = val
+    prompt_open = False
 
 def request_permission_for_device(device_id, device_name):
     set_user_response("")
     prompt_text = "The device \"{}\" is asking for permission to connect to ScreenshotMatcher.\n(ID: {})".format(device_name, device_id)
     ROOT = tk.Tk()
+    global prompt_open
+    prompt_open = True
 
     style = ttk.Style()
     style.theme_use("vista")
