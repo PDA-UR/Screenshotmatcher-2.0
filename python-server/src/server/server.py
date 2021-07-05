@@ -5,7 +5,7 @@ from flask import Flask, request, Response
 import common.log
 from common.config import Config
 from matching.matcher import Matcher
-from common.utility import get_current_ms, is_device_allowed
+from common.utility import get_current_ms, is_device_allowed, request_permission_for_device
 
 class Server():
     def __init__(self):
@@ -22,6 +22,7 @@ class Server():
             '/match', 'match', self.match_route, methods=['POST'])
         self.app.add_url_rule('/logs', 'logs', self.log_route, methods=['POST'])
         self.app.add_url_rule('/screenshot', 'screenshot', self.screenshot_route, methods=['POST'])
+        self.app.add_url_rule('/permission', 'permission', self.permission_route, methods=['POST'])
 
     def start(self):
         self.app.run(host=Config.HOST, port=Config.PORT, threaded=True)
@@ -66,11 +67,15 @@ class Server():
         # convert the json data
         r_json = request.json
         
-        # Check if this device is permitted to request
+        # Check if this device is permitted to request a match
+        # let the client send a request to /permission if it's not black- or whitelisted
         device_id = r_json.get("device_id")
         device_name = r_json.get("device_name")
-        if not is_device_allowed(Config.UNKNOWN_DEVICE_HANDLING, device_id, device_name):
-            error = {"error" : "permission_error"}
+        if is_device_allowed(Config.UNKNOWN_DEVICE_HANDLING, device_id, device_name) == -1:
+            error = {"error" : "permission_denied"}
+            return Response(json.dumps(error), mimetype='application/json')
+        elif is_device_allowed(Config.UNKNOWN_DEVICE_HANDLING, device_id, device_name) == 0:
+            error = {"error" : "permission_required"}
             return Response(json.dumps(error), mimetype='application/json')
 
         # Get the base64 string encoded photo
@@ -133,5 +138,21 @@ class Server():
                         break
                 if not response.get("result"):
                     response["error"] = 'match-id not found among last matches.'
+
+        return Response(json.dumps(response), mimetype='application/json')
+
+    def permission_route(self):        
+        device_id = request.json.get("device_id")
+        device_name = request.json.get("device_name")
+        if not device_id or not device_name:
+            error = {"error" : "data_error"}
+            return Response(json.dumps(error), mimetype='application/json')
+
+        user_response = request_permission_for_device(device_id, device_name)
+        response = {}
+        if user_response == "allow" or user_response == "allow once":
+            reponse["response"] = "permission_granted"
+        else:
+            reponse["response"] = "permission_denied"
 
         return Response(json.dumps(response), mimetype='application/json')
