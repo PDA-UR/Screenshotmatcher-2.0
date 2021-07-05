@@ -60,16 +60,14 @@ def ask_for_id():
 
 def is_device_allowed(current_setting, device_id, device_name):
     if current_setting == 1:    # allow all
-        return True
+        return 1
     if current_setting == 2:    # block all
-        return False
+        return -1
     if is_device_in_list(device_id, "whitelist.txt"):
-        return True
+        return 1
     if is_device_in_list(device_id, "blacklist.txt"):
-        return False
-    if current_setting == 0 and not prompt_open:    # ask permission
-        allowed = request_permission_for_device(device_id, device_name)
-        return allowed
+        return -1
+    else return 0   # client needs to request permission
 
 def is_device_in_list(device_id, filename):
     if not os.path.isfile(filename):
@@ -97,10 +95,13 @@ def set_user_response(val):
     prompt_open = False
 
 def request_permission_for_device(device_id, device_name):
+    global prompt_open
+    if prompt_open or current_setting != 0:
+        return ""
+
     set_user_response("")
     prompt_text = "The device \"{}\" is asking for permission to connect to ScreenshotMatcher.\n(ID: {})".format(device_name, device_id)
     ROOT = tk.Tk()
-    global prompt_open
     prompt_open = True
 
     style = ttk.Style()

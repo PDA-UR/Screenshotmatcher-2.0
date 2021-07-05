@@ -22,6 +22,7 @@ private const val MATCH_DEST = "/match"
 const val SCREENSHOT_DEST = "/screenshot"
 private const val FEEDBACK_DEST = "/feedback"
 private const val HEARTBEAT_DEST = "/heartbeat"
+private const val PERMISSION_DEST = "/permission"
 
 fun sendBitmap(
     bitmap: Bitmap,
@@ -58,6 +59,14 @@ fun sendBitmap(
                 if(activity is CameraActivity && response.getString("error") == "permission_error") {
                     activity.onPermissionDenied()
                 }
+                else if(response.getString("error") == "permission_required") {
+                    requestPermission(
+                        bitmap,
+                        serverURL,
+                        activity,
+                        matchingOptions
+                    )
+                }
             }
             else if (response.get("hasResult").toString() != "false") {
                 StudyLogger.hashMap["match_id"] = response.get("uid").toString()
@@ -88,11 +97,6 @@ fun sendBitmap(
 
         })
 
-    jsonOR.retryPolicy = DefaultRetryPolicy(
-        30000,
-        0,
-        0F
-    )
     StudyLogger.hashMap["tc_http_request"] = System.currentTimeMillis()
     queue.add(jsonOR)
 
@@ -163,5 +167,51 @@ fun sendFeedbackToServer(
             error.printStackTrace()
         }
     )
+    queue.add(jsonObjectRequest)
+}
+
+fun requestPermission(
+    bitmap: Bitmap,
+    serverURL: String,
+    activity: Activity,
+    matchingOptions: HashMap<Any?, Any?>? = null
+){
+    // Instantiate the RequestQueue.
+    val queue = Volley.newRequestQueue(activity.applicationContext)
+    val json = JSONObject()
+    json.put("device_id", getDeviceID(activity.applicationContext))
+    json.put("device_name", getDeviceName())
+
+    val jsonObjectRequest = JsonObjectRequest(Request.Method.POST, serverURL + PERMISSION_DEST, json,
+        { response ->
+            if (response.get("response") == "permission_granted") {
+                sendBitmap(
+                    bitmap,
+                    serverURL,
+                    activity,
+                    matchingOptions
+                )
+            }
+            else if(response.get("response") == "permission_denied") {
+                if(activity is CameraActivity && response.getString("error") == "permission_error") {
+                    activity.onPermissionDenied()
+                }
+            }
+        },
+        { error ->
+            if(error.networkResponse == null) {
+                Toast.makeText(activity.applicationContext, "Permission request timeout", Toast.LENGTH_LONG).show()
+            }
+            else{
+                error.printStackTrace()
+            }
+        }
+    )
+    jsonObjectRequest.retryPolicy = DefaultRetryPolicy(
+        20000,
+        1,
+        2.0F
+    )
+    // Add the request to the RequestQueue.
     queue.add(jsonObjectRequest)
 }
