@@ -5,7 +5,7 @@ from flask import Flask, request, Response
 import common.log
 from common.config import Config
 from matching.matcher import Matcher
-from common.utility import get_current_ms, is_device_allowed, request_permission_for_device
+from common.utility import get_current_ms, is_device_allowed, request_permission_for_device, create_single_match_token
 
 class Server():
     def __init__(self):
@@ -71,10 +71,13 @@ class Server():
         # let the client send a request to /permission if it's not black- or whitelisted
         device_id = r_json.get("device_id")
         device_name = r_json.get("device_name")
-        if is_device_allowed(Config.UNKNOWN_DEVICE_HANDLING, device_id, device_name) == -1:
+        permission_token = r_json.get("permission_token")
+        if is_device_allowed(Config.UNKNOWN_DEVICE_HANDLING, device_id, device_name, permission_token) == 1:
+            pass
+        elif is_device_allowed(Config.UNKNOWN_DEVICE_HANDLING, device_id, device_name, permission_token) == -1:
             error = {"error" : "permission_denied"}
             return Response(json.dumps(error), mimetype='application/json')
-        elif is_device_allowed(Config.UNKNOWN_DEVICE_HANDLING, device_id, device_name) == 0:
+        elif is_device_allowed(Config.UNKNOWN_DEVICE_HANDLING, device_id, device_name, permission_token) == 0:
             error = {"error" : "permission_required"}
             return Response(json.dumps(error), mimetype='application/json')
 
@@ -141,7 +144,7 @@ class Server():
 
         return Response(json.dumps(response), mimetype='application/json')
 
-    def permission_route(self):        
+    def permission_route(self):
         device_id = request.json.get("device_id")
         device_name = request.json.get("device_name")
         if not device_id or not device_name:
@@ -150,9 +153,13 @@ class Server():
 
         user_response = request_permission_for_device(device_id, device_name)
         response = {}
-        if user_response == "allow" or user_response == "allow once":
-            reponse["response"] = "permission_granted"
+        if user_response == "allow once":
+            permission_token = create_single_match_token()
+            response["response"] = "permission_granted"
+            response["permission_token"] = permission_token
+        elif user_response == "allow":
+            response["response"] = "permission_granted"
         else:
-            reponse["response"] = "permission_denied"
+            response["response"] = "permission_denied"
 
         return Response(json.dumps(response), mimetype='application/json')

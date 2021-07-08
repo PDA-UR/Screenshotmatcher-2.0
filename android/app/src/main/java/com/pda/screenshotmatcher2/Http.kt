@@ -28,8 +28,9 @@ fun sendBitmap(
     bitmap: Bitmap,
     serverURL: String,
     activity: Activity,
-    matchingOptions: HashMap<Any?, Any?>? = null
-){
+    matchingOptions: HashMap<Any?, Any?>? = null,
+    permissionToken: String = "",
+    ){
     val baos = ByteArrayOutputStream()
     bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
     val b64Image = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT)
@@ -47,6 +48,10 @@ fun sendBitmap(
     // add device ID for verification
     val id = getDeviceID(activity.applicationContext)
     json.put("device_id", id)
+
+    if(permissionToken.isNotEmpty()) {
+        json.put("permission_token", permissionToken)
+    }
 
     // add the image
     json.put("b64", b64Image)
@@ -185,17 +190,26 @@ fun requestPermission(
     val jsonObjectRequest = JsonObjectRequest(Request.Method.POST, serverURL + PERMISSION_DEST, json,
         { response ->
             if (response.get("response") == "permission_granted") {
-                sendBitmap(
-                    bitmap,
-                    serverURL,
-                    activity,
-                    matchingOptions
-                )
-            }
-            else if(response.get("response") == "permission_denied") {
-                if(activity is CameraActivity && response.getString("error") == "permission_error") {
-                    activity.onPermissionDenied()
+                if(response.has("permission_token")) {
+                    sendBitmap(
+                        bitmap,
+                        serverURL,
+                        activity,
+                        matchingOptions,
+                        permissionToken = response.getString("permission_token")
+                    )
                 }
+                else {
+                    sendBitmap(
+                        bitmap,
+                        serverURL,
+                        activity,
+                        matchingOptions
+                    )
+                }
+            }
+            else if(response.get("response") == "permission_denied" && activity is CameraActivity) {
+                activity.onPermissionDenied()
             }
         },
         { error ->
