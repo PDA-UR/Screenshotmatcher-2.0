@@ -1,11 +1,15 @@
 import time
 import socket
 import os
+import threading
+import uuid
 import tkinter as tk
 import tkinter.ttk as ttk
 
 user_response = ""
 prompt_open = False
+permission_tokens = []
+TOKEN_TIMEOUT_S = 60
 
 def get_current_ms():
     return round(time.time() * 1000)
@@ -58,7 +62,7 @@ def ask_for_id():
 
     return _input
 
-def is_device_allowed(current_setting, device_id, device_name):
+def is_device_allowed(current_setting, device_id, device_name, token):
     if current_setting == 1:    # allow all
         return 1
     if current_setting == 2:    # block all
@@ -67,7 +71,10 @@ def is_device_allowed(current_setting, device_id, device_name):
         return 1
     if is_device_in_list(device_id, "blacklist.txt"):
         return -1
-    else return 0   # client needs to request permission
+    if token in permission_tokens:
+        permission_tokens.remove(token)
+        return 1
+    return 0   # client needs to request permission
 
 def is_device_in_list(device_id, filename):
     if not os.path.isfile(filename):
@@ -96,7 +103,7 @@ def set_user_response(val):
 
 def request_permission_for_device(device_id, device_name):
     global prompt_open
-    if prompt_open or current_setting != 0:
+    if prompt_open:
         return ""
 
     set_user_response("")
@@ -176,3 +183,20 @@ def request_permission_for_device(device_id, device_name):
     ROOT.mainloop()
 
     return user_response
+
+def create_single_match_token():
+    token = uuid.uuid4().hex
+    global permission_tokens
+    permission_tokens.append(token)
+    t_token = threading.Thread(target=set_token_timeout, args=(token, ))
+    t_token.start()
+    return token
+
+# remove the token after a certain amount of time has passed
+def set_token_timeout(token):
+    global permission_tokens
+    time.sleep(TOKEN_TIMEOUT_S)
+    try:
+        permission_tokens.remove(token)
+    except ValueError:
+        pass
