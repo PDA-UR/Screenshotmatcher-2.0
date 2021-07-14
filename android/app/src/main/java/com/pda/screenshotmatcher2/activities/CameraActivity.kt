@@ -1,4 +1,4 @@
-package com.pda.screenshotmatcher2
+package com.pda.screenshotmatcher2.activities
 
 import android.Manifest
 import android.app.Activity
@@ -14,7 +14,6 @@ import android.hardware.SensorManager
 import android.hardware.camera2.*
 import android.media.ImageReader
 import android.os.*
-import android.util.Log
 import android.util.Size
 import android.view.*
 import android.widget.FrameLayout
@@ -27,6 +26,13 @@ import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import androidx.preference.PreferenceManager
+import com.pda.screenshotmatcher2.*
+import com.pda.screenshotmatcher2.fragments.*
+import com.pda.screenshotmatcher2.helpers.*
+import com.pda.screenshotmatcher2.logger.StudyLogger
+import com.pda.screenshotmatcher2.network.discoverServersOnNetwork
+import com.pda.screenshotmatcher2.network.sendBitmap
+import com.pda.screenshotmatcher2.network.sendHeartbeatRequest
 import java.io.File
 import java.util.*
 import java.util.concurrent.Semaphore
@@ -153,7 +159,10 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         val heartbeatRunnable = object: Runnable {
             override fun run() {
                 if (isConnectedToServer && mServerURL != ""){
-                    sendHeartbeatRequest(mServerURL, a)
+                    sendHeartbeatRequest(
+                        mServerURL,
+                        a
+                    )
                 }
                 mHandler?.postDelayed(this, 5000)
             }
@@ -585,22 +594,34 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             return when {
                 bigEnough.size > 0 -> {
                     sp.edit()
-                        .putInt(keyWidth, Collections.min(bigEnough, CompareSizesByArea()).width)
+                        .putInt(keyWidth, Collections.min(bigEnough,
+                            CompareSizesByArea()
+                        ).width)
                         .apply()
                     sp.edit()
-                        .putInt(keyHeight, Collections.min(bigEnough, CompareSizesByArea()).height)
+                        .putInt(keyHeight, Collections.min(bigEnough,
+                            CompareSizesByArea()
+                        ).height)
                         .apply()
-                    Collections.min(bigEnough, CompareSizesByArea())
+                    Collections.min(bigEnough,
+                        CompareSizesByArea()
+                    )
                 }
                 notBigEnough.size > 0 -> {
                     sp.edit()
-                        .putInt(keyWidth, Collections.max(notBigEnough, CompareSizesByArea()).width)
+                        .putInt(keyWidth, Collections.max(notBigEnough,
+                            CompareSizesByArea()
+                        ).width)
                         .apply()
                     sp.edit().putInt(
                         keyHeight,
-                        Collections.max(notBigEnough, CompareSizesByArea()).height
+                        Collections.max(notBigEnough,
+                            CompareSizesByArea()
+                        ).height
                     ).apply()
-                    Collections.max(notBigEnough, CompareSizesByArea())
+                    Collections.max(notBigEnough,
+                        CompareSizesByArea()
+                    )
                 }
                 else -> {
                     choices[0]
@@ -661,17 +682,38 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         // screen rotated
         if (screenOrientation != Surface.ROTATION_0 && mBitmap != null) {
             when (screenOrientation) {
-                Surface.ROTATION_90 -> mBitmap = rotateBitmapAndAdjustRatio(mBitmap, -90F)
-                Surface.ROTATION_270 -> mBitmap = rotateBitmapAndAdjustRatio(mBitmap, 90F)
-                Surface.ROTATION_180 -> mBitmap = rotateBitmap(mBitmap, 180F)
+                Surface.ROTATION_90 -> mBitmap =
+                    rotateBitmapAndAdjustRatio(
+                        mBitmap,
+                        -90F
+                    )
+                Surface.ROTATION_270 -> mBitmap =
+                    rotateBitmapAndAdjustRatio(
+                        mBitmap,
+                        90F
+                    )
+                Surface.ROTATION_180 -> mBitmap =
+                    rotateBitmap(
+                        mBitmap,
+                        180F
+                    )
             }
         }
         // screen rotation locked, but physical phone rotated
         else if(screenOrientation == Surface.ROTATION_0 && phoneOrientation != Surface.ROTATION_0 && mBitmap != null){
             when(phoneOrientation){
-                Surface.ROTATION_90 -> mBitmap = rotateBitmap(mBitmap, -90F)
-                Surface.ROTATION_270 -> mBitmap = rotateBitmap(mBitmap, 90F)
-                Surface.ROTATION_180 -> mBitmap = rotateBitmap(mBitmap, 180F)
+                Surface.ROTATION_90 -> mBitmap =
+                    rotateBitmap(
+                        mBitmap,
+                        -90F
+                    )
+                Surface.ROTATION_270 -> mBitmap =
+                    rotateBitmap(mBitmap, 90F)
+                Surface.ROTATION_180 -> mBitmap =
+                    rotateBitmap(
+                        mBitmap,
+                        180F
+                    )
             }
         }
 
@@ -679,9 +721,18 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             if (mServerURL != ""){
                 StudyLogger.hashMap["tc_image_captured"] = System.currentTimeMillis()   // image is in memory
                 StudyLogger.hashMap["long_side"] = IMG_TARGET_SIZE
-                val greyImg = rescale(mBitmap, IMG_TARGET_SIZE)
+                val greyImg =
+                    rescale(
+                        mBitmap,
+                        IMG_TARGET_SIZE
+                    )
                 val matchingOptions: HashMap<Any?, Any?>? = getMatchingOptionsFromPref()
-                sendBitmap(greyImg, mServerURL, this, matchingOptions)
+                sendBitmap(
+                    greyImg,
+                    mServerURL,
+                    this,
+                    matchingOptions
+                )
             } else {
                 onMatchRequestError()
             }
@@ -692,7 +743,12 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     private fun getServerURL() {
         Thread {
-            mServerUrlList = discoverServersOnNetwork(this, 49050, "")
+            mServerUrlList =
+                discoverServersOnNetwork(
+                    this,
+                    49050,
+                    ""
+                )
         }.start()
     }
 
@@ -789,7 +845,9 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             putExtra("ServerURL", mServerURL)
 //            putExtra("DownloadID", downloadID)
         }
-        startActivityForResult(intent, RESULT_ACTIVITY_REQUEST_CODE)
+        startActivityForResult(intent,
+            RESULT_ACTIVITY_REQUEST_CODE
+        )
     }
 
     fun onMatchResult(matchID: String, img: ByteArray) {
@@ -812,7 +870,8 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
         mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_close_48))
 
-        val selectDeviceFragment = SelectDeviceFragment()
+        val selectDeviceFragment =
+            SelectDeviceFragment()
         if (withTransition) {
             this.supportFragmentManager
                 .beginTransaction()
@@ -853,7 +912,8 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun openSettings() {
-        val settingsFragment = SettingsFragment()
+        val settingsFragment =
+            SettingsFragment()
 
         this.supportFragmentManager
             .beginTransaction()
@@ -864,7 +924,8 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun openGallery(withTransition: Boolean = true, savedImageFiles: File? = null) {
-        val galleryFragment = GalleryFragment()
+        val galleryFragment =
+            GalleryFragment()
 
         if (withTransition){
             this.supportFragmentManager
@@ -883,7 +944,8 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     }
 
     fun openPreviewFragment(firstImage: File?, secondImage: File?, withTransition: Boolean = true) {
-        val previewFragment = GalleryPreviewFragment()
+        val previewFragment =
+            GalleryPreviewFragment()
 
         val bundle = Bundle()
         bundle.putSerializable(FIRST_IMAGE_KEY, firstImage)

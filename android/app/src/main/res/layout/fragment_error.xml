@@ -9,7 +9,7 @@
     android:orientation="vertical"
     android:padding="10dp"
     android:tag="errorFragment"
-    tools:context=".ErrorFragment">
+    tools:context=".fragments.ErrorFragment">
 
     <TextView
         android:id="@+id/ef_no_match_text_view"

@@ -20,11 +20,11 @@
         android:theme="@style/Theme.AppCompat.Light.NoActionBar"
         tools:targetApi="n">
 
-        <activity android:name=".ResultsActivity"
+        <activity android:name=".activities.ResultsActivity"
             android:configChanges="orientation"
             android:screenOrientation="portrait">
         </activity>
-        <activity android:name=".CameraActivity"
+        <activity android:name=".activities.CameraActivity"
             android:screenOrientation="portrait"
             android:configChanges="orientation|keyboardHidden">
             <intent-filter>

@@ -1,21 +1,23 @@
-package com.pda.screenshotmatcher2
+package com.pda.screenshotmatcher2.fragments
 
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageView
-import androidx.constraintlayout.widget.Placeholder
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import com.bumptech.glide.Glide
+import com.pda.screenshotmatcher2.R
+import com.pda.screenshotmatcher2.logger.StudyLogger
+import com.pda.screenshotmatcher2.activities.RESULT_ACTIVITY_REQUEST_CODE
+import com.pda.screenshotmatcher2.activities.ResultsActivity
+import com.pda.screenshotmatcher2.network.sendLog
 
 
 const val UID_KEY: String = "UID"
@@ -44,7 +46,9 @@ class ErrorFragment : Fragment() {
             uid = bundle.getString(UID_KEY, "undefined")
             url = bundle.getString(URL_KEY, "undefined")
             if (bundle.getParcelable<Bitmap>("bmp") == null){
-                bmp = BitmapFactory.decodeResource(context?.resources, R.drawable.ic_comic_characters_sad)
+                bmp = BitmapFactory.decodeResource(context?.resources,
+                    R.drawable.ic_comic_characters_sad
+                )
             } else {
                 bmp = bundle.getParcelable<Bitmap>("bmp")!!
             }
@@ -77,12 +81,15 @@ class ErrorFragment : Fragment() {
         val intent = Intent(activity, ResultsActivity::class.java)
         intent.putExtra("matchID", uid)
         intent.putExtra("ServerURL", url)
-        activity?.startActivityForResult(intent, RESULT_ACTIVITY_REQUEST_CODE)
+        activity?.startActivityForResult(intent,
+            RESULT_ACTIVITY_REQUEST_CODE
+        )
         removeThisFragment()
     }
 
     private fun openFeedbackFragment() {
-        val feedbackFragment = FeedbackFragment()
+        val feedbackFragment =
+            FeedbackFragment()
 
         val bundle = Bundle()
         bundle.putString(UID_KEY, uid)

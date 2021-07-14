@@ -1,4 +1,4 @@
-package com.pda.screenshotmatcher2
+package com.pda.screenshotmatcher2.logger
 
 // singleton
 object StudyLogger {

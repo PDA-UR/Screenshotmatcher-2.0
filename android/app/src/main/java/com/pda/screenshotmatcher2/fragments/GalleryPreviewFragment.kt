@@ -1,4 +1,4 @@
-package com.pda.screenshotmatcher2
+package com.pda.screenshotmatcher2.fragments
 
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -6,7 +6,6 @@ import android.content.pm.ResolveInfo
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.provider.MediaStore
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,6 +19,9 @@ import androidx.core.app.ShareCompat
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
+import com.pda.screenshotmatcher2.BuildConfig
+import com.pda.screenshotmatcher2.R
+import com.pda.screenshotmatcher2.activities.CameraActivity
 import java.io.File
 
 const val FIRST_IMAGE_KEY: String = "FIRST_IMAGE"
@@ -120,7 +122,9 @@ class GalleryPreviewFragment : Fragment() {
         when (mPillNavigationState) {
             -1 -> {
                 //Switch to cropped screenshot
-                mPillNavigationButton2.setBackgroundColor(requireActivity().getColor(R.color.invisible))
+                mPillNavigationButton2.setBackgroundColor(requireActivity().getColor(
+                    R.color.invisible
+                ))
                 mPillNavigationButton1.background =
                     resources.getDrawable(R.drawable.pill_navigation_selected_item)
                 if (numberOfAvailableImages == 2) {
@@ -134,7 +138,9 @@ class GalleryPreviewFragment : Fragment() {
             }
             1 -> {
                 //Switch to full screenshot
-                mPillNavigationButton1.setBackgroundColor(requireActivity().getColor(R.color.invisible))
+                mPillNavigationButton1.setBackgroundColor(requireActivity().getColor(
+                    R.color.invisible
+                ))
                 mPillNavigationButton2.background =
                     resources.getDrawable(R.drawable.pill_navigation_selected_item)
                 if (numberOfAvailableImages == 2) {

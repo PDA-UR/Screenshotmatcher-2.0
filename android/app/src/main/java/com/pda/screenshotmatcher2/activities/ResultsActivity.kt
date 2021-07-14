@@ -1,11 +1,8 @@
-package com.pda.screenshotmatcher2
+package com.pda.screenshotmatcher2.activities
 
 import android.app.Activity
-import android.app.DownloadManager
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.graphics.Bitmap
@@ -24,9 +21,15 @@ import androidx.appcompat.widget.AppCompatImageButton
 import androidx.core.app.ShareCompat
 import androidx.core.content.FileProvider.getUriForFile
 import com.android.volley.Request
-import com.android.volley.RequestQueue
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
+import com.pda.screenshotmatcher2.*
+import com.pda.screenshotmatcher2.helpers.base64ToBitmap
+import com.pda.screenshotmatcher2.helpers.getDateString
+import com.pda.screenshotmatcher2.helpers.saveBitmapToFile
+import com.pda.screenshotmatcher2.logger.StudyLogger
+import com.pda.screenshotmatcher2.network.SCREENSHOT_DEST
+import com.pda.screenshotmatcher2.network.sendLog
 import org.json.JSONObject
 import java.io.File
 
@@ -333,7 +336,10 @@ class ResultsActivity : AppCompatActivity() {
                 getExternalFilesDir(Environment.DIRECTORY_PICTURES),
                 lastDateTime + "_Cropped.png"
             )
-            saveBitmapToFile(mCroppedImageFile, mCroppedScreenshot)
+            saveBitmapToFile(
+                mCroppedImageFile,
+                mCroppedScreenshot
+            )
         }
     }
 
@@ -343,7 +349,10 @@ class ResultsActivity : AppCompatActivity() {
                 getExternalFilesDir(Environment.DIRECTORY_PICTURES),
                 lastDateTime + "_Full.png"
             )
-            saveBitmapToFile(mFullImageFile, mFullScreenshot)
+            saveBitmapToFile(
+                mFullImageFile,
+                mFullScreenshot
+            )
         }
     }
 
@@ -435,7 +444,10 @@ class ResultsActivity : AppCompatActivity() {
                 }
                 else {
                     val b64String: String = response.get("result").toString()
-                    screenshot = base64ToBitmap(b64String)
+                    screenshot =
+                        base64ToBitmap(
+                            b64String
+                        )
                     onScreenshotDownloaded(screenshot)
                 }
             },

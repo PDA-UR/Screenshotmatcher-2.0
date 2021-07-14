@@ -1,10 +1,7 @@
-package com.pda.screenshotmatcher2
+package com.pda.screenshotmatcher2.fragments
 
 import android.content.Context
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,6 +9,9 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
+import com.pda.screenshotmatcher2.R
+import com.pda.screenshotmatcher2.logger.StudyLogger
+import com.pda.screenshotmatcher2.network.sendFeedbackToServer
 
 
 //Views
@@ -71,13 +71,17 @@ class FeedbackFragment : Fragment() {
     }
 
     private fun initViews(){
-        layout = activity?.findViewById(R.id.ff_linearLayout)!!
+        layout = activity?.findViewById(
+            R.id.ff_linearLayout
+        )!!
         layout.setOnClickListener {
             if (isKeyboardActive()){
                 dismissKeyboard()
             }
         }
-        mFragmentBackground = activity?.findViewById(R.id.ca_dark_background)!!
+        mFragmentBackground = activity?.findViewById(
+            R.id.ca_dark_background
+        )!!
         mFragmentBackground.setOnClickListener {
             if (isKeyboardActive()){
                 dismissKeyboard()
@@ -86,10 +90,18 @@ class FeedbackFragment : Fragment() {
             }
         }
         mFragmentBackground.visibility = View.VISIBLE
-        mTextInputField = activity?.findViewById(R.id.ff_text_input)!!
-        mSendFeedbackButton = activity?.findViewById(R.id.ff_send_feedback_button)!!
+        mTextInputField = activity?.findViewById(
+            R.id.ff_text_input
+        )!!
+        mSendFeedbackButton = activity?.findViewById(
+            R.id.ff_send_feedback_button
+        )!!
         mSendFeedbackButton.setOnClickListener {
-            sendFeedbackToServer(this, requireActivity().applicationContext, url, uid,
+            sendFeedbackToServer(
+                this,
+                requireActivity().applicationContext,
+                url,
+                uid,
                 hasResult = false,
                 hasScreenshot = false,
                 comment = getInputTextFieldText()

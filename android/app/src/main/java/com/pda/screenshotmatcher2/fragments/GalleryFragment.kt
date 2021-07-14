@@ -1,4 +1,4 @@
-package com.pda.screenshotmatcher2
+package com.pda.screenshotmatcher2.fragments
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -9,6 +9,9 @@ import android.widget.GridView
 import android.widget.ImageButton
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
+import com.pda.screenshotmatcher2.views.GridBaseAdapter
+import com.pda.screenshotmatcher2.R
+import com.pda.screenshotmatcher2.activities.CameraActivity
 import java.io.File
 
 class GalleryFragment : Fragment() {
@@ -65,7 +68,8 @@ class GalleryFragment : Fragment() {
         mFragmentBackground.setOnClickListener { removeThisFragment(true) }
         mFragmentBackground.visibility = View.VISIBLE
         mGridView = activity?.findViewById(R.id.gallery_fragment_gridview)!!
-        adapter = GridBaseAdapter(requireContext())
+        adapter =
+            GridBaseAdapter(requireContext())
         mGridView.adapter = adapter
         mBackButton = activity?.findViewById(R.id.gallery_fragment_back_button)!!
         mBackButton.setOnClickListener {
