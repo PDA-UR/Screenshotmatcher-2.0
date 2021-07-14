@@ -28,6 +28,8 @@ import androidx.fragment.app.FragmentTransaction
 import androidx.preference.PreferenceManager
 import com.pda.screenshotmatcher2.*
 import com.pda.screenshotmatcher2.fragments.*
+import com.pda.screenshotmatcher2.fragments.rotationFragments.GalleryFragment
+import com.pda.screenshotmatcher2.fragments.rotationFragments.SelectDeviceFragment
 import com.pda.screenshotmatcher2.helpers.*
 import com.pda.screenshotmatcher2.logger.StudyLogger
 import com.pda.screenshotmatcher2.network.discoverServersOnNetwork
