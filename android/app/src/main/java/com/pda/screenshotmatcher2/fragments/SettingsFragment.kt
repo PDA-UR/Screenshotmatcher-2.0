@@ -1,4 +1,4 @@
-package com.pda.screenshotmatcher2
+package com.pda.screenshotmatcher2.fragments
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -8,6 +8,7 @@ import android.widget.FrameLayout
 import androidx.cardview.widget.CardView
 import androidx.fragment.app.FragmentTransaction
 import androidx.preference.PreferenceFragmentCompat
+import com.pda.screenshotmatcher2.R
 
 class SettingsFragment : PreferenceFragmentCompat() {
 

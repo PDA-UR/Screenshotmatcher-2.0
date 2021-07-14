@@ -1,4 +1,4 @@
-package com.pda.screenshotmatcher2
+package com.pda.screenshotmatcher2.helpers
 
 import android.graphics.*
 import androidx.core.graphics.scale

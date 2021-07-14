@@ -1,4 +1,4 @@
-package com.pda.screenshotmatcher2
+package com.pda.screenshotmatcher2.network
 
 import android.app.Activity
 import android.content.Context
@@ -12,6 +12,12 @@ import com.android.volley.Request
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
+import com.pda.screenshotmatcher2.R
+import com.pda.screenshotmatcher2.logger.StudyLogger
+import com.pda.screenshotmatcher2.activities.CameraActivity
+import com.pda.screenshotmatcher2.fragments.FeedbackFragment
+import com.pda.screenshotmatcher2.helpers.getDeviceID
+import com.pda.screenshotmatcher2.helpers.getDeviceName
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.lang.reflect.InvocationTargetException
@@ -46,7 +52,8 @@ fun sendBitmap(
     json.put("device_name", getDeviceName())
 
     // add device ID for verification
-    val id = getDeviceID(activity.applicationContext)
+    val id =
+        getDeviceID(activity.applicationContext)
     json.put("device_id", id)
 
     if(permissionToken.isNotEmpty()) {
@@ -184,7 +191,9 @@ fun requestPermission(
     // Instantiate the RequestQueue.
     val queue = Volley.newRequestQueue(activity.applicationContext)
     val json = JSONObject()
-    json.put("device_id", getDeviceID(activity.applicationContext))
+    json.put("device_id",
+        getDeviceID(activity.applicationContext)
+    )
     json.put("device_name", getDeviceName())
 
     val jsonObjectRequest = JsonObjectRequest(Request.Method.POST, serverURL + PERMISSION_DEST, json,

@@ -1,9 +1,9 @@
-package com.pda.screenshotmatcher2
+package com.pda.screenshotmatcher2.network
 
 import android.content.Context
 import android.net.wifi.WifiManager
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import com.pda.screenshotmatcher2.activities.CameraActivity
 import java.io.IOException
 import java.net.*
 import kotlin.jvm.Throws
@@ -21,7 +21,9 @@ fun discoverServersOnNetwork(context: Context, port: Int = 49050, message: Strin
     }
     val bufS = message.toByteArray()   //send
     val bufR = ByteArray(1024)    //receive
-    val bcAddress = getBroadcastAddress(context) ?: return emptyList()
+    val bcAddress = getBroadcastAddress(
+        context
+    ) ?: return emptyList()
     val packetS = DatagramPacket(bufS, bufS.size, bcAddress, port)
     val packetR = DatagramPacket(bufR, bufR.size)
     val serverList = mutableListOf<Pair<String, String>>()
