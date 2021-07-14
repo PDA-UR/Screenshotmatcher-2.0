@@ -15,15 +15,15 @@ import com.pda.screenshotmatcher2.network.sendFeedbackToServer
 
 
 //Views
-lateinit var layout: LinearLayout
-lateinit var containerView: FrameLayout
-lateinit var mFragmentBackground: FrameLayout
-lateinit var mSendFeedbackButton: Button
-lateinit var mTextInputField: EditText
+private lateinit var layout: LinearLayout
+private lateinit var containerView: FrameLayout
+private lateinit var mFragmentBackground: FrameLayout
+private lateinit var mSendFeedbackButton: Button
+private lateinit var mTextInputField: EditText
 
 //Server info
-lateinit var uid: String
-lateinit var url: String
+private lateinit var uid: String
+private lateinit var url: String
 
 var removeForRotation: Boolean = false
 

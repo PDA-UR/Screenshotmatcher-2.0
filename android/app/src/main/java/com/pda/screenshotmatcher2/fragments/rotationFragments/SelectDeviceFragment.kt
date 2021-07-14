@@ -1,28 +1,17 @@
-package com.pda.screenshotmatcher2.fragments
-
+package com.pda.screenshotmatcher2.fragments.rotationFragments
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.*
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentTransaction
 import com.pda.screenshotmatcher2.R
-import com.pda.screenshotmatcher2.activities.CameraActivity
 import kotlin.concurrent.thread
 
 class SelectDeviceFragment : RotationFragment() {
-
-    private lateinit var containerView: FrameLayout
     private lateinit var mSelectDeviceButton: ImageButton
     private lateinit var mBackButton: ImageButton
     private lateinit var mListView: ListView
     private lateinit var adapter: ArrayAdapter<String>
     private var mServerList: ArrayList<String> = ArrayList()
     private lateinit var lastSelectedItem: TextView
-
-    private lateinit var ca: CameraActivity
-
 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -31,8 +20,8 @@ class SelectDeviceFragment : RotationFragment() {
         initViews()
     }
 
+
     private fun initServerList() {
-        ca = requireActivity() as CameraActivity
         val l = ca.getServerUrlList()
         if (l != null){
             l.forEach { mServerList.add(it.second) }
@@ -66,10 +55,4 @@ class SelectDeviceFragment : RotationFragment() {
                 ca.setServerUrl(mServerList[position])
         }
     }
-
-
-
-
-
-
 }
