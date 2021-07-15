@@ -24,12 +24,8 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentTransaction
 import androidx.preference.PreferenceManager
 import com.pda.screenshotmatcher2.*
-import com.pda.screenshotmatcher2.fragments.*
-import com.pda.screenshotmatcher2.fragments.rotationFragments.GalleryFragment
-import com.pda.screenshotmatcher2.fragments.rotationFragments.SelectDeviceFragment
 import com.pda.screenshotmatcher2.helpers.*
 import com.pda.screenshotmatcher2.logger.StudyLogger
 import com.pda.screenshotmatcher2.network.discoverServersOnNetwork
@@ -114,6 +110,9 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     var mHandler: Handler? = null
     var looper: Looper? = null
 
+
+    private lateinit var fragmentHandler: FragmentHandler
+
     //Boolean for checking the orientation
     var checkSensor: Boolean = true
     var isFirstBoot: Boolean = true
@@ -126,6 +125,8 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         verifyPermissions(this)
         setupSharedPref()
         createDeviceID(this)
+        fragmentHandler = FragmentHandler(this.applicationContext, this)
+
         initViews()
         setViewListeners()
         initNetworkHandler()
@@ -293,9 +294,9 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             mSelectDeviceButtonText.text = getText(R.string.select_device_button_notConnected_en)
             mFragmentDarkBackground = findViewById(R.id.ca_dark_background)
             mSettingsButton = findViewById(R.id.camera_activity_settings_button)
-            mSettingsButton.setOnClickListener { openSettings() }
+            mSettingsButton.setOnClickListener { fragmentHandler.openSettingsFragment() }
             mGalleryButton = findViewById(R.id.camera_activity_gallery_button)
-            mGalleryButton.setOnClickListener { openGallery() }
+            mGalleryButton.setOnClickListener { fragmentHandler.openGalleryFragment() }
         }
     }
 
@@ -344,7 +345,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
         if (!mSelectDeviceButton.hasOnClickListeners()) {
             mSelectDeviceButtonListener = View.OnClickListener {
-                openSelectDeviceFragment()
+                fragmentHandler.openSelectDeviceFragment()
             }
             mSelectDeviceButton.setOnClickListener(mSelectDeviceButtonListener)
         }
@@ -839,22 +840,13 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
-
-    private fun startResultsActivity(matchID: String, img: ByteArray) {
-        val intent = Intent(this, ResultsActivity::class.java).apply {
-            putExtra("matchID", matchID)
-            putExtra("img", img)
-            putExtra("ServerURL", mServerURL)
-//            putExtra("DownloadID", downloadID)
-        }
-        startActivityForResult(intent,
-            RESULT_ACTIVITY_REQUEST_CODE
-        )
+    public fun getServerUrl(): String {
+        return mServerURL
     }
 
     fun onMatchResult(matchID: String, img: ByteArray) {
         isCapturing = false
-        startResultsActivity(matchID, img)
+        fragmentHandler.startResultsActivity(matchID, img)
     }
 
     fun onMatchRequestError(){
@@ -867,28 +859,12 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         Toast.makeText(this, "Permission denied from server.", Toast.LENGTH_LONG).show()
     }
 
-    private fun openSelectDeviceFragment(withTransition: Boolean = true) {
+    fun onOpenSelectDeviceFragment(){
         mSettingsButton.visibility = View.INVISIBLE
-
         mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_close_48))
-
-        val selectDeviceFragment =
-            SelectDeviceFragment()
-        if (withTransition) {
-            this.supportFragmentManager
-                .beginTransaction()
-                .add(R.id.camera_activity_frameLayout, selectDeviceFragment, "SelectDeviceFragment")
-                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                .commit()
-        } else {
-            this.supportFragmentManager
-                .beginTransaction()
-                .add(R.id.camera_activity_frameLayout, selectDeviceFragment, "SelectDeviceFragment")
-                .commit()
-        }
     }
 
-    fun onSelectDeviceFragmentClosed() {
+    fun onCloseSelectDeviceFragment() {
         mCaptureButton.setImageResource(R.drawable.ic_baseline_photo_camera_24)
         mCaptureButton.setOnClickListener(mCaptureButtonListener)
         mSelectDeviceButton.setOnClickListener(mSelectDeviceButtonListener)
@@ -896,77 +872,12 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     }
 
 
-    fun openErrorFragment(uid: String, extractedImage: Bitmap) {
+    fun onOpenErrorFragment() {
         isCapturing = false
-        val EXTRACTED_IMAGE_KEY = "bmp"
-        val errorFragment = ErrorFragment()
-        val bundle = Bundle()
-        bundle.putString(UID_KEY, uid)
-        bundle.putString(URL_KEY, mServerURL)
-        bundle.putParcelable(EXTRACTED_IMAGE_KEY, extractedImage)
-        errorFragment.arguments = bundle
-
-        this.supportFragmentManager
-            .beginTransaction()
-            .add(R.id.fragment_container_view, errorFragment, "ErrorFragment")
-            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-            .commit()
     }
 
-    private fun openSettings() {
-        val settingsFragment =
-            SettingsFragment()
-
-        this.supportFragmentManager
-            .beginTransaction()
-            .add(R.id.settings_fragment_container_view, settingsFragment, "SettingsFragment")
-            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-            .commit()
-        mFragmentDarkBackground.visibility = View.VISIBLE
-    }
-
-    private fun openGallery(withTransition: Boolean = true, savedImageFiles: File? = null) {
-        val galleryFragment =
-            GalleryFragment()
-
-        if (withTransition){
-            this.supportFragmentManager
-                .beginTransaction()
-                .add(R.id.fragment_container_view, galleryFragment, "GalleryFragment")
-                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                .commit()
-        } else {
-            this.supportFragmentManager
-                .beginTransaction()
-                .add(R.id.fragment_container_view, galleryFragment, "GalleryFragment")
-                .commit()
-        }
-
-        mFragmentDarkBackground.visibility = View.VISIBLE
-    }
-
-    fun openPreviewFragment(firstImage: File?, secondImage: File?, withTransition: Boolean = true) {
-        val previewFragment =
-            GalleryPreviewFragment()
-
-        val bundle = Bundle()
-        bundle.putSerializable(FIRST_IMAGE_KEY, firstImage)
-        bundle.putSerializable(SECOND_IMAGE_KEY, secondImage)
-        previewFragment.arguments = bundle
-
-        if (withTransition){
-            this.supportFragmentManager
-                .beginTransaction()
-                .add(R.id.gallery_fragment_body_layout, previewFragment, "PreviewFragment")
-                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                .commit()
-        } else {
-            this.supportFragmentManager
-                .beginTransaction()
-                .add(R.id.gallery_fragment_body_layout, previewFragment, "PreviewFragment")
-                .commit()
-        }
-
+    fun getFragmentHandler(): FragmentHandler {
+        return fragmentHandler
     }
 
     private fun setupSharedPref() {
@@ -1085,90 +996,43 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
                     mSelectDeviceButton.setImageResource(android.R.color.transparent)
                     mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24))
                     updateConnectedStatus(isConnectedToServer, false)
+                    mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24))
+
                 }
                 Surface.ROTATION_90 -> {
                     mSelectDeviceButtonText.text = ""
                     mSelectDeviceButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_link_24_landscape))
                     mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24_landscape))
+
+                    mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24_landscape))
                 }
                 Surface.ROTATION_180 -> {
                     //same as normal portrait
                     mSelectDeviceButton.setImageResource(android.R.color.transparent)
                     mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24))
                     updateConnectedStatus(isConnectedToServer, false)
+
+                    mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24))
                 }
                 Surface.ROTATION_270 -> {
                     mSelectDeviceButtonText.text = ""
                     mSelectDeviceButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_link_24_landscape))
                     mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24_landscape2))
+
+                    mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24_landscape2))
                 }
             }
-            rotateFragments()
+            fragmentHandler.rotateAllRotatableFragments()
             checkSensor = false
         }
 
     }
-
-    private fun rotateFragments() {
-        rotateGalleryFragment()
-        rotateSelectDeviceFragment()
-    }
-
-    private fun rotateGalleryFragment() {
-        val gFrag: GalleryFragment? =
-            supportFragmentManager.findFragmentByTag("GalleryFragment") as GalleryFragment?
-        if (gFrag != null && gFrag.isVisible &&gFrag.getOrientation() != phoneOrientation){
-            var savedImageFiles = gFrag.removeThisFragmentForRotation()
-            openGallery(false)
-            if (savedImageFiles != null) {
-                openPreviewFragment(savedImageFiles[0], savedImageFiles[1])
-            }
-        }
-    }
-
-    private fun rotateSelectDeviceFragment() {
-        val sdFrag: SelectDeviceFragment? =
-            supportFragmentManager.findFragmentByTag("SelectDeviceFragment") as SelectDeviceFragment?
-        if (sdFrag != null && sdFrag.isVisible &&sdFrag.getOrientation() != phoneOrientation){
-            sdFrag.removeThisFragmentForRotation()
-            openSelectDeviceFragment(false)
-        } else {
-            when (phoneOrientation){
-                Surface.ROTATION_0 -> {
-                    mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24))
-                }
-                Surface.ROTATION_90 -> {
-                    mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24_landscape))
-                }
-                Surface.ROTATION_180 -> {
-                    //same as normal portrait
-                    mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24))
-                }
-                Surface.ROTATION_270 -> {
-                    mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24_landscape2))
-                }
-            }
-
-        }
-    }
-
     override fun onBackPressed() {
-
-        val all_frags: List<Fragment> = getSupportFragmentManager().getFragments();
-        if (all_frags != null) {
-            if (all_frags.isEmpty()) {
-                super.onBackPressed()
-            } else {
-                for (frag: Fragment in all_frags) {
-                    supportFragmentManager.beginTransaction().remove(frag).commit()
-
-                }
-
-            }
-        } else {
-            super.onBackPressed();
+        if (fragmentHandler.removeAllFragments() == 0){
+            super.onBackPressed()
         }
     }
+
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
         return
     }
