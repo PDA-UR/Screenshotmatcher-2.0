@@ -33,12 +33,10 @@ abstract class RotationFragment : Fragment() {
             ca = activity as CameraActivity
         }
 
-        containerView = container as FrameLayout
-        containerView.visibility = View.VISIBLE
-
         subclassName = this.javaClass.simpleName
 
         containerView = container as FrameLayout
+        containerView.visibility = View.VISIBLE
 
         when(subclassName){
             SelectDeviceFragment::class.simpleName -> {
@@ -97,10 +95,10 @@ abstract class RotationFragment : Fragment() {
         return null
     }
 
-    public fun removeThisFragment(removeBackground: Boolean = true) {
+    fun removeThisFragment(removeBackground: Boolean = true) {
         when(subclassName){
             SelectDeviceFragment::class.simpleName -> {
-                ca.onSelectDeviceFragmentClosed()
+                ca.onCloseSelectDeviceFragment()
             }
             GalleryFragment::class.simpleName -> {
                 removeForRotation = !removeBackground
