@@ -17,8 +17,7 @@ abstract class RotationFragment : Fragment() {
 
     lateinit var containerView: FrameLayout
     lateinit var ca: CameraActivity
-
-    private var rotation: Int = 0
+    var rotation: Int = 0
     private lateinit var mView: View
     private lateinit var subclassName: String
 
@@ -29,10 +28,7 @@ abstract class RotationFragment : Fragment() {
     ): View? {
         if (this::mView.isInitialized) return mView
 
-        if (activity is CameraActivity){
-            ca = activity as CameraActivity
-        }
-
+        ca = activity as? CameraActivity ?: throw IllegalArgumentException("No CameraActivity provided")
         subclassName = this.javaClass.simpleName
 
         containerView = container as FrameLayout
@@ -48,72 +44,45 @@ abstract class RotationFragment : Fragment() {
         }
 
         rotation = ca.phoneOrientation
-        if (rotation == 0 || rotation == 2) {
-            return mView
+
+        return when(rotation) {
+            0, 2 -> mView
+            else -> rotateView(rotation * 90, mView)
         }
-        return rotateView(rotation * 90, mView)
     }
 
     private fun rotateView(rotationDeg: Int, v: View): View {
-        var mRotatedView: View = v
-
+        val mRotatedView: View = v
         val container = containerView as ViewGroup
         val w = container.width
         val h = container.height
-        mRotatedView.rotation = rotationDeg.toFloat();
-        mRotatedView.translationX = ((w - h) / 2).toFloat();
-        mRotatedView.translationY = ((h - w) / 2).toFloat();
 
-        val lp = mView.layoutParams
-        lp.height = w
-        lp.width = h
+        mRotatedView.apply {
+            rotation = rotationDeg.toFloat()
+            translationX = ((w - h) / 2).toFloat()
+            translationY = ((h - w) / 2).toFloat()
+        }
+
+        mView.layoutParams.apply {
+            height = w
+            width = h
+        }
+
         mRotatedView.requestLayout()
         return mRotatedView
     }
 
-    public fun getOrientation(): Int {
-        return rotation
-    }
-
-
-    fun removeThisFragmentForRotation(): ArrayList<File?>? {
+    open fun removeThisFragmentForRotation(): ArrayList<File?>? {
         removeForRotation = true
-
-        if (subclassName == GalleryFragment::class.simpleName){
-            val pFrag: GalleryPreviewFragment? =
-                activity?.supportFragmentManager?.findFragmentByTag(GalleryPreviewFragment::class.simpleName) as GalleryPreviewFragment?
-            if (pFrag != null && pFrag.isVisible){
-                var savedImageFiles =  pFrag.removeThisFragmentForRotation()
-                activity?.supportFragmentManager?.beginTransaction()?.remove(this)
-                    ?.commit()
-                return savedImageFiles
-            }
-        }
-
         activity?.supportFragmentManager?.beginTransaction()?.remove(this)
             ?.commit()
         return null
     }
 
-    fun removeThisFragment(removeBackground: Boolean = true) {
-        when(subclassName){
-            SelectDeviceFragment::class.simpleName -> {
-                ca.onCloseSelectDeviceFragment()
-            }
-            GalleryFragment::class.simpleName -> {
-                removeForRotation = !removeBackground
-                containerView.visibility = View.INVISIBLE
-                if (removeBackground) {
-                    var mFragmentBackground: FrameLayout = activity?.findViewById(R.id.ca_dark_background)!!
-                    mFragmentBackground.visibility = View.INVISIBLE
-                }
-            }
-        }
-
+    open fun removeThisFragment(removeBackground: Boolean = true) {
+        removeForRotation = !removeBackground
         activity?.supportFragmentManager?.beginTransaction()?.remove(this)
             ?.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)?.commit()
     }
-
-
 
 }

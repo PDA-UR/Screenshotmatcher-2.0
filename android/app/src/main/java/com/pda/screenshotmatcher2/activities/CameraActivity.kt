@@ -1014,7 +1014,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
                     mSelectDeviceButtonText.text = ""
                     mSelectDeviceButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_link_24_landscape))
                     mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24_landscape))
-
                     mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24_landscape))
                 }
                 Surface.ROTATION_180 -> {
@@ -1022,14 +1021,12 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
                     mSelectDeviceButton.setImageResource(android.R.color.transparent)
                     mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24))
                     updateConnectedStatus(isConnectedToServer, false)
-
                     mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24))
                 }
                 Surface.ROTATION_270 -> {
                     mSelectDeviceButtonText.text = ""
                     mSelectDeviceButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_link_24_landscape))
                     mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24_landscape2))
-
                     mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24_landscape2))
                 }
             }

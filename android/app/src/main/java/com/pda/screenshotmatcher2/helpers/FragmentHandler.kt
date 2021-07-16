@@ -98,7 +98,6 @@ class FragmentHandler(a: Activity) {
         return numOfRemovedFragments
     }
 
-
     fun rotateAllRotatableFragments() {
         rotateGalleryFragment()
         rotateSelectDeviceFragment()
@@ -109,7 +108,7 @@ class FragmentHandler(a: Activity) {
             fm.findFragmentByTag(GalleryFragment::class.simpleName) as GalleryFragment?
 
         gFrag?.let {
-            if (gFrag.isVisible && gFrag.getOrientation() != activity.phoneOrientation){
+            if (gFrag.isVisible && gFrag.rotation != activity.phoneOrientation){
                 //Remove GalleryFragment, returns images from GalleryPreviewFragment if it is open
                 val savedImageFiles = gFrag.removeThisFragmentForRotation()
                 //Open GalleryFragment
@@ -133,6 +132,6 @@ class FragmentHandler(a: Activity) {
     }
 
     private fun hasDifferentRotation(rotationFragment: RotationFragment): Boolean {
-        return rotationFragment.getOrientation() != activity.phoneOrientation
+        return rotationFragment.rotation != activity.phoneOrientation
     }
 }

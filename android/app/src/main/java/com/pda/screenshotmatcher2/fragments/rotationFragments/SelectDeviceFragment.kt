@@ -2,7 +2,9 @@ package com.pda.screenshotmatcher2.fragments.rotationFragments
 import android.os.Bundle
 import android.view.View
 import android.widget.*
+import androidx.fragment.app.FragmentTransaction
 import com.pda.screenshotmatcher2.R
+import com.pda.screenshotmatcher2.fragments.removeForRotation
 import kotlin.concurrent.thread
 
 class SelectDeviceFragment : RotationFragment() {
@@ -54,5 +56,10 @@ class SelectDeviceFragment : RotationFragment() {
                 itemView.setTextColor(resources.getColor(R.color.connected_green))
                 ca.setServerUrl(mServerList[position])
         }
+    }
+
+    override fun removeThisFragment(removeBackground: Boolean) {
+        ca.onCloseSelectDeviceFragment()
+        super.removeThisFragment(removeBackground)
     }
 }

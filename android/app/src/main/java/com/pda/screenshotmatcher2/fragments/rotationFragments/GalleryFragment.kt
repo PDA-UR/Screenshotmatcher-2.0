@@ -6,8 +6,12 @@ import android.view.View
 import android.widget.FrameLayout
 import android.widget.GridView
 import android.widget.ImageButton
+import androidx.fragment.app.FragmentTransaction
 import com.pda.screenshotmatcher2.views.GridBaseAdapter
 import com.pda.screenshotmatcher2.R
+import com.pda.screenshotmatcher2.fragments.GalleryPreviewFragment
+import com.pda.screenshotmatcher2.fragments.removeForRotation
+import java.io.File
 
 class GalleryFragment : RotationFragment() {
 
@@ -33,6 +37,30 @@ class GalleryFragment : RotationFragment() {
         mBackButton.setOnClickListener {
             removeThisFragment()
         }
+    }
+
+    override fun removeThisFragmentForRotation(): ArrayList<File?>? {
+        val pFrag: GalleryPreviewFragment? =
+            activity?.supportFragmentManager?.findFragmentByTag(GalleryPreviewFragment::class.simpleName) as GalleryPreviewFragment?
+
+        pFrag?.let {
+            if (it.isVisible){
+                val savedImageFiles =  it.removeThisFragmentForRotation()
+                activity?.supportFragmentManager?.beginTransaction()?.remove(this)
+                    ?.commit()
+                return savedImageFiles
+            }
+        }
+        return super.removeThisFragmentForRotation()
+    }
+
+    override fun removeThisFragment(removeBackground: Boolean) {
+        containerView.visibility = View.INVISIBLE
+        if (removeBackground) {
+            var mFragmentBackground: FrameLayout = activity?.findViewById(R.id.ca_dark_background)!!
+            mFragmentBackground.visibility = View.INVISIBLE
+        }
+        super.removeThisFragment(removeBackground)
     }
 
 }
