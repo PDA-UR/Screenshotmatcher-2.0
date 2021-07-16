@@ -49,4 +49,5 @@
     <string name="permission_request_en">Please grant the permissions, otherwise the app won\'t work</string>
     <string name="heartbeat_fail_en">Disconnected from server</string>
     <string name="match_request_error_en">Failed to make request to server</string>
+    <string name="EXTRACTED_IMAGE_KEY" translatable="false">bmp</string>
 </resources>
