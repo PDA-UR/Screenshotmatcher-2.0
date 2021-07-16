@@ -125,7 +125,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         verifyPermissions(this)
         setupSharedPref()
         createDeviceID(this)
-        fragmentHandler = FragmentHandler(this.applicationContext, this)
+        fragmentHandler = FragmentHandler(this)
 
         initViews()
         setViewListeners()
@@ -846,7 +846,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     fun onMatchResult(matchID: String, img: ByteArray) {
         isCapturing = false
-        fragmentHandler.startResultsActivity(matchID, img)
+        startResultsActivity(matchID, img)
     }
 
     fun onMatchRequestError(){
@@ -885,6 +885,17 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             sp = PreferenceManager.getDefaultSharedPreferences(this)
             MATCHING_MODE_PREF_KEY = getString(R.string.settings_algorithm_key)
         }
+    }
+
+    private fun startResultsActivity(matchID: String, img: ByteArray) {
+        val intent = Intent(this, ResultsActivity::class.java).apply {
+            putExtra("matchID", matchID)
+            putExtra("img", img)
+            putExtra("ServerURL", getServerUrl())
+        }
+        startActivityForResult(intent,
+            RESULT_ACTIVITY_REQUEST_CODE
+        )
     }
 
     private fun getMatchingOptionsFromPref(): HashMap<Any?, Any?>? {

@@ -1,6 +1,7 @@
 package com.pda.screenshotmatcher2.fragments.rotationFragments
 
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.GridView
@@ -26,8 +27,7 @@ class GalleryFragment : RotationFragment() {
         mFragmentBackground.setOnClickListener { removeThisFragment(true) }
         mFragmentBackground.visibility = View.VISIBLE
         mGridView = activity?.findViewById(R.id.gallery_fragment_gridview)!!
-        adapter =
-            GridBaseAdapter(requireContext())
+        adapter = GridBaseAdapter(requireContext())
         mGridView.adapter = adapter
         mBackButton = activity?.findViewById(R.id.gallery_fragment_back_button)!!
         mBackButton.setOnClickListener {
