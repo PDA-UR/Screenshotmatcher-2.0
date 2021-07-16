@@ -81,7 +81,7 @@ abstract class RotationFragment : Fragment() {
 
         if (subclassName == GalleryFragment::class.simpleName){
             val pFrag: GalleryPreviewFragment? =
-                activity?.supportFragmentManager?.findFragmentByTag("PreviewFragment") as GalleryPreviewFragment?
+                activity?.supportFragmentManager?.findFragmentByTag(GalleryPreviewFragment::class.simpleName) as GalleryPreviewFragment?
             if (pFrag != null && pFrag.isVisible){
                 var savedImageFiles =  pFrag.removeThisFragmentForRotation()
                 activity?.supportFragmentManager?.beginTransaction()?.remove(this)
