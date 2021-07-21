@@ -9,6 +9,7 @@ import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.os.Build
 import android.util.Base64
+import android.util.Size
 import androidx.core.app.ActivityCompat
 import java.io.File
 import java.io.FileOutputStream
@@ -107,5 +108,16 @@ fun getDeviceID(context: Context) : String{
     }
     else {
         return savedID
+    }
+}
+
+class CompareSizesByArea : Comparator<Size?> {
+    override fun compare(o1: Size?, o2: Size?): Int {
+        if (o1 != null) {
+            if (o2 != null) {
+                return java.lang.Long.signum(o1.width.toLong() * o2.height - o1.width.toLong() * o2.height)
+            }
+        }
+        return -1
     }
 }
