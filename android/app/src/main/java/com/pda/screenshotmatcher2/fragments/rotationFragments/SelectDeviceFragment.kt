@@ -22,7 +22,6 @@ class SelectDeviceFragment : RotationFragment() {
         initViews()
     }
 
-
     private fun initServerList() {
         val l = ca.getServerUrlList()
         if (l != null){
@@ -47,7 +46,7 @@ class SelectDeviceFragment : RotationFragment() {
         adapter = ArrayAdapter(requireContext(),
             R.layout.select_device_list_item, mServerList)
         mListView.adapter = adapter
-                mListView.onItemClickListener = AdapterView.OnItemClickListener { _, view, position, _ ->
+        mListView.onItemClickListener = AdapterView.OnItemClickListener { _, view, position, _ ->
             if (::lastSelectedItem.isInitialized){
                 lastSelectedItem.setTextColor(resources.getColor(R.color.white))
             }
