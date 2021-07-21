@@ -9,6 +9,7 @@ import android.hardware.Sensor
 import android.hardware.SensorManager
 import android.hardware.camera2.*
 import android.media.ImageReader
+import android.util.Log
 import android.util.Size
 import android.view.Surface
 import android.view.TextureView
@@ -32,6 +33,7 @@ class CameraInstance(cameraActivity: CameraActivity) {
     private val IMG_TARGET_SIZE = 512
 
     private var sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(ca)
+
     //Physical camera
     private lateinit var mCameraId: String
 
@@ -52,11 +54,6 @@ class CameraInstance(cameraActivity: CameraActivity) {
 
     //Camera preview builder
     private lateinit var mPreviewRequestBuilder: CaptureRequest.Builder
-
-    //Sensors
-    private lateinit var mSensorManager : SensorManager
-    private lateinit var mAccelerometer : Sensor
-    public var phoneOrientation : Int = 0;
 
     //Request from builder
     private lateinit var mPreviewRequest: CaptureRequest
@@ -209,20 +206,6 @@ class CameraInstance(cameraActivity: CameraActivity) {
                     ImageFormat.JPEG, 2
                 )
 
-                //Callback for receiving images as soon as they are available
-//                mImageReader!!.setOnImageAvailableListener({ reader ->
-//                    var image: Image? = null
-//                    try {
-//                        image = reader!!.acquireLatestImage()
-//                        val greyImg = savePhotoToDisk(null, image, null, 512)
-//                        sendFile(greyImg, mServerURL)
-//                    } catch (e: Exception) {
-//                        e.printStackTrace()
-//                    }
-//                    image?.close()
-//                }, mBackgroundHandler)
-
-
                 val displaySize = Point()
                 ca.windowManager.defaultDisplay.getSize(displaySize)
                 var maxPreviewWidth: Int = displaySize.x
@@ -368,19 +351,6 @@ class CameraInstance(cameraActivity: CameraActivity) {
                 }
             }
         }
-
-
-    }
-
-    internal class CompareSizesByArea : Comparator<Size?> {
-        override fun compare(o1: Size?, o2: Size?): Int {
-            if (o1 != null) {
-                if (o2 != null) {
-                    return java.lang.Long.signum(o1.width.toLong() * o2.height - o1.width.toLong() * o2.height)
-                }
-            }
-            return -1
-        }
     }
 
 
@@ -388,43 +358,15 @@ class CameraInstance(cameraActivity: CameraActivity) {
         isCapturing = true
         startTime = System.currentTimeMillis()
         var mBitmap: Bitmap? = mTextureView.bitmap
-        val screenOrientation = ca.windowManager.defaultDisplay.rotation
 
-        // screen rotated
-        if (screenOrientation != Surface.ROTATION_0 && mBitmap != null) {
-            when (screenOrientation) {
+        if(ca.phoneOrientation != Surface.ROTATION_0 && mBitmap != null){
+            when(ca.phoneOrientation){
                 Surface.ROTATION_90 -> mBitmap =
-                    rotateBitmapAndAdjustRatio(
-                        mBitmap,
-                        -90F
-                    )
-                Surface.ROTATION_270 -> mBitmap =
-                    rotateBitmapAndAdjustRatio(
-                        mBitmap,
-                        90F
-                    )
-                Surface.ROTATION_180 -> mBitmap =
-                    rotateBitmap(
-                        mBitmap,
-                        180F
-                    )
-            }
-        }
-        // screen rotation locked, but physical phone rotated
-        else if(screenOrientation == Surface.ROTATION_0 && phoneOrientation != Surface.ROTATION_0 && mBitmap != null){
-            when(phoneOrientation){
-                Surface.ROTATION_90 -> mBitmap =
-                    rotateBitmap(
-                        mBitmap,
-                        -90F
-                    )
+                    rotateBitmap(mBitmap, -90F)
                 Surface.ROTATION_270 -> mBitmap =
                     rotateBitmap(mBitmap, 90F)
                 Surface.ROTATION_180 -> mBitmap =
-                    rotateBitmap(
-                        mBitmap,
-                        180F
-                    )
+                    rotateBitmap(mBitmap, 180F)
             }
         }
 
