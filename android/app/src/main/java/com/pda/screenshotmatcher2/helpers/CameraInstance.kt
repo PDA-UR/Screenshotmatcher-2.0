@@ -19,6 +19,7 @@ import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.activities.CameraActivity
 import com.pda.screenshotmatcher2.logger.StudyLogger
 import com.pda.screenshotmatcher2.network.sendBitmap
+import java.lang.Exception
 import java.util.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
@@ -30,9 +31,7 @@ class CameraInstance(cameraActivity: CameraActivity) {
     private val ca = cameraActivity
     private val MAX_PREVIEW_WIDTH = 1920
     private val MAX_PREVIEW_HEIGHT = 1080
-    private val IMG_TARGET_SIZE = 512
-
-    private var sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(ca)
+    val IMG_TARGET_SIZE = 512
 
     //Physical camera
     private lateinit var mCameraId: String
@@ -102,24 +101,6 @@ class CameraInstance(cameraActivity: CameraActivity) {
                 override fun onSurfaceTextureUpdated(texture: SurfaceTexture) {}
             }
     }
-    private val mStateCallback: CameraDevice.StateCallback = object : CameraDevice.StateCallback() {
-        override fun onOpened(cameraDevice: CameraDevice) {
-            mCameraOpenCloseLock.release()
-            mCameraDevice = cameraDevice
-            createCameraPreviewSession()
-        }
-
-        override fun onDisconnected(cameraDevice: CameraDevice) {
-            mCameraOpenCloseLock.release()
-            cameraDevice.close()
-        }
-
-        override fun onError(cameraDevice: CameraDevice, error: Int) {
-            mCameraOpenCloseLock.release()
-            cameraDevice.close()
-            cameraActivity.finish()
-        }
-    }
     fun openCamera(width: Int, height: Int) {
         setUpCameraOutputs(width, height)
         configureTransform(width, height)
@@ -144,51 +125,6 @@ class CameraInstance(cameraActivity: CameraActivity) {
         }
     }
 
-    private fun createCameraPreviewSession() {
-        try {
-            val texture = mTextureView.surfaceTexture!!
-            texture.setDefaultBufferSize(mPreviewSize.width, mPreviewSize.height)
-            val surface = Surface(texture)
-
-            //Capturing for preview
-            mPreviewRequestBuilder =
-                mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
-            mPreviewRequestBuilder.addTarget(surface)
-
-            mCameraDevice.createCaptureSession(
-                listOf(surface, mImageReader.surface),
-                object : CameraCaptureSession.StateCallback() {
-                    override fun onConfigured(cameraCaptureSession: CameraCaptureSession) {
-                        mCaptureSession = cameraCaptureSession
-                        try {
-                            mPreviewRequestBuilder.set(
-                                CaptureRequest.CONTROL_AF_MODE,
-                                CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
-                            )
-
-                            mPreviewRequest = mPreviewRequestBuilder.build()
-                            mCaptureSession.setRepeatingRequest(
-                                mPreviewRequest,
-                                null, null
-                            )
-                            StudyLogger.hashMap["preview_width"] = mPreviewSize.width
-                            StudyLogger.hashMap["preview_height"] = mPreviewSize.height
-                        } catch (e: CameraAccessException) {
-                            e.printStackTrace()
-                        }
-                    }
-
-                    override fun onConfigureFailed(
-                        cameraCaptureSession: CameraCaptureSession
-                    ) {
-                    }
-                }, null
-            )
-        } catch (e: CameraAccessException) {
-            e.printStackTrace()
-        }
-    }
-
     private fun setUpCameraOutputs(width: Int, height: Int) {
         val manager =
             ca.getSystemService(Context.CAMERA_SERVICE) as CameraManager
@@ -200,7 +136,6 @@ class CameraInstance(cameraActivity: CameraActivity) {
 
                 // Use largest size available
                 val largest: Size = listOf(map.getOutputSizes(ImageFormat.JPEG))[0][0]
-
                 mImageReader = ImageReader.newInstance(
                     largest.width, largest.height,
                     ImageFormat.JPEG, 2
@@ -234,7 +169,7 @@ class CameraInstance(cameraActivity: CameraActivity) {
     }
 
     private fun configureTransform(viewWidth: Int, viewHeight: Int) {
-        val rotation = ca.windowManager.defaultDisplay.rotation
+        val rotation = ca.phoneOrientation
         val matrix = Matrix()
         val viewRect = RectF(0F, 0F, viewWidth.toFloat(), viewHeight.toFloat())
         val bufferRect = RectF(
@@ -259,102 +194,124 @@ class CameraInstance(cameraActivity: CameraActivity) {
         mTextureView.setTransform(matrix)
     }
 
+    private val mStateCallback: CameraDevice.StateCallback = object : CameraDevice.StateCallback() {
+        override fun onOpened(cameraDevice: CameraDevice) {
+            mCameraOpenCloseLock.release()
+            mCameraDevice = cameraDevice
+            createCameraPreviewSession()
+        }
+
+        override fun onDisconnected(cameraDevice: CameraDevice) {
+            mCameraOpenCloseLock.release()
+            cameraDevice.close()
+        }
+
+        override fun onError(cameraDevice: CameraDevice, error: Int) {
+            mCameraOpenCloseLock.release()
+            cameraDevice.close()
+            ca.finish()
+        }
+    }
+
+    private fun createCameraPreviewSession() {
+        try {
+            val texture = mTextureView.surfaceTexture!!
+            texture.setDefaultBufferSize(mPreviewSize.width, mPreviewSize.height)
+            val surface = Surface(texture)
+
+            //Capturing for preview
+            mPreviewRequestBuilder =
+                mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
+            mPreviewRequestBuilder.addTarget(surface)
+
+            mCameraDevice.createCaptureSession(
+                listOf(surface, mImageReader.surface),
+                captureSessionStateCallback,
+                null
+            )
+        } catch (e: CameraAccessException) {
+            e.printStackTrace()
+        }
+    }
+
+    private var captureSessionStateCallback: CameraCaptureSession.StateCallback = object : CameraCaptureSession.StateCallback() {
+        override fun onConfigured(cameraCaptureSession: CameraCaptureSession) {
+            mCaptureSession = cameraCaptureSession
+            try {
+                mPreviewRequestBuilder.set(
+                    CaptureRequest.CONTROL_AF_MODE,
+                    CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
+                )
+
+                mPreviewRequest = mPreviewRequestBuilder.build()
+                mCaptureSession.setRepeatingRequest(
+                    mPreviewRequest,
+                    null, null
+                )
+                StudyLogger.hashMap["preview_width"] = mPreviewSize.width
+                StudyLogger.hashMap["preview_height"] = mPreviewSize.height
+            } catch (e: CameraAccessException) {
+                e.printStackTrace()
+            }
+        }
+
+        override fun onConfigureFailed(
+            cameraCaptureSession: CameraCaptureSession
+        ) {
+        }
+    }
+
+
+
+
+
+
     private fun chooseOptimalSize(
         choices: Array<Size>, textureViewWidth: Int,
         textureViewHeight: Int, maxWidth: Int, maxHeight: Int, aspectRatio: Size
     ): Size? {
-
-
-        var keyWidth: String = ca.getString(R.string.ca_pref_preview_width)
-        var keyHeight: String = ca.getString(R.string.ca_pref_preview_height)
-
-        var keyWidthView: String = ca.getString(R.string.ca_pref_surface_view_width)
-        var keyHeightView: String = ca.getString(R.string.ca_pref_surface_view_height)
-
-        val orientation = ca.windowManager.defaultDisplay.rotation
-        if (orientation == Surface.ROTATION_90 || orientation == Surface.ROTATION_270) {
-            keyWidth = ca.getString(R.string.ca_pref_preview_height)
-            keyHeight = ca.getString(R.string.ca_pref_preview_width)
-            keyWidthView = ca.getString(R.string.ca_pref_preview_height)
-            keyHeightView = ca.getString(R.string.ca_pref_surface_view_width)
-        }
-
-        val mSavedWidth: Int = sp.getInt(keyHeight, 0)
-        val mSavedHeight: Int = sp.getInt(keyWidth, 0)
-
         val w = aspectRatio.width
         val h = aspectRatio.height
-        val mSavedWidthOfView: Int = sp.getInt(keyWidthView, 0)
-        val mSavedHeightOfView: Int = sp.getInt(keyHeightView, 0)
 
-        //disabling saving for now
-        if ((mSavedWidth != 0 && mSavedHeight != 0) && (mSavedWidthOfView == w && mSavedHeightOfView == h) && false) {
-            return Size(mSavedWidth, mSavedHeight)
-        } else {
-            sp.edit().putInt(keyWidthView, w).apply()
-            sp.edit().putInt(keyHeightView, h).apply()
-            // resolutions > preview Surface
-            val bigEnough: MutableList<Size> = ArrayList()
-            // resolutions < preview Surface
-            val notBigEnough: MutableList<Size> = ArrayList()
+        // resolutions > preview Surface
+        val bigEnough: MutableList<Size> = ArrayList()
+        // resolutions < preview Surface
+        val notBigEnough: MutableList<Size> = ArrayList()
 
-            for (option in choices) {
-                var ratioChecked = option.height / option.width
-                var ratioView = textureViewHeight/textureViewWidth
-                if (option.width <= maxWidth && option.height <= maxHeight && option.height == option.width * h / w
+        for (option in choices) {
+            var ratioChecked = option.height / option.width
+            var ratioView = textureViewHeight / textureViewWidth
+            if (option.width <= maxWidth && option.height <= maxHeight && option.height == option.width * h / w
+            ) {
+                if (option.width >= textureViewWidth &&
+                    option.height >= textureViewHeight &&
+                    ratioChecked == ratioView
                 ) {
-                    if (option.width >= textureViewWidth &&
-                        option.height >= textureViewHeight &&
-                        ratioChecked == ratioView
-                    ) {
-                        bigEnough.add(option)
-                    } else {
-                        notBigEnough.add(option)
-                    }
+                    bigEnough.add(option)
+                } else {
+                    notBigEnough.add(option)
                 }
             }
-
-            return when {
-                bigEnough.size > 0 -> {
-                    sp.edit()
-                        .putInt(keyWidth, Collections.min(bigEnough,
-                            CompareSizesByArea()
-                        ).width)
-                        .apply()
-                    sp.edit()
-                        .putInt(keyHeight, Collections.min(bigEnough,
-                            CompareSizesByArea()
-                        ).height)
-                        .apply()
-                    Collections.min(bigEnough,
-                        CompareSizesByArea()
-                    )
-                }
-                notBigEnough.size > 0 -> {
-                    sp.edit()
-                        .putInt(keyWidth, Collections.max(notBigEnough,
-                            CompareSizesByArea()
-                        ).width)
-                        .apply()
-                    sp.edit().putInt(
-                        keyHeight,
-                        Collections.max(notBigEnough,
-                            CompareSizesByArea()
-                        ).height
-                    ).apply()
-                    Collections.max(notBigEnough,
-                        CompareSizesByArea()
-                    )
-                }
-                else -> {
-                    choices[0]
-                }
+        }
+        return when {
+            bigEnough.size > 0 -> {
+                Collections.min(bigEnough,
+                    CompareSizesByArea()
+                )
+            }
+            notBigEnough.size > 0 -> {
+                Collections.max(notBigEnough,
+                    CompareSizesByArea()
+                )
+            }
+            else -> {
+                choices[0]
             }
         }
     }
 
 
-    fun captureImageWithPreviewExtraction() {
+    fun captureImageWithPreviewExtraction(): Bitmap? {
         isCapturing = true
         startTime = System.currentTimeMillis()
         var mBitmap: Bitmap? = mTextureView.bitmap
@@ -369,29 +326,6 @@ class CameraInstance(cameraActivity: CameraActivity) {
                     rotateBitmap(mBitmap, 180F)
             }
         }
-
-        var mServerURL = ca.getServerUrl()
-        if (mBitmap != null && mServerURL != null) {
-            if (mServerURL != ""){
-                StudyLogger.hashMap["tc_image_captured"] = System.currentTimeMillis()   // image is in memory
-                StudyLogger.hashMap["long_side"] = IMG_TARGET_SIZE
-                val greyImg =
-                    rescale(
-                        mBitmap,
-                        IMG_TARGET_SIZE
-                    )
-                val matchingOptions: HashMap<Any?, Any?>? = ca.getMatchingOptionsFromPref()
-                sendBitmap(
-                    greyImg,
-                    mServerURL,
-                    ca,
-                    matchingOptions
-                )
-            } else {
-                ca.onMatchRequestError()
-            }
-        } else {
-            ca.onMatchRequestError()
-        }
+        return mBitmap
     }
 }
