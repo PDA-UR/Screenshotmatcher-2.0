@@ -46,7 +46,7 @@ fun discoverServersOnNetwork(context: Context, port: Int = 49050, message: Strin
     s.close()
 
     val activity: CameraActivity = context as CameraActivity
-    activity.runOnUiThread { activity.onServerURLsGet(serverList)}  // call function on main thread }
+    activity.runOnUiThread { activity.serverConnection.onServerURLsGet(serverList)}  // call function on main thread }
     return serverList
 }
 

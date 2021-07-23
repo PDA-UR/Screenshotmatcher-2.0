@@ -117,12 +117,18 @@ fun sendBitmap(
 }
 
 fun sendHeartbeatRequest(serverURL: String, activity: Activity){
+    if (activity is CameraActivity && (serverURL == null || serverURL.isEmpty())) {
+        activity.runOnUiThread { activity.serverConnection.onHeartbeatFail() }
+    }
+    Log.d("HB", "HB to $serverURL")
     val request = StringRequest(Request.Method.GET, serverURL + HEARTBEAT_DEST,
         { response ->
+            Log.d("HB", "Response: $response")
         },
         {
+            Log.d("HB", it.toString())
             if (activity is CameraActivity) {
-                activity.runOnUiThread { activity.onHeartbeatFail() }
+                activity.runOnUiThread { activity.serverConnection.onHeartbeatFail() }
             }
         })
 
