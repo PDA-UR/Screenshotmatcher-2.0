@@ -47,7 +47,7 @@ class FragmentHandler(a: Activity) {
 
         val bundle = Bundle().apply {
             putString(UID_KEY, uid)
-            putString(URL_KEY, activity.getServerUrl())
+            putString(URL_KEY, activity.serverConnection.mServerURL)
             putParcelable(activity.getString(R.string.EXTRACTED_IMAGE_KEY), extractedImage)
         }
 

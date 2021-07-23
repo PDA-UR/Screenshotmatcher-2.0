@@ -10,6 +10,7 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.*
+import android.util.Log
 import android.view.*
 import android.widget.FrameLayout
 import android.widget.ImageButton
@@ -21,9 +22,8 @@ import androidx.preference.PreferenceManager
 import com.pda.screenshotmatcher2.*
 import com.pda.screenshotmatcher2.helpers.*
 import com.pda.screenshotmatcher2.logger.StudyLogger
-import com.pda.screenshotmatcher2.network.discoverServersOnNetwork
+import com.pda.screenshotmatcher2.network.ServerConnection
 import com.pda.screenshotmatcher2.network.sendBitmap
-import com.pda.screenshotmatcher2.network.sendHeartbeatRequest
 import java.io.File
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
@@ -51,10 +51,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var mSettingsButton: ImageButton
     private lateinit var mGalleryButton: ImageButton
 
-    private var mServerURL: String = ""
-    private var isConnectedToServer = false
-    private lateinit var mServerUrlList: List<Pair<String, String>>
-    private var startTime: Long = 0
     private var isCapturing: Boolean = false
 
     //Shared preferences
@@ -66,11 +62,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     lateinit var files: Array<File>
     lateinit var imageArray: ArrayList<ArrayList<File>>
 
-    //Handlers for discover/heartbeat thread
-    var handlerThread: HandlerThread? = null
-    var mHandler: Handler? = null
-    var looper: Looper? = null
-
+    var serverConnection = ServerConnection(this)
 
     private lateinit var fragmentHandler: FragmentHandler
 
@@ -90,7 +82,8 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
         initViews()
         setViewListeners()
-        initNetworkHandler()
+        if (!serverConnection.isDiscovering && !serverConnection.isSendingHeartbeat) serverConnection.start()
+
 
         cameraInstance = CameraInstance(this)
         cameraInstance.start()
@@ -106,84 +99,29 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
-
-
-    private fun initNetworkHandler() {
-        handlerThread = HandlerThread("NetworkThread")
-        handlerThread!!.start()
-        looper = handlerThread!!.looper
-
-        val a: CameraActivity = this
-        val discoverRunnable = object: Runnable {
-            override fun run() {
-                getServerURL()
-                if (handlerThread?.isAlive!!){
-                    mHandler?.postDelayed(this, 5000)
-                }
-            }
-        }
-
-        val heartbeatRunnable = object: Runnable {
-            override fun run() {
-                if (isConnectedToServer && mServerURL != ""){
-                    sendHeartbeatRequest(
-                        mServerURL,
-                        a
-                    )
-                }
-                mHandler?.postDelayed(this, 5000)
-            }
-        }
-
-        mHandler = object : Handler(looper!!) {
-            override fun handleMessage(msg: Message) {
-                when (msg.what) {
-                    //0 = end all threads
-                    0 -> {
-                        this.removeCallbacksAndMessages(null)
-                    }
-                    //1 = start discover, end heartbeat
-                    1 -> {
-                        this.removeCallbacksAndMessages(null)
-                        this.post(discoverRunnable)
-                    }
-                    //2 = start heartbeat, end discover
-                    2 -> {
-                        this.removeCallbacksAndMessages(null)
-                        this.post(heartbeatRunnable);
-                    }
-                }
-            }
-        }
-        when(isConnectedToServer){
-            true -> startHeartbeatThread()
-            false -> startDiscoverThread()
-        }
-    }
-
     private fun restoreFromSavedInstance(savedInstanceState: Bundle) {
         imageArray = savedInstanceState.getSerializable(getString(R.string.ca_saved_instance_image_list_key)) as ArrayList<ArrayList<File>>
-        mServerURL = savedInstanceState.getString(getString(R.string.ca_saved_instance_url_key)).toString()
+        serverConnection.mServerURL = savedInstanceState.getString(getString(R.string.ca_saved_instance_url_key)).toString()
         var urlList = savedInstanceState.getStringArrayList(getString(R.string.ca_saved_instance_url_list_key))
         var hostList = savedInstanceState.getStringArrayList(getString(R.string.ca_saved_instance_host_list_key))
         var l = mutableListOf<Pair<String, String>>()
         for (i in 0 until urlList?.size!!) {
             l.add(Pair(urlList[i], hostList?.get(i)) as Pair<String, String>)
         }
-        initNetworkHandler()
-
+        //initNetworkHandler()
+        if (!serverConnection.isDiscovering && !serverConnection.isSendingHeartbeat) serverConnection.start()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
 
         super.onSaveInstanceState(outState)
-        outState.putString(getString(R.string.ca_saved_instance_url_key), mServerURL)
+        outState.putString(getString(R.string.ca_saved_instance_url_key), serverConnection.mServerURL)
         outState.putSerializable(getString(R.string.ca_saved_instance_image_list_key), imageArray)
 
         var serverUrlList: ArrayList<String> = ArrayList()
         var serverHostList: ArrayList<String> = ArrayList()
 
-        mServerUrlList.forEach {
+        serverConnection.mServerUrlList.forEach {
             serverHostList.add(it.second)
             serverUrlList.add(it.first)
         }
@@ -193,7 +131,9 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onResume() {
         super.onResume()
-        initNetworkHandler()
+        //initNetworkHandler()
+        if (!serverConnection.isDiscovering && !serverConnection.isSendingHeartbeat) serverConnection.start()
+
         mAccelerometer?.also { accel ->
             mSensorManager.registerListener(this, accel, SensorManager.SENSOR_DELAY_UI)
         }
@@ -207,7 +147,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onPause() {
         super.onPause()
-        handlerThread?.quitSafely()
+        serverConnection.stop()
         mSensorManager.unregisterListener(this)
     }
 
@@ -296,7 +236,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     private fun capturePhoto(){
         var mBitmap = cameraInstance.captureImageWithPreviewExtraction()
-        var mServerURL = getServerUrl()
+        var mServerURL = serverConnection.mServerURL
         if (mBitmap != null && mServerURL != null) {
             if (mServerURL != ""){
                 StudyLogger.hashMap["tc_image_captured"] = System.currentTimeMillis()   // image is in memory
@@ -323,12 +263,12 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onStop() {
         super.onStop()
-        handlerThread?.quitSafely()
+        serverConnection.stop()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        handlerThread?.quitSafely()
+        serverConnection.stop()
     }
 
     override fun onRequestPermissionsResult(
@@ -351,102 +291,29 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
-    private fun getServerURL() {
-        Thread {
-            mServerUrlList =
-                discoverServersOnNetwork(
-                    this,
-                    49050,
-                    ""
-                )
-        }.start()
-    }
 
-    fun onServerURLsGet(servers: List<Pair<String, String>>) {
-        if (isFirstBoot){
-            if (servers.isNotEmpty()){
-                mServerUrlList = servers
-                setServerUrl(servers[0].second)
-                isFirstBoot = false
-            }
-        }
-        if (servers.isNotEmpty()) {
-            updateServerUrlList(servers)
-            if (isConnectedToServer && handlerThread!!.isAlive){
-                runOnUiThread {
-                    updateConnectedStatus(true)
-                }
-            }
-        } else {
-            updateConnectedStatus(false)
-        }
-    }
 
-    private fun updateConnectedStatus(isConnected: Boolean, startHeartbeat: Boolean = true) {
-        isConnectedToServer = isConnected
-        if (isConnected){
+    fun updateConnectionStatus() {
+        if (serverConnection.isConnectedToServer){
             mSelectDeviceButton.background =
                 resources.getDrawable(R.drawable.select_device_connected)
-
             if (phoneOrientation == Surface.ROTATION_0) {
-                mServerUrlList.forEach {
-                    if (it.first == mServerURL){
+                serverConnection.mServerUrlList.forEach {
+                    if (it.first == serverConnection.mServerURL){
                         mSelectDeviceButtonText.text = it.second
                     }
                 }
             }
-
-            if (startHeartbeat){
-                startHeartbeatThread()
-            }
         } else{
-            mServerURL = ""
             runOnUiThread {
                 mSelectDeviceButton.background =
                     resources.getDrawable(R.drawable.select_device_disconnected)
-
                 if (phoneOrientation == Surface.ROTATION_0) {
                     mSelectDeviceButtonText.text =
                         getString(R.string.select_device_button_notConnected_en)
                 }
             }
         }
-    }
-
-    private fun startHeartbeatThread(){
-        if (handlerThread?.isAlive!!){
-            mHandler!!.sendMessage(mHandler!!.obtainMessage(2))
-        }
-    }
-
-    fun onHeartbeatFail(){
-        updateConnectedStatus(false)
-        startDiscoverThread()
-        Toast.makeText(this,getString(R.string.heartbeat_fail_en), Toast.LENGTH_SHORT).show()
-    }
-
-    private fun startDiscoverThread(){
-        if (handlerThread?.isAlive!!) {
-            mHandler!!.sendMessage(mHandler!!.obtainMessage(1))
-        }
-    }
-
-    private fun updateServerUrlList(newServers: List<Pair<String, String>>) {
-        var oldServerIsInNewList = false
-        mServerUrlList = newServers
-        mServerUrlList.forEach {
-            if (it.first == mServerURL) {
-                oldServerIsInNewList = true
-                updateConnectedStatus(true)
-            }
-        }
-        if (!oldServerIsInNewList){
-            updateConnectedStatus(false)
-        }
-    }
-
-    fun getServerUrl(): String {
-        return mServerURL
     }
 
     fun onMatchResult(matchID: String, img: ByteArray) {
@@ -496,7 +363,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         val intent = Intent(this, ResultsActivity::class.java).apply {
             putExtra("matchID", matchID)
             putExtra("img", img)
-            putExtra("ServerURL", getServerUrl())
+            putExtra("ServerURL", serverConnection.mServerURL)
         }
         startActivityForResult(intent,
             RESULT_ACTIVITY_REQUEST_CODE
@@ -558,21 +425,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         return filename == itemName
     }
 
-    fun getServerUrlList(): List<Pair<String, String>>? {
-        if (::mServerUrlList.isInitialized) {
-            return mServerUrlList
-        } else return null
-    }
-
-    fun setServerUrl(hostname: String) {
-        mServerUrlList.forEach {
-            if (it.second == hostname){
-                mServerURL = it.first
-            }
-        }
-        updateConnectedStatus(true)
-    }
-
     override fun onSensorChanged(event: SensorEvent?) {
 
         if (event!!.values[1] > 0 && event.values[0].toInt() == 0) {
@@ -611,7 +463,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
                 Surface.ROTATION_0 -> {
                     mSelectDeviceButton.setImageResource(android.R.color.transparent)
                     mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24))
-                    updateConnectedStatus(isConnectedToServer, false)
+                    updateConnectionStatus()
                     mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24))
 
                 }
@@ -625,7 +477,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
                     //same as normal portrait
                     mSelectDeviceButton.setImageResource(android.R.color.transparent)
                     mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24))
-                    updateConnectedStatus(isConnectedToServer, false)
+                    updateConnectionStatus()
                     mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24))
                 }
                 Surface.ROTATION_270 -> {
