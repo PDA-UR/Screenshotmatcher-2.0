@@ -23,7 +23,7 @@ class SelectDeviceFragment : RotationFragment() {
     }
 
     private fun initServerList() {
-        val l = ca.getServerUrlList()
+        val l = ca.serverConnection.getServerUrlList()
         if (l != null){
             l.forEach { mServerList.add(it.second) }
         } else {
@@ -53,7 +53,7 @@ class SelectDeviceFragment : RotationFragment() {
                 lastSelectedItem = view as TextView
                 val itemView: TextView = view
                 itemView.setTextColor(resources.getColor(R.color.connected_green))
-                ca.setServerUrl(mServerList[position])
+                ca.serverConnection.setServerUrl(mServerList[position])
         }
     }
 
