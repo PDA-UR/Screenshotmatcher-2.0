@@ -1,20 +1,15 @@
 package com.pda.screenshotmatcher2.activities
 
-import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import android.graphics.*
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.hardware.camera2.*
-import android.media.ImageReader
 import android.os.*
-import android.util.Size
 import android.view.*
 import android.widget.FrameLayout
 import android.widget.ImageButton
@@ -22,8 +17,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import com.pda.screenshotmatcher2.*
 import com.pda.screenshotmatcher2.helpers.*
@@ -32,9 +25,6 @@ import com.pda.screenshotmatcher2.network.discoverServersOnNetwork
 import com.pda.screenshotmatcher2.network.sendBitmap
 import com.pda.screenshotmatcher2.network.sendHeartbeatRequest
 import java.io.File
-import java.util.*
-import java.util.concurrent.Semaphore
-import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import kotlin.concurrent.thread
@@ -103,7 +93,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         initNetworkHandler()
 
         cameraInstance = CameraInstance(this)
-        cameraInstance.initialize()
+        cameraInstance.start()
 
         mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
@@ -278,7 +268,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
                 mCaptureButtonListener = View.OnClickListener {
                     if (!isCapturing){
                         StudyLogger.hashMap["tc_button_pressed"] = System.currentTimeMillis()
-                        captureAndSend()
+                        capturePhoto()
                     }
                 }
             }
@@ -297,14 +287,14 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
             StudyLogger.hashMap["tc_button_pressed"] = System.currentTimeMillis()
-            captureAndSend()
+            capturePhoto()
         } else if (keyCode == KeyEvent.KEYCODE_BACK) {
             onBackPressed()
         }
         return true
     }
 
-    fun captureAndSend(){
+    private fun capturePhoto(){
         var mBitmap = cameraInstance.captureImageWithPreviewExtraction()
         var mServerURL = getServerUrl()
         if (mBitmap != null && mServerURL != null) {
