@@ -278,7 +278,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
                 mCaptureButtonListener = View.OnClickListener {
                     if (!isCapturing){
                         StudyLogger.hashMap["tc_button_pressed"] = System.currentTimeMillis()
-                        cameraInstance.captureImageWithPreviewExtraction()
+                        captureAndSend()
                     }
                 }
             }
@@ -297,11 +297,38 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
             StudyLogger.hashMap["tc_button_pressed"] = System.currentTimeMillis()
-            cameraInstance.captureImageWithPreviewExtraction()
+            captureAndSend()
         } else if (keyCode == KeyEvent.KEYCODE_BACK) {
             onBackPressed()
         }
         return true
+    }
+
+    fun captureAndSend(){
+        var mBitmap = cameraInstance.captureImageWithPreviewExtraction()
+        var mServerURL = getServerUrl()
+        if (mBitmap != null && mServerURL != null) {
+            if (mServerURL != ""){
+                StudyLogger.hashMap["tc_image_captured"] = System.currentTimeMillis()   // image is in memory
+                StudyLogger.hashMap["long_side"] = cameraInstance.IMG_TARGET_SIZE
+                val greyImg =
+                    rescale(
+                        mBitmap,
+                        cameraInstance.IMG_TARGET_SIZE
+                    )
+                val matchingOptions: java.util.HashMap<Any?, Any?>? = getMatchingOptionsFromPref()
+                sendBitmap(
+                    greyImg,
+                    mServerURL,
+                    this,
+                    matchingOptions
+                )
+            } else {
+                onMatchRequestError()
+            }
+        } else {
+            onMatchRequestError()
+        }
     }
 
     override fun onStop() {
