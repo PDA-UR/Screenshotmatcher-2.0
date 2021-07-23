@@ -27,28 +27,30 @@ class ServerConnection(cameraActivity: CameraActivity) {
     private lateinit var mHandler: Handler
 
     fun start() {
-        handlerThread = HandlerThread(this.javaClass.simpleName).apply { start() }
-        looper = handlerThread.looper
-        mHandler  = object : Handler(looper) {
-            override fun handleMessage(msg: Message) {
-                when (msg.what) {
-                    END_ALL_THREADS -> {
-                        this.removeCallbacksAndMessages(null)
-                    }
-                    START_DISCOVER -> {
-                        this.removeCallbacksAndMessages(null)
-                        this.post(discoverRunnable)
-                    }
-                    START_HEARTBEAT -> {
-                        this.removeCallbacksAndMessages(null)
-                        this.post(heartbeatRunnable)
+        if (!isDiscovering && !isSendingHeartbeat){
+            handlerThread = HandlerThread(this.javaClass.simpleName).apply { start() }
+            looper = handlerThread.looper
+            mHandler  = object : Handler(looper) {
+                override fun handleMessage(msg: Message) {
+                    when (msg.what) {
+                        END_ALL_THREADS -> {
+                            this.removeCallbacksAndMessages(null)
+                        }
+                        START_DISCOVER -> {
+                            this.removeCallbacksAndMessages(null)
+                            this.post(discoverRunnable)
+                        }
+                        START_HEARTBEAT -> {
+                            this.removeCallbacksAndMessages(null)
+                            this.post(heartbeatRunnable)
+                        }
                     }
                 }
             }
-        }
-        when(isConnectedToServer){
-            true -> startHeartbeatThread()
-            false -> startDiscoverThread()
+            when(isConnectedToServer){
+                true -> startHeartbeatThread()
+                false -> startDiscoverThread()
+            }
         }
     }
 

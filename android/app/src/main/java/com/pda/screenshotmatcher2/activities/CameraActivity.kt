@@ -31,7 +31,6 @@ import kotlin.concurrent.thread
 
 
 class CameraActivity : AppCompatActivity(), SensorEventListener {
-    private lateinit var cameraInstance: CameraInstance
    //Sensors
     private lateinit var mSensorManager : SensorManager
     private lateinit var mAccelerometer : Sensor
@@ -51,8 +50,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var mSettingsButton: ImageButton
     private lateinit var mGalleryButton: ImageButton
 
-    private var isCapturing: Boolean = false
-
     //Shared preferences
     private lateinit var sp: SharedPreferences
     private lateinit var MATCHING_MODE_PREF_KEY: String
@@ -62,9 +59,10 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     lateinit var files: Array<File>
     lateinit var imageArray: ArrayList<ArrayList<File>>
 
+    //custom helper classes for server connection, fragment management and camera preview
     var serverConnection = ServerConnection(this)
-
     private lateinit var fragmentHandler: FragmentHandler
+    private var cameraInstance: CameraInstance = CameraInstance(this)
 
     //Boolean for checking the orientation
     var checkSensor: Boolean = true
@@ -78,22 +76,18 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         verifyPermissions(this)
         setupSharedPref()
         createDeviceID(this)
-        fragmentHandler = FragmentHandler(this)
-
         initViews()
         setViewListeners()
-        if (!serverConnection.isDiscovering && !serverConnection.isSendingHeartbeat) serverConnection.start()
 
-
-        cameraInstance = CameraInstance(this)
+        fragmentHandler = FragmentHandler(this)
+        serverConnection.start()
         cameraInstance.start()
 
         mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
 
-        if (savedInstanceState != null) {
-            restoreFromSavedInstance(savedInstanceState)
-        }
+        savedInstanceState?.let { restoreFromSavedInstance(it) }
+
         if (!this::imageArray.isInitialized) {
             thread { fillUpImageList() }
         }
@@ -109,7 +103,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             l.add(Pair(urlList[i], hostList?.get(i)) as Pair<String, String>)
         }
         //initNetworkHandler()
-        if (!serverConnection.isDiscovering && !serverConnection.isSendingHeartbeat) serverConnection.start()
+        serverConnection.start()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -131,8 +125,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onResume() {
         super.onResume()
-        //initNetworkHandler()
-        if (!serverConnection.isDiscovering && !serverConnection.isSendingHeartbeat) serverConnection.start()
+        serverConnection.start()
 
         mAccelerometer?.also { accel ->
             mSensorManager.registerListener(this, accel, SensorManager.SENSOR_DELAY_UI)
@@ -206,7 +199,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         if (!mCaptureButton.hasOnClickListeners()) {
             if (!this::mCaptureButtonListener.isInitialized){
                 mCaptureButtonListener = View.OnClickListener {
-                    if (!isCapturing){
+                    if (!cameraInstance.isCapturing){
                         StudyLogger.hashMap["tc_button_pressed"] = System.currentTimeMillis()
                         capturePhoto()
                     }
@@ -317,17 +310,17 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     }
 
     fun onMatchResult(matchID: String, img: ByteArray) {
-        isCapturing = false
+        cameraInstance.isCapturing = false
         startResultsActivity(matchID, img)
     }
 
     fun onMatchRequestError(){
-        isCapturing = false
+        cameraInstance.isCapturing = false
         Toast.makeText(this, getString(R.string.match_request_error_en), Toast.LENGTH_LONG).show()
     }
 
     fun onPermissionDenied() {
-        isCapturing = false
+        cameraInstance.isCapturing = false
         Toast.makeText(this, "Permission denied from server.", Toast.LENGTH_LONG).show()
     }
 
@@ -345,7 +338,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
 
     fun onOpenErrorFragment() {
-        isCapturing = false
+        cameraInstance.isCapturing = false
     }
 
     fun getFragmentHandler(): FragmentHandler {
