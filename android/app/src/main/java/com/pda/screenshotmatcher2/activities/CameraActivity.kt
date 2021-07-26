@@ -61,13 +61,14 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     //custom helper classes for server connection, fragment management and camera preview
     var serverConnection = ServerConnection(this)
-    private lateinit var fragmentHandler: FragmentHandler
+    lateinit var fragmentHandler: FragmentHandler
     private var cameraInstance: CameraInstance = CameraInstance(this)
 
     //Boolean for checking the orientation
     var checkSensor: Boolean = true
     var isFirstBoot: Boolean = true
 
+    // Activity lifecycle
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -88,6 +89,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
         savedInstanceState?.let { restoreFromSavedInstance(it) }
 
+        //pre-load image files to avoid lag when opening up the gallery fragment
         if (!this::imageArray.isInitialized) {
             thread { fillUpImageList() }
         }
@@ -102,34 +104,33 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         for (i in 0 until urlList?.size!!) {
             l.add(Pair(urlList[i], hostList?.get(i)) as Pair<String, String>)
         }
-        //initNetworkHandler()
         serverConnection.start()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-
         super.onSaveInstanceState(outState)
-        outState.putString(getString(R.string.ca_saved_instance_url_key), serverConnection.mServerURL)
-        outState.putSerializable(getString(R.string.ca_saved_instance_image_list_key), imageArray)
 
-        var serverUrlList: ArrayList<String> = ArrayList()
-        var serverHostList: ArrayList<String> = ArrayList()
-
+        val serverUrlList: ArrayList<String> = ArrayList()
+        val serverHostList: ArrayList<String> = ArrayList()
         serverConnection.mServerUrlList.forEach {
             serverHostList.add(it.second)
             serverUrlList.add(it.first)
         }
-        outState.putStringArrayList(getString(R.string.ca_saved_instance_url_list_key), serverUrlList)
-        outState.putStringArrayList(getString(R.string.ca_saved_instance_host_list_key), serverHostList)
+        outState.apply {
+            putStringArrayList(getString(R.string.ca_saved_instance_url_list_key), serverUrlList)
+            putStringArrayList(getString(R.string.ca_saved_instance_host_list_key), serverHostList)
+            putString(getString(R.string.ca_saved_instance_url_key), serverConnection.mServerURL)
+            putSerializable(getString(R.string.ca_saved_instance_image_list_key), imageArray)
+        }
     }
 
     override fun onResume() {
         super.onResume()
         serverConnection.start()
-
-        mAccelerometer?.also { accel ->
+        mAccelerometer.also { accel ->
             mSensorManager.registerListener(this, accel, SensorManager.SENSOR_DELAY_UI)
         }
+        //only check orientation once every second
         Handler().postDelayed(object : Runnable {
             override fun run() {
                 checkSensor = true
@@ -144,19 +145,54 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         mSensorManager.unregisterListener(this)
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        when (requestCode) {
-            RESULT_ACTIVITY_REQUEST_CODE -> {
-                when (resultCode) {
-                    Activity.RESULT_OK -> {
-                        var resultData: ArrayList<File> = data?.getSerializableExtra(
-                            RESULT_ACTIVITY_RESULT_CODE
-                        ) as ArrayList<File>
-                        imageArray.add(0, resultData)
+    override fun onStop() {
+        super.onStop()
+        serverConnection.stop()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        serverConnection.stop()
+    }
+
+
+    // Views
+    private fun initViews() {
+        if (!::mCaptureButton.isInitialized) {
+            mCaptureButton = findViewById(R.id.capture_button)
+            mSelectDeviceButton = findViewById(R.id.select_device_button)
+            mSelectDeviceButton.background =
+                resources.getDrawable(R.drawable.select_device_disconnected)
+            mSelectDeviceButtonText = findViewById(R.id.camera_activity_select_device_text)
+            mSelectDeviceButtonText.text = getText(R.string.select_device_button_notConnected_en)
+            mFragmentDarkBackground = findViewById(R.id.ca_dark_background)
+            mSettingsButton = findViewById(R.id.camera_activity_settings_button)
+            mSettingsButton.setOnClickListener { fragmentHandler.openSettingsFragment() }
+            mGalleryButton = findViewById(R.id.camera_activity_gallery_button)
+            mGalleryButton.setOnClickListener { fragmentHandler.openGalleryFragment() }
+        }
+    }
+
+    private fun setViewListeners() {
+        mCaptureButton.apply {
+            if (!hasOnClickListeners()){
+                mCaptureButtonListener = View.OnClickListener {
+                    if (!cameraInstance.isCapturing){
+                        StudyLogger.hashMap["tc_button_pressed"] = System.currentTimeMillis()
+                        capturePhoto()
                     }
                 }
             }
+            mCaptureButton.setOnClickListener(mCaptureButtonListener)
+        }
+
+        mSelectDeviceButton.apply {
+           if (!hasOnClickListeners()) {
+               mSelectDeviceButtonListener = View.OnClickListener {
+                   fragmentHandler.openSelectDeviceFragment()
+               }
+               setOnClickListener(mSelectDeviceButtonListener)
+           }
         }
     }
 
@@ -178,59 +214,11 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
-    private fun initViews() {
-        if (!::mCaptureButton.isInitialized) {
-            mCaptureButton = findViewById(R.id.capture_button)
-            mSelectDeviceButton = findViewById(R.id.select_device_button)
-            mSelectDeviceButton.background =
-                resources.getDrawable(R.drawable.select_device_disconnected)
-            mSelectDeviceButtonText = findViewById(R.id.camera_activity_select_device_text)
-            mSelectDeviceButtonText.text = getText(R.string.select_device_button_notConnected_en)
-            mFragmentDarkBackground = findViewById(R.id.ca_dark_background)
-            mSettingsButton = findViewById(R.id.camera_activity_settings_button)
-            mSettingsButton.setOnClickListener { fragmentHandler.openSettingsFragment() }
-            mGalleryButton = findViewById(R.id.camera_activity_gallery_button)
-            mGalleryButton.setOnClickListener { fragmentHandler.openGalleryFragment() }
-        }
-    }
-
-    private fun setViewListeners() {
-
-        if (!mCaptureButton.hasOnClickListeners()) {
-            if (!this::mCaptureButtonListener.isInitialized){
-                mCaptureButtonListener = View.OnClickListener {
-                    if (!cameraInstance.isCapturing){
-                        StudyLogger.hashMap["tc_button_pressed"] = System.currentTimeMillis()
-                        capturePhoto()
-                    }
-                }
-            }
-            mCaptureButton.setOnClickListener(mCaptureButtonListener)
-        }
-
-
-        if (!mSelectDeviceButton.hasOnClickListeners()) {
-            mSelectDeviceButtonListener = View.OnClickListener {
-                fragmentHandler.openSelectDeviceFragment()
-            }
-            mSelectDeviceButton.setOnClickListener(mSelectDeviceButtonListener)
-        }
-    }
-
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
-            StudyLogger.hashMap["tc_button_pressed"] = System.currentTimeMillis()
-            capturePhoto()
-        } else if (keyCode == KeyEvent.KEYCODE_BACK) {
-            onBackPressed()
-        }
-        return true
-    }
-
+    // Functionality
     private fun capturePhoto(){
-        var mBitmap = cameraInstance.captureImageWithPreviewExtraction()
-        var mServerURL = serverConnection.mServerURL
-        if (mBitmap != null && mServerURL != null) {
+        val mBitmap = cameraInstance.captureImageWithPreviewExtraction()
+        val mServerURL = serverConnection.mServerURL
+        if (mBitmap != null) {
             if (mServerURL != ""){
                 StudyLogger.hashMap["tc_image_captured"] = System.currentTimeMillis()   // image is in memory
                 StudyLogger.hashMap["long_side"] = cameraInstance.IMG_TARGET_SIZE
@@ -254,51 +242,16 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
-    override fun onStop() {
-        super.onStop()
-        serverConnection.stop()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        serverConnection.stop()
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when (requestCode) {
-            1 -> {
-                if (grantResults.isNotEmpty()
-                    && grantResults[0] == PackageManager.PERMISSION_GRANTED
-                ) {
-                    cameraInstance.openCamera(surfaceTextureHeight, surfaceTextureWidth)
-                } else {
-                    Toast.makeText(this,getString(R.string.permission_request_en), Toast.LENGTH_LONG).show()
-                    verifyPermissions(this)
-                }
-            }
-        }
-    }
-
-
-
     fun updateConnectionStatus() {
-        if (serverConnection.isConnectedToServer){
-            mSelectDeviceButton.background =
-                resources.getDrawable(R.drawable.select_device_connected)
-            if (phoneOrientation == Surface.ROTATION_0) {
-                serverConnection.mServerUrlList.forEach {
-                    if (it.first == serverConnection.mServerURL){
-                        mSelectDeviceButtonText.text = it.second
-                    }
+        when (serverConnection.isConnectedToServer){
+            true -> {
+                mSelectDeviceButton.background =
+                    resources.getDrawable(R.drawable.select_device_connected)
+                if (phoneOrientation == Surface.ROTATION_0) {
+                    mSelectDeviceButtonText.text = serverConnection.getConnectedServerName()
                 }
             }
-        } else{
-            runOnUiThread {
+            false -> {
                 mSelectDeviceButton.background =
                     resources.getDrawable(R.drawable.select_device_disconnected)
                 if (phoneOrientation == Surface.ROTATION_0) {
@@ -306,49 +259,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
                         getString(R.string.select_device_button_notConnected_en)
                 }
             }
-        }
-    }
-
-    fun onMatchResult(matchID: String, img: ByteArray) {
-        cameraInstance.isCapturing = false
-        startResultsActivity(matchID, img)
-    }
-
-    fun onMatchRequestError(){
-        cameraInstance.isCapturing = false
-        Toast.makeText(this, getString(R.string.match_request_error_en), Toast.LENGTH_LONG).show()
-    }
-
-    fun onPermissionDenied() {
-        cameraInstance.isCapturing = false
-        Toast.makeText(this, "Permission denied from server.", Toast.LENGTH_LONG).show()
-    }
-
-    fun onOpenSelectDeviceFragment(){
-        mSettingsButton.visibility = View.INVISIBLE
-        mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_close_48))
-    }
-
-    fun onCloseSelectDeviceFragment() {
-        mCaptureButton.setImageResource(R.drawable.ic_baseline_photo_camera_24)
-        mCaptureButton.setOnClickListener(mCaptureButtonListener)
-        mSelectDeviceButton.setOnClickListener(mSelectDeviceButtonListener)
-        mSettingsButton.visibility = View.VISIBLE
-    }
-
-
-    fun onOpenErrorFragment() {
-        cameraInstance.isCapturing = false
-    }
-
-    fun getFragmentHandler(): FragmentHandler {
-        return fragmentHandler
-    }
-
-    private fun setupSharedPref() {
-        if (!::sp.isInitialized) {
-            sp = PreferenceManager.getDefaultSharedPreferences(this)
-            MATCHING_MODE_PREF_KEY = getString(R.string.settings_algorithm_key)
         }
     }
 
@@ -363,93 +273,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         )
     }
 
-    fun getMatchingOptionsFromPref(): HashMap<Any?, Any?>? {
-        var matchingMode: HashMap<Any?, Any?>? = HashMap()
-        var fastMatchingMode: Boolean = sp.getBoolean(MATCHING_MODE_PREF_KEY, true)
-        if (fastMatchingMode) {
-            matchingMode?.set(
-                getString(R.string.algorithm_key_server),
-                getString(R.string.algorithm_fast_mode_name_server)
-            )
-        } else {
-            matchingMode?.set(
-                getString(R.string.algorithm_key_server),
-                getString(R.string.algorithm_accurate_mode_name_server)
-            )
-        }
-        return matchingMode
-    }
-
-    private fun fillUpImageList() {
-        imageDirectory = this.getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
-        files = imageDirectory.listFiles()
-        files.sortByDescending { it.name }
-        imageArray = ArrayList()
-
-
-        files.forEach outer@{ file ->
-            if (imageArray.isNotEmpty()) {
-                imageArray.forEach inner@{ item ->
-                    if (fileBelongsToImageArrayItem(file, item)) {
-                        if (file.name.split("_").last() == "Cropped.png") {
-                            item.add(file)
-                        } else {
-                            item.add(0, file)
-                        }
-                        return@outer
-                    }
-                }
-            }
-            var fileCouple: ArrayList<File> = ArrayList()
-            fileCouple.add(file)
-            imageArray.add(fileCouple)
-        }
-    }
-
-    private fun fileBelongsToImageArrayItem(file: File, item: ArrayList<File>): Boolean {
-        //Item has already 2 entries
-        var filename: String = file.name.split("_".toRegex()).first()
-        val itemName: String = item[0].name.split("_".toRegex()).first()
-
-        if (item.size == 2) {
-            return false
-        }
-
-        return filename == itemName
-    }
-
-    override fun onSensorChanged(event: SensorEvent?) {
-
-        if (event!!.values[1] > 0 && event.values[0].toInt() == 0) {
-
-            if (phoneOrientation != Surface.ROTATION_0){
-                phoneOrientation = Surface.ROTATION_0 //portrait
-                changeOrientation()
-            }
-        }
-
-        else if (event.values[1] < 0 && event.values[0].toInt() == 0) {
-            if (phoneOrientation != Surface.ROTATION_180) {
-                phoneOrientation = Surface.ROTATION_180 //landscape
-                changeOrientation()
-            }
-        }
-
-        else if (event.values[0] > 0 && event.values[1].toInt() == 0) {
-            if (phoneOrientation != Surface.ROTATION_90) {
-                phoneOrientation = Surface.ROTATION_90 //landscape
-                changeOrientation()
-            }
-        }
-
-        else if (event.values[0] < 0 && event.values[1].toInt() == 0) {
-            if (phoneOrientation != Surface.ROTATION_270) {
-                phoneOrientation = Surface.ROTATION_270 //landscape
-                changeOrientation()
-            }
-        }
-    }
-
+    // Orientation changes
     private fun changeOrientation() {
         if (checkSensor){
             when (phoneOrientation) {
@@ -485,6 +309,100 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         }
 
     }
+
+    // Permissions
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            1 -> {
+                if (grantResults.isNotEmpty()
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED
+                ) {
+                    cameraInstance.openCamera(surfaceTextureHeight, surfaceTextureWidth)
+                } else {
+                    Toast.makeText(this,getString(R.string.permission_request_en), Toast.LENGTH_LONG).show()
+                    verifyPermissions(this)
+                }
+            }
+        }
+    }
+
+    //Callbacks
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+            StudyLogger.hashMap["tc_button_pressed"] = System.currentTimeMillis()
+            capturePhoto()
+        } else if (keyCode == KeyEvent.KEYCODE_BACK) {
+            onBackPressed()
+        }
+        return true
+    }
+
+    fun onMatchResult(matchID: String, img: ByteArray) {
+        cameraInstance.isCapturing = false
+        startResultsActivity(matchID, img)
+    }
+
+    fun onMatchRequestError(){
+        cameraInstance.isCapturing = false
+        Toast.makeText(this, getString(R.string.match_request_error_en), Toast.LENGTH_LONG).show()
+    }
+
+    fun onPermissionDenied() {
+        cameraInstance.isCapturing = false
+        Toast.makeText(this, "Permission denied from server.", Toast.LENGTH_LONG).show()
+    }
+
+    fun onOpenSelectDeviceFragment(){
+        mSettingsButton.visibility = View.INVISIBLE
+        mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_close_48))
+    }
+
+    fun onCloseSelectDeviceFragment() {
+        mCaptureButton.setImageResource(R.drawable.ic_baseline_photo_camera_24)
+        mCaptureButton.setOnClickListener(mCaptureButtonListener)
+        mSelectDeviceButton.setOnClickListener(mSelectDeviceButtonListener)
+        mSettingsButton.visibility = View.VISIBLE
+    }
+
+    fun onOpenErrorFragment() {
+        cameraInstance.isCapturing = false
+    }
+
+    override fun onSensorChanged(event: SensorEvent?) {
+        if (event!!.values[1] > 0 && event.values[0].toInt() == 0) {
+            if (phoneOrientation != Surface.ROTATION_0){
+                phoneOrientation = Surface.ROTATION_0 //portrait
+                changeOrientation()
+            }
+        }
+
+        else if (event.values[1] < 0 && event.values[0].toInt() == 0) {
+            if (phoneOrientation != Surface.ROTATION_180) {
+                phoneOrientation = Surface.ROTATION_180 //landscape
+                changeOrientation()
+            }
+        }
+
+        else if (event.values[0] > 0 && event.values[1].toInt() == 0) {
+            if (phoneOrientation != Surface.ROTATION_90) {
+                phoneOrientation = Surface.ROTATION_90 //landscape
+                changeOrientation()
+            }
+        }
+
+        else if (event.values[0] < 0 && event.values[1].toInt() == 0) {
+            if (phoneOrientation != Surface.ROTATION_270) {
+                phoneOrientation = Surface.ROTATION_270 //landscape
+                changeOrientation()
+            }
+        }
+    }
+
     override fun onBackPressed() {
         if (fragmentHandler.removeAllFragments() == 0){
             super.onBackPressed()
@@ -493,5 +411,85 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
         return
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        when (requestCode) {
+            RESULT_ACTIVITY_REQUEST_CODE -> {
+                when (resultCode) {
+                    Activity.RESULT_OK -> {
+                        val resultData: ArrayList<File> = data?.getSerializableExtra(
+                            RESULT_ACTIVITY_RESULT_CODE
+                        ) as ArrayList<File>
+                        imageArray.add(0, resultData)
+                    }
+                }
+            }
+        }
+    }
+
+    // Preferences
+    private fun setupSharedPref() {
+        if (!::sp.isInitialized) {
+            sp = PreferenceManager.getDefaultSharedPreferences(this)
+            MATCHING_MODE_PREF_KEY = getString(R.string.settings_algorithm_key)
+        }
+    }
+
+    fun getMatchingOptionsFromPref(): HashMap<Any?, Any?>? {
+        val matchingMode: HashMap<Any?, Any?>? = HashMap()
+        val fastMatchingMode: Boolean = sp.getBoolean(MATCHING_MODE_PREF_KEY, true)
+        if (fastMatchingMode) {
+            matchingMode?.set(
+                getString(R.string.algorithm_key_server),
+                getString(R.string.algorithm_fast_mode_name_server)
+            )
+        } else {
+            matchingMode?.set(
+                getString(R.string.algorithm_key_server),
+                getString(R.string.algorithm_accurate_mode_name_server)
+            )
+        }
+        return matchingMode
+    }
+
+    // Filling up the file list for the gallery fragment
+    private fun fillUpImageList() {
+        imageDirectory = this.getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
+        files = imageDirectory.listFiles()
+        files.sortByDescending { it.name }
+        imageArray = ArrayList()
+
+
+        files.forEach outer@{ file ->
+            if (imageArray.isNotEmpty()) {
+                imageArray.forEach inner@{ item ->
+                    if (fileBelongsToImageArrayItem(file, item)) {
+                        if (file.name.split("_").last() == "Cropped.png") {
+                            item.add(file)
+                        } else {
+                            item.add(0, file)
+                        }
+                        return@outer
+                    }
+                }
+            }
+            var fileCouple: ArrayList<File> = ArrayList()
+            fileCouple.add(file)
+            imageArray.add(fileCouple)
+        }
+    }
+
+    private fun fileBelongsToImageArrayItem(file: File, item: ArrayList<File>): Boolean {
+        //Item has already 2 entries
+        val filename: String = file.name.split("_".toRegex()).first()
+        val itemName: String = item[0].name.split("_".toRegex()).first()
+
+        if (item.size == 2) {
+            return false
+        }
+
+        return filename == itemName
     }
 }
