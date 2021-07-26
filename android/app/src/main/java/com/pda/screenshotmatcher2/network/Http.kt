@@ -100,7 +100,7 @@ fun sendBitmap(
                 }
             }
             else if (activity is CameraActivity) {
-                val fm: FragmentHandler = activity.getFragmentHandler()
+                val fm: FragmentHandler = activity.fragmentHandler
                 fm.openErrorFragment(response.get("uid").toString(), bitmap)
             }
         },
