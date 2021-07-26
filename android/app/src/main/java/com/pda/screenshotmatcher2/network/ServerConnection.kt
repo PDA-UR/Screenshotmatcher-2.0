@@ -73,7 +73,6 @@ class ServerConnection(cameraActivity: CameraActivity) {
         }
     }
 
-
     private fun startHeartbeatThread(){
         if (handlerThread.isAlive){
             isSendingHeartbeat = true

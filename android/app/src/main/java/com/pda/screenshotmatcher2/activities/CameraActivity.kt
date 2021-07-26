@@ -10,7 +10,6 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.*
-import android.util.Log
 import android.view.*
 import android.widget.FrameLayout
 import android.widget.ImageButton
@@ -55,7 +54,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var MATCHING_MODE_PREF_KEY: String
 
     //Old images gallery
-    lateinit var imageDirectory: File
+    private lateinit var imageDirectory: File
     lateinit var files: Array<File>
     lateinit var imageArray: ArrayList<ArrayList<File>>
 
