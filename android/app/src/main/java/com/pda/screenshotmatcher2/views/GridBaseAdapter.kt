@@ -21,15 +21,14 @@ class GridBaseAdapter(context: Context): BaseAdapter () {
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View? {
         val mInflator: LayoutInflater = LayoutInflater.from(context)
         var view: View = mInflator.inflate(R.layout.grid_view_item, parent, false)
-        var vh: ListRowHolder =
-            ListRowHolder(view)
+        var vh = ListRowHolder(view)
         view.tag = vh
 
         view.setOnClickListener {
             val firstImageFile = vh.firstImageFile
             val secondImageFile = vh.secondImageFile
-            val fragment: CameraActivity = context as CameraActivity
-            fragment.fragmentHandler.openGalleryPreviewFragment(firstImageFile, secondImageFile)
+            val ca: CameraActivity = context as CameraActivity
+            ca.fragmentHandler.openGalleryPreviewFragment(firstImageFile, secondImageFile)
         }
 
         Glide.with(context)
@@ -67,8 +66,8 @@ class GridBaseAdapter(context: Context): BaseAdapter () {
 }
 
 private class ListRowHolder(row: View?) {
-    public var firstImageFile: File? = null
-    public var secondImageFile: File? = null
-    public val firstImage: ImageView = row?.findViewById(R.id.grid_view_item_first_image) as ImageView
-    public val secondImage: ImageView = row?.findViewById(R.id.grid_view_item_second_image) as ImageView
+    var firstImageFile: File? = null
+    var secondImageFile: File? = null
+    val firstImage: ImageView = row?.findViewById(R.id.grid_view_item_first_image) as ImageView
+    val secondImage: ImageView = row?.findViewById(R.id.grid_view_item_second_image) as ImageView
 }

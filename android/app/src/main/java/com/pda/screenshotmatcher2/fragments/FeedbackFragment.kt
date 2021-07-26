@@ -54,7 +54,7 @@ class FeedbackFragment : Fragment() {
     }
 
     fun onFeedbackPosted(){
-        removeThisFragment(true)
+        removeThisFragment()
         StudyLogger.hashMap["feedback_sent"] = true
         Toast.makeText(context, getText(R.string.ff_submit_success_en), Toast.LENGTH_LONG).show()
     }
@@ -79,17 +79,20 @@ class FeedbackFragment : Fragment() {
                 dismissKeyboard()
             }
         }
+
         mFragmentBackground = activity?.findViewById(
             R.id.ca_dark_background
         )!!
-        mFragmentBackground.setOnClickListener {
-            if (isKeyboardActive()){
-                dismissKeyboard()
-            } else{
-                removeThisFragment(true)
+        mFragmentBackground.apply {
+            setOnClickListener {
+                if (isKeyboardActive()){
+                    dismissKeyboard()
+                } else{
+                    removeThisFragment()
+                }
             }
+            visibility = View.VISIBLE
         }
-        mFragmentBackground.visibility = View.VISIBLE
         mTextInputField = activity?.findViewById(
             R.id.ff_text_input
         )!!
@@ -106,7 +109,7 @@ class FeedbackFragment : Fragment() {
                 hasScreenshot = false,
                 comment = getInputTextFieldText()
             )
-            removeThisFragment(true)
+            removeThisFragment()
         }
     }
 
@@ -114,18 +117,12 @@ class FeedbackFragment : Fragment() {
         return mTextInputField.text.toString()
     }
 
-    private fun removeThisFragment(removeBackground: Boolean = true) {
-
+    private fun removeThisFragment() {
+        containerView.visibility = View.INVISIBLE
+        mFragmentBackground.visibility = View.INVISIBLE
         activity?.supportFragmentManager
             ?.beginTransaction()
             ?.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)
             ?.remove(this)?.commit()
-    }
-
-    override fun onDestroy() {
-        containerView.visibility = View.INVISIBLE
-        mFragmentBackground.visibility = View.INVISIBLE
-
-        super.onDestroy()
     }
 }
