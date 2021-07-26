@@ -132,15 +132,9 @@ class ServerConnection(cameraActivity: CameraActivity) {
     }
 
     private fun updateServerUrlList(newServers: List<Pair<String, String>>) {
-        var oldServerIsInNewList = false
         mServerUrlList = newServers
         mServerUrlList.forEach {
-            if (it.first == mServerURL) {
-                oldServerIsInNewList = true
-            }
-        }
-        if (oldServerIsInNewList){
-            onConnectionChanged(true)
+            if (it.first == mServerURL) onConnectionChanged(true)
         }
     }
 
@@ -161,6 +155,15 @@ class ServerConnection(cameraActivity: CameraActivity) {
         return if (::mServerUrlList.isInitialized) {
             mServerUrlList
         } else null
+    }
+
+    fun getConnectedServerName(): String {
+        mServerUrlList.forEach {
+            if (it.first ==mServerURL){
+                return it.second
+            }
+        }
+        return ""
     }
 
     fun stop() {

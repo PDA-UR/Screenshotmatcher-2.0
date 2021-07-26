@@ -29,7 +29,7 @@ class GridBaseAdapter(context: Context): BaseAdapter () {
             val firstImageFile = vh.firstImageFile
             val secondImageFile = vh.secondImageFile
             val fragment: CameraActivity = context as CameraActivity
-            fragment.getFragmentHandler().openGalleryPreviewFragment(firstImageFile, secondImageFile)
+            fragment.fragmentHandler.openGalleryPreviewFragment(firstImageFile, secondImageFile)
         }
 
         Glide.with(context)
