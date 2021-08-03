@@ -458,7 +458,7 @@ class ResultsActivity : AppCompatActivity() {
         queue.add(jsonOR)
     }
 
-    fun onFullScreenshotDenied() {
+    private fun onFullScreenshotDenied() {
         Toast.makeText(this, "Full screenshots not allowed by this PC.", Toast.LENGTH_LONG).show()
     }
 

@@ -1,16 +1,12 @@
 package com.pda.screenshotmatcher2.fragments.rotationFragments
 
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.GridView
 import android.widget.ImageButton
-import androidx.fragment.app.FragmentTransaction
 import com.pda.screenshotmatcher2.views.GridBaseAdapter
 import com.pda.screenshotmatcher2.R
-import com.pda.screenshotmatcher2.fragments.GalleryPreviewFragment
-import com.pda.screenshotmatcher2.fragments.removeForRotation
 import java.io.File
 
 class GalleryFragment : RotationFragment() {
