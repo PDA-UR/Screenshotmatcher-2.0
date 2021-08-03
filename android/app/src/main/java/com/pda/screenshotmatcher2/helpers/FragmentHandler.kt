@@ -11,9 +11,7 @@ import androidx.fragment.app.FragmentTransaction
 import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.activities.CameraActivity
 import com.pda.screenshotmatcher2.fragments.*
-import com.pda.screenshotmatcher2.fragments.rotationFragments.GalleryFragment
-import com.pda.screenshotmatcher2.fragments.rotationFragments.RotationFragment
-import com.pda.screenshotmatcher2.fragments.rotationFragments.SelectDeviceFragment
+import com.pda.screenshotmatcher2.fragments.rotationFragments.*
 import java.io.File
 
 class FragmentHandler(a: Activity) {
@@ -76,8 +74,12 @@ class FragmentHandler(a: Activity) {
         }
 
         when(withTransition){
-            true -> openFragment(GalleryPreviewFragment().apply { arguments = bundle }, R.id.gallery_fragment_body_layout, FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-            false -> openFragment(GalleryPreviewFragment().apply { arguments = bundle }, R.id.camera_activity_frameLayout)
+            true -> openFragment(
+                GalleryPreviewFragment()
+                    .apply { arguments = bundle }, R.id.gallery_fragment_body_layout, FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+            false -> openFragment(
+                GalleryPreviewFragment()
+                    .apply { arguments = bundle }, R.id.camera_activity_frameLayout)
         }
     }
 
