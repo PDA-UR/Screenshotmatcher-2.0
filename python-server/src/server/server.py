@@ -5,7 +5,8 @@ from flask import Flask, request, Response
 import common.log
 from common.config import Config
 from matching.matcher import Matcher
-from common.utility import get_current_ms, is_device_allowed, request_permission_for_device, create_single_match_token
+from common.utility import get_current_ms
+from common.permission import is_device_allowed, request_permission_for_device, create_single_match_token, request_permission_for_device_PSG
 
 class Server():
     def __init__(self):
@@ -151,7 +152,7 @@ class Server():
             error = {"error" : "data_error"}
             return Response(json.dumps(error), mimetype='application/json')
 
-        user_response = request_permission_for_device(device_id, device_name)
+        user_response = request_permission_for_device_PSG(device_id, device_name)
         response = {}
         if user_response == "allow once":
             permission_token = create_single_match_token()
