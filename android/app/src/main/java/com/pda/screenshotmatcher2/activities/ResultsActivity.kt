@@ -81,6 +81,7 @@ class ResultsActivity : AppCompatActivity() {
         StudyLogger.hashMap["tc_result_shown"] = System.currentTimeMillis()
         lastDateTime = getDateString()
 
+        //if there is no cropped image, enter full screenshot only mode, not switching between images possible
         if (intent.hasExtra("img")) {
             val imgByteArray = intent.getByteArrayExtra("img")!!
             mCroppedScreenshot = BitmapFactory.decodeByteArray(imgByteArray, 0, imgByteArray.size)
@@ -116,14 +117,10 @@ class ResultsActivity : AppCompatActivity() {
         mBackButton.setOnClickListener { goBackToCameraActivity() }
         mRetakeImageButton.setOnClickListener { goBackToCameraActivity() }
         mPillNavigationButton1.setOnClickListener {
-            if (mPillNavigationState != -1) {
-                togglePillNavigationSelection()
-            }
+            if (mPillNavigationState != -1) togglePillNavigationSelection()
         }
         mPillNavigationButton2.setOnClickListener {
-            if (mPillNavigationState != 1) {
-                togglePillNavigationSelection()
-            }
+            if (mPillNavigationState != 1) togglePillNavigationSelection()
         }
         mImagePreviewPreviousButton.setOnClickListener { togglePillNavigationSelection() }
         mImagePreviewNextButton.setOnClickListener { togglePillNavigationSelection() }
@@ -136,150 +133,158 @@ class ResultsActivity : AppCompatActivity() {
     private fun saveCurrentPreviewImage() {
         hasSharedImage = true
         //Check if cropped image is available as bitmap, if so save it as a file to app directory. This is necessary so the user can see the the screenshot when browsing older screenshots
-        if (!displayFullScreenshotOnly) {
-            saveCroppedImageToAppDir()
-        }
+        if (!displayFullScreenshotOnly) saveCroppedImageToAppDir()
+
         Log.d("RA", mPillNavigationState.toString())
-        if (mPillNavigationState == -1) {
-            //Save cropped screenshot to gallery
-            MediaStore.Images.Media.insertImage(
-                contentResolver,
-                mCroppedScreenshot,
-                mCroppedImageFile.name,
-                getString(R.string.screenshot_description_en)
-            )
-            StudyLogger.hashMap["save_match"] = true
-            Toast.makeText(
-                this,
-                getText(R.string.result_activity_saved_cropped_en),
-                Toast.LENGTH_SHORT
-            ).show()
-        } else {
-            saveFullImageToAppDir()
-            //Save full screenshot to gallery
-            if (fullScreenshotDownloaded) {
+        when (mPillNavigationState) {
+            -1 -> {
+                //Save cropped screenshot to gallery
                 MediaStore.Images.Media.insertImage(
                     contentResolver,
-                    mFullScreenshot,
-                    mFullImageFile.name,
+                    mCroppedScreenshot,
+                    mCroppedImageFile.name,
                     getString(R.string.screenshot_description_en)
                 )
-                StudyLogger.hashMap["save_full"] = true
+                StudyLogger.hashMap["save_match"] = true
                 Toast.makeText(
                     this,
-                    getText(R.string.result_activity_saved_full_en),
+                    getText(R.string.result_activity_saved_cropped_en),
                     Toast.LENGTH_SHORT
                 ).show()
-            } else {
-                Toast.makeText(
-                    this,
-                    getText(R.string.http_download_full_error_en),
-                    Toast.LENGTH_LONG
-                ).show()
-                downloadFullScreenshotInThread()
             }
+           else -> {
+               saveFullImageToAppDir()
+               //Save full screenshot to gallery
+               if (fullScreenshotDownloaded) {
+                   MediaStore.Images.Media.insertImage(
+                       contentResolver,
+                       mFullScreenshot,
+                       mFullImageFile.name,
+                       getString(R.string.screenshot_description_en)
+                   )
+                   StudyLogger.hashMap["save_full"] = true
+                   Toast.makeText(
+                       this,
+                       getText(R.string.result_activity_saved_full_en),
+                       Toast.LENGTH_SHORT
+                   ).show()
+               } else {
+                   Toast.makeText(
+                       this,
+                       getText(R.string.http_download_full_error_en),
+                       Toast.LENGTH_LONG
+                   ).show()
+                   downloadFullScreenshotInThread()
+               }
+           }
         }
     }
 
     private fun saveBothImages() {
-        //Notify user if no cropped screenshot is available
-        if (displayFullScreenshotOnly) {
-            Toast.makeText(
-                this,
-                getText(R.string.result_activity_only_full_available_en),
-                Toast.LENGTH_SHORT
-            ).show()
-        } else {
-            hasSharedImage = true
-            //Save cropped screenshot to app directory and then to gallery
-            saveCroppedImageToAppDir()
-            MediaStore.Images.Media.insertImage(
-                contentResolver,
-                mCroppedScreenshot,
-                mCroppedImageFile.name,
-                getString(R.string.screenshot_description_en)
-            )
-            if (fullScreenshotDownloaded) {
-                saveFullImageToAppDir()
-                //Save full screenshot if it has been downloaded already
-                MediaStore.Images.Media.insertImage(
-                    contentResolver,
-                    mFullScreenshot,
-                    mFullImageFile.name,
-                    getString(R.string.screenshot_description_en)
-                )
+        when (displayFullScreenshotOnly) {
+            true -> {
+                //Notify user if no cropped screenshot is available
                 Toast.makeText(
                     this,
-                    getText(R.string.result_activity_saved_both_en),
+                    getText(R.string.result_activity_only_full_available_en),
                     Toast.LENGTH_SHORT
                 ).show()
-            } else {
-                //Full screenshot needs to be downloaded, gets saved to gallery on download complete
-                waitingForFullScreenshot = true
-                downloadFullScreenshotInThread()
             }
-            StudyLogger.hashMap["save_match"] = true
-            StudyLogger.hashMap["save_full"] = true
+            false -> {
+                hasSharedImage = true
+                //Save cropped screenshot to app directory and then to gallery
+                saveCroppedImageToAppDir()
+                MediaStore.Images.Media.insertImage(
+                    contentResolver,
+                    mCroppedScreenshot,
+                    mCroppedImageFile.name,
+                    getString(R.string.screenshot_description_en)
+                )
+                if (fullScreenshotDownloaded) {
+                    saveFullImageToAppDir()
+                    //Save full screenshot if it has been downloaded already
+                    MediaStore.Images.Media.insertImage(
+                        contentResolver,
+                        mFullScreenshot,
+                        mFullImageFile.name,
+                        getString(R.string.screenshot_description_en)
+                    )
+                    Toast.makeText(
+                        this,
+                        getText(R.string.result_activity_saved_both_en),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    //Full screenshot needs to be downloaded, gets saved to gallery on download complete
+                    waitingForFullScreenshot = true
+                    downloadFullScreenshotInThread()
+                }
+                StudyLogger.hashMap["save_match"] = true
+                StudyLogger.hashMap["save_full"] = true
+            }
         }
     }
 
     private fun shareImage() {
         hasSharedImage = true
-        if (mPillNavigationState == -1) {
-            //Cropped screenshot needs to be shared
-            StudyLogger.hashMap["share_match"] = true
+        when (mPillNavigationState) {
+            -1 -> {
+                //Cropped screenshot needs to be shared
+                StudyLogger.hashMap["share_match"] = true
 
-            saveCurrentPreviewImage()
-            //Start sharing
-            val contentUri =
-                getUriForFile(this, BuildConfig.APPLICATION_ID + ".fileprovider", mCroppedImageFile)
-
-            val shareIntent = ShareCompat.IntentBuilder.from(this)
-                .setType("image/png")
-                .setStream(contentUri)
-                .createChooserIntent()
-
-            val resInfoList: List<ResolveInfo> = this.packageManager
-                .queryIntentActivities(shareIntent, PackageManager.MATCH_DEFAULT_ONLY)
-
-            for (resolveInfo in resInfoList) {
-                val packageName: String = resolveInfo.activityInfo.packageName
-                grantUriPermission(
-                    packageName,
-                    contentUri,
-                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION
-                )
-            }
-            //val shareIntent = Intent.createChooser(sendIntent,"Share")
-            startActivity(shareIntent)
-        } else {
-            if (fullScreenshotDownloaded) {
-                //Full screenshot needs to be shared
-                StudyLogger.hashMap["share_full"] = true
-
-                saveFullImageToAppDir()
+                saveCurrentPreviewImage()
                 //Start sharing
                 val contentUri =
-                    getUriForFile(
-                        this,
-                        BuildConfig.APPLICATION_ID + ".fileprovider",
-                        mFullImageFile
+                    getUriForFile(this, BuildConfig.APPLICATION_ID + ".fileprovider", mCroppedImageFile)
+
+                val shareIntent = ShareCompat.IntentBuilder.from(this)
+                    .setType("image/png")
+                    .setStream(contentUri)
+                    .createChooserIntent()
+
+                val resInfoList: List<ResolveInfo> = this.packageManager
+                    .queryIntentActivities(shareIntent, PackageManager.MATCH_DEFAULT_ONLY)
+
+                for (resolveInfo in resInfoList) {
+                    val packageName: String = resolveInfo.activityInfo.packageName
+                    grantUriPermission(
+                        packageName,
+                        contentUri,
+                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION
                     )
-                val sendIntent = Intent().apply {
-                    this.action = Intent.ACTION_SEND
-                    this.putExtra(Intent.EXTRA_STREAM, contentUri)
-                    this.type = "image/png"
-                    this.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
-                val shareIntent = Intent.createChooser(sendIntent,null)
+                //val shareIntent = Intent.createChooser(sendIntent,"Share")
                 startActivity(shareIntent)
-            } else {
-                Toast.makeText(
-                    this,
-                    getText(R.string.http_download_full_error_en),
-                    Toast.LENGTH_LONG
-                ).show()
-                downloadFullScreenshotInThread()
+            }
+            else -> {
+                if (fullScreenshotDownloaded) {
+                    //Full screenshot needs to be shared
+                    StudyLogger.hashMap["share_full"] = true
+
+                    saveFullImageToAppDir()
+                    //Start sharing
+                    val contentUri =
+                        getUriForFile(
+                            this,
+                            BuildConfig.APPLICATION_ID + ".fileprovider",
+                            mFullImageFile
+                        )
+                    val sendIntent = Intent().apply {
+                        this.action = Intent.ACTION_SEND
+                        this.putExtra(Intent.EXTRA_STREAM, contentUri)
+                        this.type = "image/png"
+                        this.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                    val shareIntent = Intent.createChooser(sendIntent,null)
+                    startActivity(shareIntent)
+                } else {
+                    Toast.makeText(
+                        this,
+                        getText(R.string.http_download_full_error_en),
+                        Toast.LENGTH_LONG
+                    ).show()
+                    downloadFullScreenshotInThread()
+                }
             }
         }
     }
