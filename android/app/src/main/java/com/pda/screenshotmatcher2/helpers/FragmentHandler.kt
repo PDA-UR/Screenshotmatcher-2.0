@@ -16,7 +16,8 @@ import java.io.File
 
 class FragmentHandler(a: Activity) {
 
-    private val activity = a as? CameraActivity ?: throw IllegalArgumentException("No CameraActivity provided")
+    private val activity = a as? CameraActivity
+        ?: throw IllegalArgumentException("No CameraActivity provided")
     private var mFragmentDarkBackground: FrameLayout = activity.findViewById(R.id.ca_dark_background)
     private var fm: FragmentManager = activity.supportFragmentManager
 

@@ -27,7 +27,8 @@ abstract class RotationFragment : Fragment() {
     ): View? {
         if (this::mView.isInitialized) return mView
 
-        ca = activity as? CameraActivity ?: throw IllegalArgumentException("No CameraActivity provided")
+        ca = activity as? CameraActivity
+            ?: throw IllegalArgumentException("No CameraActivity provided")
         subclassName = this.javaClass.simpleName
 
         containerView = container as FrameLayout
