@@ -1,4 +1,4 @@
-package com.pda.screenshotmatcher2.helpers
+package com.pda.screenshotmatcher2.views
 
 import android.Manifest
 import android.content.Context
@@ -15,6 +15,8 @@ import android.view.TextureView
 import androidx.core.app.ActivityCompat
 import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.activities.CameraActivity
+import com.pda.screenshotmatcher2.helpers.CompareSizesByArea
+import com.pda.screenshotmatcher2.helpers.rotateBitmap
 import com.pda.screenshotmatcher2.logger.StudyLogger
 import java.util.*
 import java.util.concurrent.Semaphore
@@ -274,11 +276,17 @@ class CameraInstance(cameraActivity: CameraActivity) {
         if(ca.phoneOrientation != Surface.ROTATION_0 && mBitmap != null){
             when(ca.phoneOrientation){
                 Surface.ROTATION_90 -> mBitmap =
-                    rotateBitmap(mBitmap, -90F)
+                    rotateBitmap(
+                        mBitmap,
+                        -90F
+                    )
                 Surface.ROTATION_270 -> mBitmap =
                     rotateBitmap(mBitmap, 90F)
                 Surface.ROTATION_180 -> mBitmap =
-                    rotateBitmap(mBitmap, 180F)
+                    rotateBitmap(
+                        mBitmap,
+                        180F
+                    )
             }
         }
         return mBitmap

@@ -23,6 +23,7 @@ import com.pda.screenshotmatcher2.helpers.*
 import com.pda.screenshotmatcher2.logger.StudyLogger
 import com.pda.screenshotmatcher2.network.ServerConnection
 import com.pda.screenshotmatcher2.network.sendBitmap
+import com.pda.screenshotmatcher2.views.CameraInstance
 import java.io.File
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
@@ -61,7 +62,8 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     //custom helper classes for server connection, fragment management and camera preview
     var serverConnection = ServerConnection(this)
     lateinit var fragmentHandler: FragmentHandler
-    private var cameraInstance: CameraInstance = CameraInstance(this)
+    private var cameraInstance: CameraInstance =
+        CameraInstance(this)
 
     //Boolean for checking the orientation
     var checkSensor: Boolean = true
@@ -79,7 +81,10 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         initViews()
         setViewListeners()
 
-        fragmentHandler = FragmentHandler(this)
+        fragmentHandler =
+            FragmentHandler(
+                this
+            )
         serverConnection.start()
         cameraInstance.start()
 
