@@ -61,7 +61,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     //custom helper classes for server connection, fragment management and camera preview
     var serverConnection = ServerConnection(this)
-    lateinit var fragmentHandler: FragmentHandler
+    lateinit var cameraActivityFragmentHandler: CameraActivityFragmentHandler
     private var cameraInstance: CameraInstance =
         CameraInstance(this)
 
@@ -81,8 +81,8 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         initViews()
         setViewListeners()
 
-        fragmentHandler =
-            FragmentHandler(
+        cameraActivityFragmentHandler =
+            CameraActivityFragmentHandler(
                 this
             )
         serverConnection.start()
@@ -171,9 +171,9 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             mSelectDeviceButtonText.text = getText(R.string.select_device_button_notConnected_en)
             mFragmentDarkBackground = findViewById(R.id.ca_dark_background)
             mSettingsButton = findViewById(R.id.camera_activity_settings_button)
-            mSettingsButton.setOnClickListener { fragmentHandler.openSettingsFragment() }
+            mSettingsButton.setOnClickListener { cameraActivityFragmentHandler.openSettingsFragment() }
             mGalleryButton = findViewById(R.id.camera_activity_gallery_button)
-            mGalleryButton.setOnClickListener { fragmentHandler.openGalleryFragment() }
+            mGalleryButton.setOnClickListener { cameraActivityFragmentHandler.openGalleryFragment() }
         }
     }
 
@@ -193,7 +193,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         mSelectDeviceButton.apply {
            if (!hasOnClickListeners()) {
                mSelectDeviceButtonListener = View.OnClickListener {
-                   fragmentHandler.openSelectDeviceFragment()
+                   cameraActivityFragmentHandler.openSelectDeviceFragment()
                }
                setOnClickListener(mSelectDeviceButtonListener)
            }
@@ -308,7 +308,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
                     mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24_landscape2))
                 }
             }
-            fragmentHandler.rotateAllRotatableFragments()
+            cameraActivityFragmentHandler.rotateAllRotatableFragments()
             checkSensor = false
         }
 
@@ -408,7 +408,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     }
 
     override fun onBackPressed() {
-        if (fragmentHandler.removeAllFragments() == 0){
+        if (cameraActivityFragmentHandler.removeAllFragments() == 0){
             super.onBackPressed()
         }
     }

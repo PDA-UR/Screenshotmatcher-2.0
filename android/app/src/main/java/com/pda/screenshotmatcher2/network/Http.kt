@@ -16,7 +16,7 @@ import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.logger.StudyLogger
 import com.pda.screenshotmatcher2.activities.CameraActivity
 import com.pda.screenshotmatcher2.fragments.FeedbackFragment
-import com.pda.screenshotmatcher2.helpers.FragmentHandler
+import com.pda.screenshotmatcher2.helpers.CameraActivityFragmentHandler
 import com.pda.screenshotmatcher2.helpers.getDeviceID
 import com.pda.screenshotmatcher2.helpers.getDeviceName
 import org.json.JSONObject
@@ -100,7 +100,7 @@ fun sendBitmap(
                 }
             }
             else if (activity is CameraActivity) {
-                val fm: FragmentHandler = activity.fragmentHandler
+                val fm: CameraActivityFragmentHandler = activity.cameraActivityFragmentHandler
                 fm.openErrorFragment(response.get("uid").toString(), bitmap)
             }
         },
