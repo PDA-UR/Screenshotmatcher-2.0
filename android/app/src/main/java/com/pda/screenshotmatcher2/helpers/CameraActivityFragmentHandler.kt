@@ -14,7 +14,7 @@ import com.pda.screenshotmatcher2.fragments.*
 import com.pda.screenshotmatcher2.fragments.rotationFragments.*
 import java.io.File
 
-class FragmentHandler(a: Activity) {
+class CameraActivityFragmentHandler(a: Activity) {
 
     private val activity = a as? CameraActivity
         ?: throw IllegalArgumentException("No CameraActivity provided")
