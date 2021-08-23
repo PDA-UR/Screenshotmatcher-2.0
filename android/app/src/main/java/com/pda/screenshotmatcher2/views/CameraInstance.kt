@@ -156,7 +156,7 @@ class CameraInstance(cameraActivity: CameraActivity) {
         override fun onOpened(cameraDevice: CameraDevice) {
             mCameraOpenCloseLock.release()
             mCameraDevice = cameraDevice
-            createCameraPreviewSession()
+            createCameraCaptureSession()
         }
 
         override fun onDisconnected(cameraDevice: CameraDevice) {
@@ -171,7 +171,7 @@ class CameraInstance(cameraActivity: CameraActivity) {
         }
     }
 
-    private fun createCameraPreviewSession() {
+    private fun createCameraCaptureSession() {
         try {
             val texture = mTextureView.surfaceTexture!!.apply { 
                 setDefaultBufferSize(mPreviewSize.width, mPreviewSize.height)

@@ -73,33 +73,23 @@ class GalleryPreviewFragment : RotationFragment() {
 
     private fun getFilesFromBundle(bundle: Bundle) {
         oldBundle = bundle
-        if (bundle.getSerializable(FIRST_IMAGE_KEY) != null) {
-            val retrievedFile: File? = bundle.getSerializable(FIRST_IMAGE_KEY) as File?
-            when (retrievedFile?.absolutePath?.split("_".toRegex())?.last()) {
-                "Full.png" -> {
-                    mFullImageFile = retrievedFile
-                    mPillNavigationState = 1
+        val keys = arrayOf(FIRST_IMAGE_KEY, SECOND_IMAGE_KEY)
+        keys.forEach { key ->
+            if (bundle.getSerializable(key) != null) {
+                val retrievedFile: File? = bundle.getSerializable(key) as File?
+                when (retrievedFile?.absolutePath?.split("_".toRegex())?.last()) {
+                    "Full.png" -> {
+                        mFullImageFile = retrievedFile
+                        mPillNavigationState = 1
+                    }
+                    "Cropped.png" -> {
+                        mCroppedImageFile = retrievedFile
+                        mPillNavigationState = -1
+                    }
                 }
-                "Cropped.png" -> {
-                    mCroppedImageFile = retrievedFile
-                    mPillNavigationState = -1
-                }
+                numberOfAvailableImages++
             }
-            numberOfAvailableImages++
-        }
-        if (bundle.getSerializable(SECOND_IMAGE_KEY) != null) {
-            val retrievedFile: File? = bundle.getSerializable(SECOND_IMAGE_KEY) as File?
-            when (retrievedFile?.absolutePath?.split("_".toRegex())?.last()) {
-                "Full.png" -> {
-                    mFullImageFile = retrievedFile
-                }
-                "Cropped.png" -> {
-                    mCroppedImageFile = retrievedFile
-                    mPillNavigationState = -1
-                }
-            }
-            numberOfAvailableImages++
-        }
+         }
     }
 
     private fun togglePillNavigationSelection() {
