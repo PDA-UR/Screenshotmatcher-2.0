@@ -88,11 +88,13 @@ def request_permission_for_device(device_id, device_name):
             break
         elif event == "Allow":
             user_response = "allow"
+            add_device_to_list(device_id, "whitelist.txt")
             break
         elif event == "Allow Once":
             user_response = "allow once"
             break
         elif event == "Block":
+            add_device_to_list(device_id, "blacklist.txt")
             user_response = "block"
             break
 
