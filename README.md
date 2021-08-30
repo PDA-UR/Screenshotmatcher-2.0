@@ -94,3 +94,16 @@ If the area is red, click it to open a list with devices available for connectio
 
 **Done!**
 As soon as the connection between phone and PC is established, **ScreenshotMatcher** can be used.
+
+# Overview and Usage
+
+Use the **ScreenshotMatcher** app to photograph your PC's screen.
+The photographed region is then extracted from the screen's content and the result is sent back to the phone.
+This way, high quality screenshots can be captured by photographing a screen region with the phone.
+
+![](app_overview_detail.png){ width=452 height=256 }
+
+If the photographed region could be found within the screen's content, the result image can be shared with other applications by clicking *Share cropped*, or saved to the phone's gallery by clicking *Save cropped*.
+In case the extraction failed or you dislike the result, a screenshot of the whole screen can be requested by switching from *Cropped* to *Full* with the top button.
+
+![](app_result.png){ width=430 height=402 }
