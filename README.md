@@ -12,6 +12,11 @@ The project is in a late development stage.
 All major features work, but there is still some refactoring, bugfixing and documentation to be done.
 If interested in the project, check out [the paper](https://epub.uni-regensburg.de/47814/1/screenshotmatcher.pdf) or contact us (andreas.schmid@ur.de).
 
+## Known Issues
+
+Especially for regions with lots of text, the matching algorithm is still somewhat unreliable.
+In this case, it is recommended to request a full screenshot from the PC and crop the result manually.
+
 # Installation
 
 **ScreenshotMatcher** is a two part application: an Android app and a python program running on the PC (Windows, MacOS, or Linux).
@@ -70,7 +75,7 @@ Start **ScreenshotMatcher** either executing `sh ScreenshotMatcher` or by clicki
 **Done!**
 You can now continue with installing the Android app.
 
-# Installing the Android-App
+# Installing the Android App
 
 **Step 1:**
 Download the **ScreenshotMatcher** Android app by opening following link on your smartphone:
@@ -107,3 +112,13 @@ If the photographed region could be found within the screen's content, the resul
 In case the extraction failed or you dislike the result, a screenshot of the whole screen can be requested by switching from *Cropped* to *Full* with the top button.
 
 ![](app_result.png){ width=430 height=402 }
+
+## Settings and Security
+
+**ScreenshotMatcher** can be customized with settings available by clicking the tray icon.
+
+It is possible to disable the access to full screenshots.
+This way, only people who have line of sight to your monitor can capture your screen's content.
+
+In networks with multiple users, it is recommended to restrict requests from unknown devices by either deciding individually or blocking all.
+This way, only trusted devices can capture your screen's content.
