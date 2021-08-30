@@ -6,7 +6,7 @@ import common.log
 from common.config import Config
 from matching.matcher import Matcher
 from common.utility import get_current_ms
-from common.permission import is_device_allowed, request_permission_for_device, create_single_match_token, request_permission_for_device_PSG
+from common.permission import is_device_allowed, request_permission_for_device, create_single_match_token
 
 class Server():
     def __init__(self):
@@ -65,20 +65,21 @@ class Server():
             self.last_logs.pop()
         log.value_pairs['ts_request_received'] = get_current_ms()
 
-        # convert the json data
+        # Convert the json data
         r_json = request.json
         
         # Check if this device is permitted to request a match
-        # let the client send a request to /permission if it's not black- or whitelisted
+        # Let the client send a request to /permission if unknown devices require individual prompts (tray setting)
         device_id = r_json.get("device_id")
         device_name = r_json.get("device_name")
         permission_token = r_json.get("permission_token")
-        if is_device_allowed(Config.UNKNOWN_DEVICE_HANDLING, device_id, device_name, permission_token) == 1:
+        is_allowed = is_device_allowed(Config.UNKNOWN_DEVICE_HANDLING, device_id, device_name, permission_token)
+        if is_allowed == 1:
             pass
-        elif is_device_allowed(Config.UNKNOWN_DEVICE_HANDLING, device_id, device_name, permission_token) == -1:
+        elif is_allowed == -1:
             error = {"error" : "permission_denied"}
             return Response(json.dumps(error), mimetype='application/json')
-        elif is_device_allowed(Config.UNKNOWN_DEVICE_HANDLING, device_id, device_name, permission_token) == 0:
+        elif is_allowed == 0:
             error = {"error" : "permission_required"}
             return Response(json.dumps(error), mimetype='application/json')
 
@@ -145,6 +146,8 @@ class Server():
 
         return Response(json.dumps(response), mimetype='application/json')
 
+    # Individual device permission needs to be granted by the user.
+    # Sends a one-time-token to the client, if permission is only granted for one match.
     def permission_route(self):
         device_id = request.json.get("device_id")
         device_name = request.json.get("device_name")
@@ -152,7 +155,9 @@ class Server():
             error = {"error" : "data_error"}
             return Response(json.dumps(error), mimetype='application/json')
 
-        user_response = request_permission_for_device_PSG(device_id, device_name)
+        # ask the user for input via prompt
+        user_response = request_permission_for_device(device_id, device_name)
+
         response = {}
         if user_response == "allow once":
             permission_token = create_single_match_token()

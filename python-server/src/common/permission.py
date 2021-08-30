@@ -2,8 +2,6 @@ import os
 import time
 import threading
 import uuid
-import tkinter as tk
-import tkinter.ttk as ttk
 import PySimpleGUI as sg
 
 prompt_open = False
@@ -50,89 +48,6 @@ def set_user_response(val):
     user_response = val
     prompt_open = False
 
-def request_permission_for_device(device_id, device_name):
-    global prompt_open
-    if prompt_open:
-        return ""
-
-    set_user_response("")
-    prompt_text = "The device \"{}\" is asking for permission to connect to ScreenshotMatcher.\n(ID: {})".format(device_name, device_id)
-    ROOT = tk.Tk()
-    prompt_open = True
-
-    style = ttk.Style()
-    style.theme_use("default")
-    style.configure(
-        "Label.TLabel",
-        font=("Arial", 10),
-        background="#f0f0f0"
-
-    )
-    style.configure(
-        "Frame.TFrame",
-        background="#f0f0f0"
-    )
-    style.configure(
-        "Button.TButton",
-        font=("Arial", 9),
-        background="#f0f0f0"
-    )
-
-    label_frame = ttk.Frame(
-        ROOT,
-        style="Frame.TFrame"
-    )
-    label = ttk.Label(
-        label_frame,
-        text=prompt_text,
-        style="Label.TLabel"
-    )
-
-    button_frame = ttk.Frame(
-        ROOT,
-        style="Frame.TFrame"
-    )
-    btn_allow = ttk.Button(
-        button_frame,
-        text="Allow",
-        command=lambda:[
-            add_device_to_list(device_id, "whitelist.txt"),
-            set_user_response("allow"),
-            ROOT.destroy()
-        ],
-        style="Button.TButton"
-    )
-    btn_allow_once = ttk.Button(
-        button_frame,
-        text="Allow once",
-        command=lambda:[
-            set_user_response("allow once"),
-            ROOT.destroy()
-        ],
-        style="Button.TButton"
-    )
-    btn_block = ttk.Button(
-        button_frame,
-        text="Block",
-        command=lambda:[
-            add_device_to_list(device_id, "blacklist.txt"),
-            set_user_response("block"),
-            ROOT.destroy(),
-        ],
-        style="Button.TButton"
-    )
-
-    label_frame.pack(fill="both", padx=10, pady=5)
-    button_frame.pack(fill="both", anchor="center")
-    label.pack()
-    btn_allow.pack(side="left", anchor="center", padx=5, pady=5)
-    btn_allow_once.pack(side="left", anchor="center", padx=5)
-    btn_block.pack(side="left", anchor="center", padx=5)
-
-    ROOT.mainloop()
-
-    return user_response
-
 def create_single_match_token():
     token = uuid.uuid4().hex
     global permission_tokens
@@ -150,27 +65,25 @@ def set_token_timeout(token):
     except ValueError:
         pass
 
-def request_permission_for_device_PSG(device_id, device_name):
+def request_permission_for_device(device_id, device_name):
     global prompt_open
     user_response = ""
-    if prompt_open:
+    if prompt_open: # prevent multiple popups
         return ""
 
     prompt_text = "The device \"{}\" is asking for permission to connect to ScreenshotMatcher.\n(ID: {})".format(device_name, device_id)
     prompt_open = True
 
-    # Define the window's contents
     layout = [
-        [sg.Text(prompt_text)],     # Part 2 - The Layout
+        [sg.Text(prompt_text)],
         [sg.Button('Allow'), sg.Button("Allow Once"), sg.Button("Block")],
     ]
 
-    # Create the window
-    window = sg.Window('ScreenshotMatcher Permission Request', layout)      # Part 3 - Window Defintion
+    window = sg.Window('ScreenshotMatcher Permission Request', layout)
                                                     
-    # Display and interact with the Window
+    # Display and interact with the window
     while True:
-        event, values = window.read()                   # Part 4 - Event loop or Window.read call
+        event, values = window.read()
         if event == sg.WINDOW_CLOSED:
             break
         elif event == "Allow":
@@ -183,8 +96,7 @@ def request_permission_for_device_PSG(device_id, device_name):
             user_response = "block"
             break
 
-    # Finish up by removing from the screen
-    window.close()                                  # Part 5 - Close the Window
+    window.close()
     prompt_open = False
 
     return user_response
