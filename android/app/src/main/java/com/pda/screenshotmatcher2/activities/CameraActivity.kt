@@ -74,9 +74,10 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         hideStatusAndActionBars()
-        setContentView(R.layout.activity_camera)
-        verifyPermissions(this)
         setupSharedPref()
+        setContentView(R.layout.activity_camera)
+        checkForFirstRun(this)
+        verifyPermissions(this)
         createDeviceID(this)
         initViews()
         setViewListeners()
@@ -97,6 +98,16 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         if (!this::imageArray.isInitialized) {
             thread { fillUpImageList() }
         }
+    }
+    private fun checkForFirstRun(context: Context) {
+        val FIRST_RUN_KEY = getString(R.string.FIRST_RUN_KEY)
+        val isFirstRun: Boolean = sp.getBoolean(FIRST_RUN_KEY, true)
+        if (true) {
+        //if (isFirstRun) {
+            val intent = Intent(context, AppTutorial::class.java)
+            startActivity(intent)
+        }
+        sp.edit().putBoolean(FIRST_RUN_KEY, false).commit()
     }
 
     private fun restoreFromSavedInstance(savedInstanceState: Bundle) {
