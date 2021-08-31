@@ -10,6 +10,7 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.*
+import android.util.Log
 import android.view.*
 import android.widget.FrameLayout
 import android.widget.ImageButton
@@ -131,8 +132,17 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     override fun onResume() {
         super.onResume()
         serverConnection.start()
-        mAccelerometer.also { accel ->
-            mSensorManager.registerListener(this, accel, SensorManager.SENSOR_DELAY_UI)
+
+        // due to a bug in Android, the list of sensors returned by the SensorManager can be empty
+        // it will stay that way until reboot.
+        // make sure we tell the user about it.
+        if (mAccelerometer.name.isNotEmpty()) {
+            mAccelerometer.also { accel ->
+                mSensorManager.registerListener(this, accel, SensorManager.SENSOR_DELAY_UI)
+            }
+        }
+        else {
+            Toast.makeText(this, "Failed to get sensor data. Please restart your phone.", Toast.LENGTH_LONG).show()
         }
         //only check orientation once every second
         Handler().postDelayed(object : Runnable {
