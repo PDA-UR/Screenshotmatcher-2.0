@@ -1,11 +1,8 @@
-<vector
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:aapt="http://schemas.android.com/aapt"
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="325dp"
     android:height="146.49dp"
     android:viewportWidth="325"
-    android:viewportHeight="146.49"
-    >
+    android:viewportHeight="146.49">
 
     <group>
 

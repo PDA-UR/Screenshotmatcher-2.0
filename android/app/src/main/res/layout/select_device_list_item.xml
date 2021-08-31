@@ -2,7 +2,6 @@
 <!-- Each List Item is displayed as TextView defined below -->
 
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/label"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:padding="10dip"

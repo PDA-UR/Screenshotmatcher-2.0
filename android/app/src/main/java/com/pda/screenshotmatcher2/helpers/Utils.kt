@@ -1,24 +1,19 @@
-package com.pda.screenshotmatcher2
+package com.pda.screenshotmatcher2.helpers
 
 import android.Manifest
 import android.app.Activity
-import android.content.ContentValues
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
-import android.net.Uri
 import android.os.Build
-import android.os.Environment
-import android.provider.MediaStore
 import android.util.Base64
-import android.util.Log
+import android.util.Size
 import androidx.core.app.ActivityCompat
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.io.OutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.Exception
@@ -113,5 +108,16 @@ fun getDeviceID(context: Context) : String{
     }
     else {
         return savedID
+    }
+}
+
+class CompareSizesByArea : Comparator<Size?> {
+    override fun compare(o1: Size?, o2: Size?): Int {
+        if (o1 != null) {
+            if (o2 != null) {
+                return java.lang.Long.signum(o1.width.toLong() * o2.height - o1.width.toLong() * o2.height)
+            }
+        }
+        return -1
     }
 }

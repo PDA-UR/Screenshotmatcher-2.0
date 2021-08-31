@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name" translatable="false">ScreenshotMatcher2</string>
-    <string name="capture_button_text_en">Capture Screenshot</string>
     <string name="select_device_button_notConnected_en">not connected</string>
     <string name="result_activity_retake_button_en">Take another one</string>
     <string name="result_image_content_description_en">Matched screenshot</string>
@@ -15,7 +14,6 @@
     <string name="result_activity_saved_full_en">Saved full image</string>
     <string name="result_activity_saved_both_en">Saved both images</string>
     <string name="screenshot_description_en">Created with Screenshot Matcher</string>
-    <string name="cropped_screenshot_title_en" translatable="false">cropped_screenshot</string>
     <string name="full_screenshot_title_en" translatable="false">full_screenshot</string>
     <string name="no_match_en">No match</string>
     <string name="send_feedback_button_en">Send Feedback</string>
@@ -28,7 +26,6 @@
     <string name="ff_submit_success_en">Feedback sent</string>
     <string name="ff_submit_failed_en">Failed to send feedback</string>
     <string name="http_download_full_error_en">Downloading full screenshot from server failed</string>
-    <string name="select_device_button_connected_en">connected</string>
     <string name="settings_algorithm_header_en">Matching mode</string>
     <string name="settings_algorithm_toggle">Fast mode</string>
     <string name="settings_algorithm_summary">If this option is enabled matching will be faster but less accurate</string>
@@ -42,11 +39,12 @@
     <string name="ca_saved_instance_image_list_key" translatable="false">ca_image_list_key</string>
     <string name="ca_saved_instance_url_list_key" translatable="false">ca_server_url_list_key</string>
     <string name="ca_saved_instance_host_list_key" translatable="false">ca_host_list_key</string>
-    <string name="ca_pref_preview_width" translatable="false">previewWidthPortrait</string>
-    <string name="ca_pref_preview_height" translatable="false">previewHeightPortrait</string>
-    <string name="ca_pref_surface_view_width" translatable="false">ViewPreviewWidthPortrait</string>
-    <string name="ca_pref_surface_view_height" translatable="false">ViewPreviewHeightPortrait</string>
     <string name="permission_request_en">Please grant the permissions, otherwise the app won\'t work</string>
     <string name="heartbeat_fail_en">Disconnected from server</string>
     <string name="match_request_error_en">Failed to make request to server</string>
+    <string name="EXTRACTED_IMAGE_KEY" translatable="false">bmp</string>
+    <string name="settings_logging_header_en" translatable="false">Logging</string>
+    <string name="settings_logging_toggle_en">Enable logging</string>
+    <string name="settings_logging_summary">If this option is enabled the app will send logging data to a remote server, which helps improving the app</string>
+    <string name="settings_logging_key" translatable="false">LOG_MODE_KEY</string>
 </resources>

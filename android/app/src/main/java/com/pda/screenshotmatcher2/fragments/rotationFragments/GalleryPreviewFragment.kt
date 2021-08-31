@@ -1,4 +1,4 @@
-package com.pda.screenshotmatcher2
+package com.pda.screenshotmatcher2.fragments.rotationFragments
 
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -6,7 +6,6 @@ import android.content.pm.ResolveInfo
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.provider.MediaStore
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,14 +17,15 @@ import androidx.appcompat.widget.AppCompatButton
 import androidx.appcompat.widget.AppCompatImageButton
 import androidx.core.app.ShareCompat
 import androidx.core.content.FileProvider
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentTransaction
+import com.pda.screenshotmatcher2.BuildConfig
+import com.pda.screenshotmatcher2.R
+import com.pda.screenshotmatcher2.activities.CameraActivity
 import java.io.File
 
 const val FIRST_IMAGE_KEY: String = "FIRST_IMAGE"
 const val SECOND_IMAGE_KEY: String = "SECOND_IMAGE"
 
-class GalleryPreviewFragment : Fragment() {
+class GalleryPreviewFragment : RotationFragment() {
     //Views
     private lateinit var mPillNavigationButton1: AppCompatButton
     private lateinit var mPillNavigationButton2: AppCompatButton
@@ -38,7 +38,6 @@ class GalleryPreviewFragment : Fragment() {
     private lateinit var mShareButtonText: TextView
     private lateinit var mSaveOneButtonText: TextView
 
-    lateinit var containerView: FrameLayout
     lateinit var mFragmentBackground: FrameLayout
 
     // -1 = cropped page, 1 = full page
@@ -74,33 +73,23 @@ class GalleryPreviewFragment : Fragment() {
 
     private fun getFilesFromBundle(bundle: Bundle) {
         oldBundle = bundle
-        if (bundle.getSerializable(FIRST_IMAGE_KEY) != null) {
-            val retrievedFile: File? = bundle.getSerializable(FIRST_IMAGE_KEY) as File?
-            when (retrievedFile?.absolutePath?.split("_".toRegex())?.last()) {
-                "Full.png" -> {
-                    mFullImageFile = retrievedFile
-                    mPillNavigationState = 1
+        val keys = arrayOf(FIRST_IMAGE_KEY, SECOND_IMAGE_KEY)
+        keys.forEach { key ->
+            if (bundle.getSerializable(key) != null) {
+                val retrievedFile: File? = bundle.getSerializable(key) as File?
+                when (retrievedFile?.absolutePath?.split("_".toRegex())?.last()) {
+                    "Full.png" -> {
+                        mFullImageFile = retrievedFile
+                        mPillNavigationState = 1
+                    }
+                    "Cropped.png" -> {
+                        mCroppedImageFile = retrievedFile
+                        mPillNavigationState = -1
+                    }
                 }
-                "Cropped.png" -> {
-                    mCroppedImageFile = retrievedFile
-                    mPillNavigationState = -1
-                }
+                numberOfAvailableImages++
             }
-            numberOfAvailableImages++
-        }
-        if (bundle.getSerializable(SECOND_IMAGE_KEY) != null) {
-            val retrievedFile: File? = bundle.getSerializable(SECOND_IMAGE_KEY) as File?
-            when (retrievedFile?.absolutePath?.split("_".toRegex())?.last()) {
-                "Full.png" -> {
-                    mFullImageFile = retrievedFile
-                }
-                "Cropped.png" -> {
-                    mCroppedImageFile = retrievedFile
-                    mPillNavigationState = -1
-                }
-            }
-            numberOfAvailableImages++
-        }
+         }
     }
 
     private fun togglePillNavigationSelection() {
@@ -120,7 +109,9 @@ class GalleryPreviewFragment : Fragment() {
         when (mPillNavigationState) {
             -1 -> {
                 //Switch to cropped screenshot
-                mPillNavigationButton2.setBackgroundColor(requireActivity().getColor(R.color.invisible))
+                mPillNavigationButton2.setBackgroundColor(requireActivity().getColor(
+                    R.color.invisible
+                ))
                 mPillNavigationButton1.background =
                     resources.getDrawable(R.drawable.pill_navigation_selected_item)
                 if (numberOfAvailableImages == 2) {
@@ -134,7 +125,9 @@ class GalleryPreviewFragment : Fragment() {
             }
             1 -> {
                 //Switch to full screenshot
-                mPillNavigationButton1.setBackgroundColor(requireActivity().getColor(R.color.invisible))
+                mPillNavigationButton1.setBackgroundColor(requireActivity().getColor(
+                    R.color.invisible
+                ))
                 mPillNavigationButton2.background =
                     resources.getDrawable(R.drawable.pill_navigation_selected_item)
                 if (numberOfAvailableImages == 2) {
@@ -313,16 +306,12 @@ class GalleryPreviewFragment : Fragment() {
         mSaveOneButton.setOnClickListener { saveCurrentPreviewImage() }
     }
 
-    private fun removeThisFragment(removeBackground: Boolean = true) {
-        if (removeBackground) {
-            mFragmentBackground.visibility = View.INVISIBLE
-        }
-        activity?.supportFragmentManager?.beginTransaction()?.remove(this)
-            ?.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)?.commit()
+    override fun removeThisFragment(removeBackground: Boolean) {
+        super.removeThisFragment(removeBackground)
+        if (removeBackground) mFragmentBackground.visibility = View.INVISIBLE
     }
-    fun removeThisFragmentForRotation(): ArrayList<File?> {
-        activity?.supportFragmentManager?.beginTransaction()?.remove(this)
-            ?.commit()
-        return arrayListOf<File?>(mCroppedImageFile, mFullImageFile)
+    override fun removeThisFragmentForRotation(): ArrayList<File?> {
+        super.removeThisFragmentForRotation()
+        return arrayListOf(mCroppedImageFile, mFullImageFile)
     }
 }

@@ -1,4 +1,4 @@
-package com.pda.screenshotmatcher2
+package com.pda.screenshotmatcher2.fragments
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -8,12 +8,12 @@ import android.widget.FrameLayout
 import androidx.cardview.widget.CardView
 import androidx.fragment.app.FragmentTransaction
 import androidx.preference.PreferenceFragmentCompat
+import com.pda.screenshotmatcher2.R
 
 class SettingsFragment : PreferenceFragmentCompat() {
 
     lateinit var mFragmentBackground: FrameLayout
     lateinit var containerView: CardView
-    private var removeForRotation: Boolean = true
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.root_preferences, rootKey)
@@ -32,23 +32,16 @@ class SettingsFragment : PreferenceFragmentCompat() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         mFragmentBackground = activity?.findViewById(R.id.ca_dark_background)!!
-        mFragmentBackground.setOnClickListener { removeThisFragment(true) }
-        mFragmentBackground.visibility = View.VISIBLE
+        mFragmentBackground.apply {
+            setOnClickListener{removeThisFragment()}
+            visibility = View.VISIBLE
+        }
     }
 
-    private fun removeThisFragment(removeBackground: Boolean = true) {
-        removeForRotation = removeBackground
-
+    private fun removeThisFragment() {
+        containerView.visibility = View.INVISIBLE
+        mFragmentBackground.visibility = View.INVISIBLE
         activity?.supportFragmentManager?.beginTransaction()?.remove(this)
             ?.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)?.commit()
     }
-
-    override fun onDestroy() {
-        if (removeForRotation) {
-            containerView.visibility = View.INVISIBLE
-            mFragmentBackground.visibility = View.INVISIBLE
-        }
-        super.onDestroy()
-    }
-
 }
