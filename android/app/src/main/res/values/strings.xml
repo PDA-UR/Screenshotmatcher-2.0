@@ -47,4 +47,5 @@
     <string name="settings_logging_toggle_en">Enable logging</string>
     <string name="settings_logging_summary">If this option is enabled the app will send logging data to a remote server, which helps improving the app</string>
     <string name="settings_logging_key" translatable="false">LOG_MODE_KEY</string>
+    <string name="FIRST_RUN_KEY">FIRST_RUN_KEY</string>
 </resources>

@@ -20,6 +20,8 @@
         android:theme="@style/Theme.AppCompat.Light.NoActionBar"
         tools:targetApi="n">
 
+        <activity android:name=".activities.AppTutorial"
+            android:label="Tutorial" />
         <activity android:name=".activities.ResultsActivity"
             android:configChanges="orientation"
             android:screenOrientation="portrait">
