@@ -23,18 +23,31 @@ def main():
     server = Server()
     
     # Init Tray
-    tray = gui.tray.Tray(Config.APP_NAME)
+    # tray = gui.tray.Tray(Config.APP_NAME)
+    tray = gui.tray.InhTray()
     
     # Start server in different thread
     x = threading.Thread(target=server.start, args=(), daemon=True)
-    x.start()
+    # x.start()
     
     # Start server discovery via UDP socket in different thread
     udp_t = threading.Thread(target=discovery.start, args=(), daemon=True)
-    udp_t.start()
+    # udp_t.start()
     
     # Start Tray event loop
-    tray.run()
+    # tray.run()
+    # while True:
+    #     event = tray.Read()
+    #     print(event)
+    #     if event == 'Exit':
+    #         break
+    #     elif event == 'Settings':
+    #         set_win = gui.tray.SettingsWindow()
+    #         event, values = set_win.read()
+    set_win = gui.tray.SettingsWindow()
+
+    while True:
+        event, values = set_win.read()
 
 if __name__ == "__main__":
     # program already running. abort.
