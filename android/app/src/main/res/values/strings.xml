@@ -43,4 +43,8 @@
     <string name="heartbeat_fail_en">Disconnected from server</string>
     <string name="match_request_error_en">Failed to make request to server</string>
     <string name="EXTRACTED_IMAGE_KEY" translatable="false">bmp</string>
+    <string name="settings_logging_header_en" translatable="false">Logging</string>
+    <string name="settings_logging_toggle_en">Enable logging</string>
+    <string name="settings_logging_summary">If this option is enabled the app will send logging data to a remote server, which helps improving the app</string>
+    <string name="settings_logging_key" translatable="false">LOG_MODE_KEY</string>
 </resources>
