@@ -57,7 +57,7 @@ class ServerConnection(cameraActivity: CameraActivity) {
     val discoverRunnable = object: Runnable {
         override fun run() {
             requestServerURL()
-                mHandler.postDelayed(this, 5000)
+                mHandler.postDelayed(this, 1000)
         }
     }
 
@@ -69,7 +69,7 @@ class ServerConnection(cameraActivity: CameraActivity) {
                     ca
                 )
             }
-            mHandler.postDelayed(this, 5000)
+            mHandler.postDelayed(this, 1000)
         }
     }
 

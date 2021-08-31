@@ -8,5 +8,12 @@
             android:key="@string/settings_algorithm_key"
             android:defaultValue="true"/>
     </PreferenceCategory>
+    <PreferenceCategory app:title="@string/settings_logging_header_en">
+        <SwitchPreferenceCompat
+            app:title="@string/settings_logging_toggle_en"
+            android:summary="@string/settings_logging_summary"
+            android:key="@string/settings_logging_key"
+            android:defaultValue="false"/>
+    </PreferenceCategory>
 
 </PreferenceScreen>

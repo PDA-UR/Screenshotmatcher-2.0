@@ -5,4 +5,6 @@
     <string name="permission_request_en">Bitte geben Sie der App die benötigten Rechte</string>
     <string name="heartbeat_fail_en">Verbindung zum Server wurde getrennt</string>
     <string name="match_request_error_en">Es konnte keine Verbindung zum Server hergestellt werden</string>
+    <string name="settings_logging_toggle_en">Logging aktivieren</string>
+    <string name="settings_logging_summary">Falls diese Option aktiviert ist wird die App Nutzungsdaten an einen Server schicken, dies dient zur Verbesserrung der App</string>
 </resources>
