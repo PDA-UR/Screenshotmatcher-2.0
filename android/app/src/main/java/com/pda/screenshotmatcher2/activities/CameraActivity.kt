@@ -75,8 +75,8 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         super.onCreate(savedInstanceState)
         hideStatusAndActionBars()
         setupSharedPref()
-        setContentView(R.layout.activity_camera)
         checkForFirstRun(this)
+        setContentView(R.layout.activity_camera)
         verifyPermissions(this)
         createDeviceID(this)
         initViews()
@@ -102,8 +102,8 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     private fun checkForFirstRun(context: Context) {
         val FIRST_RUN_KEY = getString(R.string.FIRST_RUN_KEY)
         val isFirstRun: Boolean = sp.getBoolean(FIRST_RUN_KEY, true)
-        if(true) {
-        //if (isFirstRun) {
+        if(isFirstRun) {
+        // {
             val intent = Intent(context, AppTutorial::class.java)
             startActivity(intent)
             finish()
