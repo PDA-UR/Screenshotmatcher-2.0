@@ -444,6 +444,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     fun getMatchingOptionsFromPref(): HashMap<Any?, Any?>? {
         val matchingMode: HashMap<Any?, Any?>? = HashMap()
         val fastMatchingMode: Boolean = sp.getBoolean(MATCHING_MODE_PREF_KEY, true)
+
         if (fastMatchingMode) {
             matchingMode?.set(
                 getString(R.string.algorithm_key_server),
