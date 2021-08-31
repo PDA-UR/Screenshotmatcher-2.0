@@ -30,7 +30,7 @@ def set_participant_id():
         if _id:
             try:
                 int(_id)
-                return _id
+                return int(_id)
             except ValueError:
                 pass
 

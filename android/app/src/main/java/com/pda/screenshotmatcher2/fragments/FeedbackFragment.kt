@@ -1,10 +1,7 @@
-package com.pda.screenshotmatcher2
+package com.pda.screenshotmatcher2.fragments
 
 import android.content.Context
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,18 +9,21 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
+import com.pda.screenshotmatcher2.R
+import com.pda.screenshotmatcher2.logger.StudyLogger
+import com.pda.screenshotmatcher2.network.sendFeedbackToServer
 
 
 //Views
-lateinit var layout: LinearLayout
-lateinit var containerView: FrameLayout
-lateinit var mFragmentBackground: FrameLayout
-lateinit var mSendFeedbackButton: Button
-lateinit var mTextInputField: EditText
+private lateinit var layout: LinearLayout
+private lateinit var containerView: FrameLayout
+private lateinit var mFragmentBackground: FrameLayout
+private lateinit var mSendFeedbackButton: Button
+private lateinit var mTextInputField: EditText
 
 //Server info
-lateinit var uid: String
-lateinit var url: String
+private lateinit var uid: String
+private lateinit var url: String
 
 var removeForRotation: Boolean = false
 
@@ -54,7 +54,7 @@ class FeedbackFragment : Fragment() {
     }
 
     fun onFeedbackPosted(){
-        removeThisFragment(true)
+        removeThisFragment()
         StudyLogger.hashMap["feedback_sent"] = true
         Toast.makeText(context, getText(R.string.ff_submit_success_en), Toast.LENGTH_LONG).show()
     }
@@ -71,30 +71,45 @@ class FeedbackFragment : Fragment() {
     }
 
     private fun initViews(){
-        layout = activity?.findViewById(R.id.ff_linearLayout)!!
+        layout = activity?.findViewById(
+            R.id.ff_linearLayout
+        )!!
         layout.setOnClickListener {
             if (isKeyboardActive()){
                 dismissKeyboard()
             }
         }
-        mFragmentBackground = activity?.findViewById(R.id.ca_dark_background)!!
-        mFragmentBackground.setOnClickListener {
-            if (isKeyboardActive()){
-                dismissKeyboard()
-            } else{
-                removeThisFragment(true)
+
+        mFragmentBackground = activity?.findViewById(
+            R.id.ca_dark_background
+        )!!
+        mFragmentBackground.apply {
+            setOnClickListener {
+                if (isKeyboardActive()){
+                    dismissKeyboard()
+                } else{
+                    removeThisFragment()
+                }
             }
+            visibility = View.VISIBLE
         }
-        mFragmentBackground.visibility = View.VISIBLE
-        mTextInputField = activity?.findViewById(R.id.ff_text_input)!!
-        mSendFeedbackButton = activity?.findViewById(R.id.ff_send_feedback_button)!!
+        mTextInputField = activity?.findViewById(
+            R.id.ff_text_input
+        )!!
+        mSendFeedbackButton = activity?.findViewById(
+            R.id.ff_send_feedback_button
+        )!!
         mSendFeedbackButton.setOnClickListener {
-            sendFeedbackToServer(this, requireActivity().applicationContext, url, uid,
+            sendFeedbackToServer(
+                this,
+                requireActivity().applicationContext,
+                url,
+                uid,
                 hasResult = false,
                 hasScreenshot = false,
                 comment = getInputTextFieldText()
             )
-            removeThisFragment(true)
+            removeThisFragment()
         }
     }
 
@@ -102,18 +117,12 @@ class FeedbackFragment : Fragment() {
         return mTextInputField.text.toString()
     }
 
-    private fun removeThisFragment(removeBackground: Boolean = true) {
-
+    private fun removeThisFragment() {
+        containerView.visibility = View.INVISIBLE
+        mFragmentBackground.visibility = View.INVISIBLE
         activity?.supportFragmentManager
             ?.beginTransaction()
             ?.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)
             ?.remove(this)?.commit()
-    }
-
-    override fun onDestroy() {
-        containerView.visibility = View.INVISIBLE
-        mFragmentBackground.visibility = View.INVISIBLE
-
-        super.onDestroy()
     }
 }
