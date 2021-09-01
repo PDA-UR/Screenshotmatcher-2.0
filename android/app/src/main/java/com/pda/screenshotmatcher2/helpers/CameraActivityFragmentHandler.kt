@@ -68,6 +68,12 @@ class CameraActivityFragmentHandler(a: Activity) {
         mFragmentDarkBackground.visibility = View.VISIBLE
     }
 
+    fun refreshGalleryFragment() {
+        val gFrag: GalleryFragment? =
+            fm.findFragmentByTag(GalleryFragment::class.simpleName) as GalleryFragment?
+        gFrag?.refreshAdapter()
+    }
+
     fun openGalleryPreviewFragment(firstImage: File?, secondImage: File?, withTransition: Boolean = true) {
         val bundle = Bundle().apply {
             putSerializable(FIRST_IMAGE_KEY, firstImage)

@@ -500,10 +500,20 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     }
 
     fun deleteImagesFromInternalGallery(images: ArrayList<File>) {
-        val index = imageArray.indexOf(images)
-        if (index != -1) {
-            Log.d("CA", "removing!!!")
-            imageArray.removeAt(index)
+        for (imagePair in imageArray) {
+            var didRemove = false
+            for (image in images) {
+                if (image in imagePair) {
+                    imagePair.forEach { imageFile ->
+                        if(imageFile.exists()) imageFile.delete()
+                    }
+                    imageArray.remove(imagePair)
+                    cameraActivityFragmentHandler.refreshGalleryFragment()
+                    didRemove = true
+                    break
+                }
+            }
+            if (didRemove) break
         }
     }
 
