@@ -1,9 +1,7 @@
-import common.utility
-
 class Config():
     APP_NAME = 'Screenshot Matcher'
     APP_VERSION = "1.0"
-    HOST = common.utility.get_current_ip_address()
+    HOST = ""
     LOG_HOST = 'https://132.199.132.34:49051/'
     PORT = 49049
     PORT_DISCOVERY = 49050
