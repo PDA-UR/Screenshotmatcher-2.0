@@ -47,17 +47,15 @@
     <string name="settings_logging_toggle_en">Enable logging</string>
     <string name="settings_logging_summary">If this option is enabled the app will send logging data to a remote server, which helps improving the app</string>
     <string name="settings_logging_key" translatable="false">LOG_MODE_KEY</string>
-    <string name="FIRST_RUN_KEY">FIRST_RUN_KEY</string>
+    <string name="FIRST_RUN_KEY" translatable="false">FIRST_RUN_KEY</string>
     <string name="app_intro_welcomeHeader">Welcome 👋</string>
     <string name="app_intro_description_1">Let\'s get started!</string>
     <string name="app_intro_header_2">Desktop client 💻</string>
-    <string name="app_intro_description_2">To use the app you need to install the desktop client on your computer \n\nYou can download it using the QR-Code above or by clicking the link below: \n\nhttp://www.google.com</string>
     <string name="app_intro_header_3">How-To: Discover 🔎</string>
-    <string name="app_intro_description_3">To see all available desktops tap on the top right button in the app</string>
     <string name="app_intro_header_4">How-To: Connect 🔗</string>
     <string name="app_intro_description_4">If you started the desktop client your device will appear here and you can tap on it to connect</string>
-    <string name="app_intro_header_5">Permissions  📝</string>
-    <string name="app_intro_description_5">Please grant the following permissions in order to proceed</string>
-    <string name="app_intro_denied_permission">You need to grant the requested permissions in order to use the app</string>
     <string name="app_intro_disabled_permission">You need to grant the requested permissions in order to use the app, you can do so in your system settings</string>
+    <string name="app_intro_description_2">To use this app you need to download the desktop client \n\nYou can download it using the QR-Code or by clicking the link below: \n\nwww.link.com</string>
+    <string name="app_intro_description_3">Click the top right button to show all available desktops you can connect to</string>
+    <string name="app_intro_denied_permission">You need to grant the requested permissions in order to use the app</string>
 </resources>
