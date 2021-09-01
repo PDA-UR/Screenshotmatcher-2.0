@@ -23,7 +23,7 @@ def main():
     server = Server()
     
     # Init Tray
-    tray = gui.tray.InhTray()
+    # tray = gui.tray.InhTray()
     
     # Start server in different thread
     x = threading.Thread(target=server.start, args=(), daemon=True)
@@ -43,10 +43,9 @@ def main():
     #     elif event == 'Settings':
     #         set_win = gui.tray.SettingsWindow()
     #         event, values = set_win.read()
-    set_win = gui.tray.SettingsWindow()
-
-    while True:
-        event, values = set_win.read()
+    # set_win = gui.tray.SettingsWindow()
+    app = gui.tray.App()
+    app.main_loop()
 
 if __name__ == "__main__":
     # program already running. abort.
