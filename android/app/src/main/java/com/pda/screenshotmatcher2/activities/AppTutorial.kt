@@ -9,6 +9,7 @@ import com.github.appintro.AppIntro
 import com.github.appintro.AppIntroFragment
 import com.github.appintro.AppIntroPageTransformerType
 import com.pda.screenshotmatcher2.R
+import com.pda.screenshotmatcher2.fragments.AnimatedIntroFragment
 
 class AppTutorial : AppIntro() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -18,14 +19,8 @@ class AppTutorial : AppIntro() {
             imageParallaxFactor = -1.0,
             descriptionParallaxFactor = 2.0
         ))
-        addSlide(AppIntroFragment.newInstance(
-            title = getString(R.string.app_intro_welcomeHeader),
-            description = getString(R.string.app_intro_description_1),
-            imageDrawable = R.drawable.intro_icon_fade,
-            titleColor = Color.BLACK,
-            descriptionColor = Color.BLACK,
-            backgroundColor = Color.WHITE
-        ))
+        addSlide(AnimatedIntroFragment.newInstance(R.layout.fragment_animated_intro))
+
         addSlide(AppIntroFragment.newInstance(
             title = getString(R.string.app_intro_header_2),
             description = getString(R.string.app_intro_description_2),
