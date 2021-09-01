@@ -101,9 +101,10 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     }
     private fun checkForFirstRun(context: Context) {
         val FIRST_RUN_KEY = getString(R.string.FIRST_RUN_KEY)
+        // debug: val FIRST_RUN_KEY = "d"
         val isFirstRun: Boolean = sp.getBoolean(FIRST_RUN_KEY, true)
-        //if(isFirstRun) {
-        if(true){
+        if(isFirstRun) {
+        // debug: if(true){
             val intent = Intent(context, AppTutorial::class.java)
             startActivity(intent)
             finish()
