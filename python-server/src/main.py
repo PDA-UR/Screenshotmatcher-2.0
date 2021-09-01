@@ -3,27 +3,24 @@ import sys
 import psutil
 import threading
 import ctypes
-
+import queue
 import gui.tray
 import server.server_discovery as discovery
 from common.config import Config
-from common.utility import set_participant_id
+from common.utility import get_id
 from matching.matcher import Matcher
 from server.server import Server
 
 def main():
-    # Set the participant ID
-    _id = set_participant_id()
-    if _id:
-        Config.PARTICIPANT_ID = _id
-    else:
-        return 0
+    app_queue = queue.SimpleQueue()
+
+    # Set the app ID
+    Config.ID = get_id()
+    if not Config.ID:
+        Config.ID = -405
     
     # Init Server
     server = Server()
-    
-    # Init Tray
-    # tray = gui.tray.InhTray()
     
     # Start server in different thread
     x = threading.Thread(target=server.start, args=(), daemon=True)
@@ -33,18 +30,8 @@ def main():
     udp_t = threading.Thread(target=discovery.start, args=(), daemon=True)
     # udp_t.start()
     
-    # Start Tray event loop
-    # tray.run()
-    # while True:
-    #     event = tray.Read()
-    #     print(event)
-    #     if event == 'Exit':
-    #         break
-    #     elif event == 'Settings':
-    #         set_win = gui.tray.SettingsWindow()
-    #         event, values = set_win.read()
-    # set_win = gui.tray.SettingsWindow()
-    app = gui.tray.App()
+    # Start the GUI
+    app = gui.tray.App(queue=app_queue)
     app.main_loop()
 
 if __name__ == "__main__":
