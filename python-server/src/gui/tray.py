@@ -34,15 +34,33 @@ class SettingsWindow(sg.Window):
         self.title = "Settings"
         self.layout = [
             [sg.Checkbox("Allow fullscreen screenshots",
-                enable_events=True, key=KEY_ALLOW_FULLSCREEN,
+                enable_events=True,
+                key=KEY_ALLOW_FULLSCREEN,
+                default=Config.FULL_SCREENSHOTS_ENABLED,
                 size=(24,1),
                 tooltip="Clients can request an image of your entire screen(s)"
             )],
             [sg.Frame(
                 layout= [[
-                    sg.Radio("Ask each time", group_id=KEY_UNKNOWN_DEVICE, size=(12,1), default=True),
-                    sg.Radio("Allow all", group_id=KEY_UNKNOWN_DEVICE, size=(12,1)),
-                    sg.Radio("Block all", group_id=KEY_UNKNOWN_DEVICE, size=(12,1))]],
+                    sg.Radio(
+                        "Ask each time",
+                        group_id=KEY_UNKNOWN_DEVICE,
+                        key="UKD_ASK",
+                        size=(12,1),
+                        default= (Config.UNKNOWN_DEVICE_HANDLING == 0)),
+                    sg.Radio(
+                        "Allow all",
+                        group_id=KEY_UNKNOWN_DEVICE,
+                        key="UKD_ALLOW",
+                        size=(12,1),
+                        default= (Config.UNKNOWN_DEVICE_HANDLING == 1)),
+                    sg.Radio(
+                        "Block all",
+                        group_id=KEY_UNKNOWN_DEVICE,
+                        key="UKD_BLOCK",
+                        size=(12,1),
+                        default= (Config.UNKNOWN_DEVICE_HANDLING == 2)),
+                ]],
                 title="Requests from unknown devices",
                 tooltip="How to handle requests sent by phone applications unknown to this computer.")],
             [sg.Button('Ok'), sg.Button('Cancel')] 
@@ -91,26 +109,28 @@ class App():
             if tray_event == "Exit":
                 break
 
-            if not queue.empty():
-                item = queue.get(block=False)
+            # if not queue.empty():
+            #     item = queue.get(block=False)
 
     def open_settings(self):
         settings_window = SettingsWindow()
+        print(Config.UNKNOWN_DEVICE_HANDLING)
+        print(Config.FULL_SCREENSHOTS_ENABLED)
         while True:
             event, values = settings_window.read()
             if event in [sg.WIN_CLOSED, "Cancel"]:
                 settings_window.close()
                 break
             elif event == "Ok":
-                ud = values[KEY_UNKNOWN_DEVICE]
-                if ud == "Allow all":
+                if values["UKD_ALLOW"]:
                     Config.UNKNOWN_DEVICE_HANDLING = 1
-                elif ud == "Block all":
+                elif values["UKD_BLOCK"]:
                     Config.UNKNOWN_DEVICE_HANDLING = 2
-                else:   # Default
+                else:   # Default: Ask
                     Config.UNKNOWN_DEVICE_HANDLING = 0
 
                 Config.FULL_SCREENSHOTS_ENABLED = values[KEY_ALLOW_FULLSCREEN]
+                common.utility.update_user_config()
                 settings_window.close()
                 break
 

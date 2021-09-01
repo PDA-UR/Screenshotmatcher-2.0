@@ -7,17 +7,18 @@ import queue
 import gui.tray
 import server.server_discovery as discovery
 from common.config import Config
-from common.utility import get_id
+from common.utility import read_user_config, get_current_ip_address
 from matching.matcher import Matcher
 from server.server import Server
 
 def main():
     app_queue = queue.SimpleQueue()
 
-    # Set the app ID
-    Config.ID = get_id()
-    if not Config.ID:
-        Config.ID = -405
+    # Read user settings
+    read_user_config()
+
+    # Set the current host IP
+    Config.HOST = get_current_ip_address()
     
     # Init Server
     server = Server()
