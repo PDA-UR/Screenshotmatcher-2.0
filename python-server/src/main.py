@@ -23,7 +23,6 @@ def main():
     server = Server()
     
     # Init Tray
-    # tray = gui.tray.Tray(Config.APP_NAME)
     tray = gui.tray.InhTray()
     
     # Start server in different thread
