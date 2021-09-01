@@ -233,6 +233,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     // Functionality
     private fun capturePhoto(){
+        window.decorView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING)
         val mBitmap = cameraInstance.captureImageWithPreviewExtraction()
         val mServerURL = serverConnection.mServerURL
         if (mBitmap != null) {
@@ -361,11 +362,13 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     fun onMatchResult(matchID: String, img: ByteArray) {
         cameraInstance.isCapturing = false
+        window.decorView.performHapticFeedback(HapticFeedbackConstants.REJECT, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING)
         startResultsActivity(matchID, img)
     }
 
     fun onMatchRequestError(){
         cameraInstance.isCapturing = false
+        window.decorView.performHapticFeedback(HapticFeedbackConstants.CONFIRM, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING)
         Toast.makeText(this, getString(R.string.match_request_error_en), Toast.LENGTH_LONG).show()
     }
 

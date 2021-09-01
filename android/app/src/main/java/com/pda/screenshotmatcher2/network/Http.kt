@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.util.Base64
 import android.util.Log
+import android.view.HapticFeedbackConstants
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.android.volley.DefaultRetryPolicy
@@ -36,7 +37,7 @@ fun sendBitmap(
     serverURL: String,
     activity: Activity,
     matchingOptions: HashMap<Any?, Any?>? = null,
-    permissionToken: String = "",
+    permissionToken: String = ""
     ){
     val baos = ByteArrayOutputStream()
     bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
