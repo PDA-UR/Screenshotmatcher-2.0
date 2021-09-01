@@ -34,6 +34,9 @@ class GalleryFragment : RotationFragment() {
             removeThisFragment()
         }
     }
+    fun refreshAdapter() {
+        adapter.notifyDataSetChanged()
+    }
 
     override fun removeThisFragmentForRotation(): ArrayList<File?>? {
         val pFrag: GalleryPreviewFragment? =
