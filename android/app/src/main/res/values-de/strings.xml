@@ -17,4 +17,5 @@
     <string name="app_intro_description_4">Falls Sie den Desktop Client gestartet haben wird er in der Liste erscheinen und sie können sich mit ihm verbinden</string>
     <string name="app_intro_denied_permission">Um die App zu verwenden werden die angeforderten Rechte benötigt</string>
     <string name="app_intro_disabled_permission">Um die App zu verwenden werden die angeforderten Rechte benötigt, bitte genehmigen Sie diese in ihren Systemeinstellungen</string>
+    <string name="result_activity_deleteImages_en">Bild(er) löschen</string>
 </resources>
