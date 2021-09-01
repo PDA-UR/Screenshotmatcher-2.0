@@ -46,7 +46,7 @@ class Server():
                     log.value_pairs[key] = value
 
                 log.value_pairs.pop('match_uid', None)  # remove duplicate match_id entry
-                log.value_pairs["participant_id"] = Config.PARTICIPANT_ID
+                log.value_pairs["participant_id"] = Config.ID
                 log.value_pairs["operating_system"] = platform.platform()
                 log.send_log()
                 self.last_logs.remove(log)

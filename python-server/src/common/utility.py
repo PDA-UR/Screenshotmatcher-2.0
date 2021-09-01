@@ -1,6 +1,7 @@
 import time
 import socket
 import os
+import uuid
 import tkinter as tk
 
 def get_current_ms():
@@ -20,36 +21,27 @@ def get_current_ip_address():
         s_ip.close()
     return ip
 
-def set_participant_id():
-    if not os.path.isfile("pid.txt"):
-        with open("pid.txt", "w+") as f:
-            pass
+def get_id():
+    if not os.path.isfile("uuid.txt"):
+        with open("uuid.txt", "w+") as f:
+            _id = str(uuid.uuid4())
+            f.write(_id)
+            return _id
 
-    with open("pid.txt", "r") as f:
+    with open("uuid.txt", "r") as f:
         _id = f.readline()
+        print(_id)
         if _id:
             try:
-                int(_id)
-                return int(_id)
+                uuid.UUID(_id, version=4)
+                return _id
             except ValueError:
-                pass
+                return None
 
-    _input = ask_for_id()
-    if not _input:
-        return None
+    # _input = ask_for_id()
+    # if not _input:
+    #     return None
     
-    with open("pid.txt", "w") as f:
-        f.write(str(_input))
-        return _input
-
-def ask_for_id():
-    ROOT = tk.Tk()
-    ROOT.withdraw()
-    _input = tk.simpledialog.askinteger(
-        title="Input ID",
-        prompt="Please enter your participant ID:"
-    )
-    if not _input:
-        tk.messagebox.showerror("Entry error", "No participant ID entered. Closing.")  
-
-    return _input
+    # with open("pid.txt", "w") as f:
+    #     f.write(str(_input))
+    #     return _input
