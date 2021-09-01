@@ -499,6 +499,14 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
+    fun deleteImagesFromInternalGallery(images: ArrayList<File>) {
+        val index = imageArray.indexOf(images)
+        if (index != -1) {
+            Log.d("CA", "removing!!!")
+            imageArray.removeAt(index)
+        }
+    }
+
     private fun fileBelongsToImageArrayItem(file: File, item: ArrayList<File>): Boolean {
         //Item has already 2 entries
         val filename: String = file.name.split("_".toRegex()).first()
