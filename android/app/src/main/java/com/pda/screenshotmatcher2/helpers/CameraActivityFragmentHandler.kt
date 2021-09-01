@@ -3,6 +3,7 @@ package com.pda.screenshotmatcher2.helpers
 import android.app.Activity
 import android.graphics.Bitmap
 import android.os.Bundle
+import android.view.HapticFeedbackConstants
 import android.view.View
 import android.widget.FrameLayout
 import androidx.fragment.app.Fragment
@@ -44,6 +45,7 @@ class CameraActivityFragmentHandler(a: Activity) {
     fun openErrorFragment(uid: String, extractedImage: Bitmap) {
         activity.onOpenErrorFragment()
 
+        activity.window.decorView.performHapticFeedback(HapticFeedbackConstants.CONFIRM, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING)
         val bundle = Bundle().apply {
             putString(UID_KEY, uid)
             putString(URL_KEY, activity.serverConnection.mServerURL)

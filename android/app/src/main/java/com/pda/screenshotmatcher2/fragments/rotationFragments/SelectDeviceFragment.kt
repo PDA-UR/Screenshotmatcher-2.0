@@ -1,5 +1,6 @@
 package com.pda.screenshotmatcher2.fragments.rotationFragments
 import android.os.Bundle
+import android.view.HapticFeedbackConstants
 import android.view.View
 import android.widget.*
 import androidx.fragment.app.FragmentTransaction
@@ -47,6 +48,7 @@ class SelectDeviceFragment : RotationFragment() {
             R.layout.select_device_list_item, mServerList)
         mListView.adapter = adapter
         mListView.onItemClickListener = AdapterView.OnItemClickListener { _, view, position, _ ->
+            requireActivity().window.decorView.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING)
             if (::lastSelectedItem.isInitialized){
                 lastSelectedItem.setTextColor(resources.getColor(R.color.white))
             }
