@@ -22,7 +22,7 @@ private val PERMISSIONS = arrayOf<String>(
     Manifest.permission.READ_EXTERNAL_STORAGE,
     Manifest.permission.WRITE_EXTERNAL_STORAGE,
     Manifest.permission.INTERNET,
-    Manifest.permission.CAMERA,
+    Manifest.permission.CAMERA
 )
 
 fun getDateString() : String{

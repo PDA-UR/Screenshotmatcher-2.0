@@ -75,9 +75,10 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         hideStatusAndActionBars()
+        setupSharedPref()
+        checkForFirstRun(this)
         setContentView(R.layout.activity_camera)
         verifyPermissions(this)
-        setupSharedPref()
         createDeviceID(this)
         initViews()
         setViewListeners()
@@ -99,6 +100,17 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             thread { fillUpImageList() }
         }
     }
+    private fun checkForFirstRun(context: Context) {
+        val FIRST_RUN_KEY = getString(R.string.FIRST_RUN_KEY)
+        // debug: val FIRST_RUN_KEY = "d"
+        val isFirstRun: Boolean = sp.getBoolean(FIRST_RUN_KEY, true)
+        if(isFirstRun) {
+        // debug: if(true){
+            val intent = Intent(context, AppTutorial::class.java)
+            startActivity(intent)
+            finish()
+        }
+    }
 
     private fun restoreFromSavedInstance(savedInstanceState: Bundle) {
         imageArray = savedInstanceState.getSerializable(getString(R.string.ca_saved_instance_image_list_key)) as ArrayList<ArrayList<File>>
@@ -117,14 +129,14 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
         val serverUrlList: ArrayList<String> = ArrayList()
         val serverHostList: ArrayList<String> = ArrayList()
-        serverConnection.mServerUrlList.forEach {
+        serverConnection?.mServerUrlList.forEach {
             serverHostList.add(it.second)
             serverUrlList.add(it.first)
         }
         outState.apply {
             putStringArrayList(getString(R.string.ca_saved_instance_url_list_key), serverUrlList)
             putStringArrayList(getString(R.string.ca_saved_instance_host_list_key), serverHostList)
-            putString(getString(R.string.ca_saved_instance_url_key), serverConnection.mServerURL)
+            putString(getString(R.string.ca_saved_instance_url_key), serverConnection?.mServerURL)
             putSerializable(getString(R.string.ca_saved_instance_image_list_key), imageArray)
         }
     }
@@ -212,20 +224,11 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     private fun hideStatusAndActionBars() {
         supportActionBar?.hide()
-        when (Build.VERSION.SDK_INT) {
-            in 0..15 -> {
-                requestWindowFeature(Window.FEATURE_NO_TITLE)
-                window.setFlags(
-                    WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                    WindowManager.LayoutParams.FLAG_FULLSCREEN
-                )
-            }
-            in 16..29 -> {
-                val decorView = window.decorView
-                val uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN
-                decorView.systemUiVisibility = uiOptions
-            }
-        }
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_FULLSCREEN,
+            WindowManager.LayoutParams.FLAG_FULLSCREEN
+        )
+
     }
 
     // Functionality
