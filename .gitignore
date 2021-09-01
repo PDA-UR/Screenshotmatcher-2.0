@@ -98,4 +98,4 @@ log-server/study_log.csv
 log-server/value_errors.txt
 python-server/src/blacklist.txt
 python-server/src/whitelist.txt
-python-server/src/uuid.txt
+python-server/src/config.ini
