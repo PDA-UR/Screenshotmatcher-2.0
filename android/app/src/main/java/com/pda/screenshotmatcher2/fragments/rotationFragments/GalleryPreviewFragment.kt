@@ -269,7 +269,7 @@ class GalleryPreviewFragment : RotationFragment() {
         mImagePreviewNextButton = activity?.findViewById(R.id.pf_imagePreview_nextButton)!!
         mScreenshotImageView = activity?.findViewById(R.id.pf_imagePreview_imageView)!!
         mShareButton = activity?.findViewById(R.id.pf_shareButton)!!
-        mSaveBothButton = activity?.findViewById(R.id.pf_saveBothButton)!!
+        mSaveBothButton = activity?.findViewById(R.id.pf_deleteImages)!!
         mSaveOneButton = activity?.findViewById(R.id.pf_saveOneButton)!!
         mShareButtonText = activity?.findViewById(R.id.pf_shareButtonText)!!
         mShareButtonText.text = getString(R.string.result_activity_shareButtonText1_en)
