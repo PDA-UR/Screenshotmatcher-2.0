@@ -18,4 +18,6 @@
     <string name="app_intro_denied_permission">Um die App zu verwenden werden die angeforderten Rechte benötigt</string>
     <string name="app_intro_disabled_permission">Um die App zu verwenden werden die angeforderten Rechte benötigt, bitte genehmigen Sie diese in ihren Systemeinstellungen</string>
     <string name="result_activity_deleteImages_en">Bild(er) löschen</string>
+    <string name="settings_about_header">Über diese App</string>
+    <string name="settings_about_description">Version 1.2 \nLizensiert unter der MIT Lizenz \nCopyright (c) 2021 Physical-Digital Affordances \n\n🔗 Hier klicken um mehr zu erfahren</string>
 </resources>

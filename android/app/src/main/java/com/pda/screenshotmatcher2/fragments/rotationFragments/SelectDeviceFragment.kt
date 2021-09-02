@@ -10,7 +10,6 @@ import kotlin.concurrent.thread
 
 class SelectDeviceFragment : RotationFragment() {
     private lateinit var mSelectDeviceButton: ImageButton
-    private lateinit var mBackButton: ImageButton
     private lateinit var mListView: ListView
     private lateinit var adapter: ArrayAdapter<String>
     private var mServerList: ArrayList<String> = ArrayList()
@@ -41,8 +40,6 @@ class SelectDeviceFragment : RotationFragment() {
     private fun initViews() {
         mSelectDeviceButton = activity?.findViewById(R.id.select_device_button)!!
         mSelectDeviceButton.setOnClickListener { removeThisFragment() }
-        mBackButton = activity?.findViewById(R.id.capture_button)!!
-        mBackButton.setOnClickListener { removeThisFragment() }
         mListView = activity?.findViewById(R.id.select_device_fragment_list)!!
         adapter = ArrayAdapter(requireContext(),
             R.layout.select_device_list_item, mServerList)
