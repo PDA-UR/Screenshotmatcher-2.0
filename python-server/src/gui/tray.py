@@ -7,14 +7,15 @@ import platform
 import base64
 import common.utility
 import webbrowser
-import PySimpleGUIWx as sg
+import PySimpleGUIWx as sgwx
+import PySimpleGUI as sg
 from common.config import Config
 
 sg.theme("Material2")
 KEY_ALLOW_FULLSCREEN = "CB_ALLOW_FULLSCR"
 KEY_UNKNOWN_DEVICE = "RADIO_UNK_DEV"
 
-class Tray(sg.SystemTray):
+class Tray(sgwx.SystemTray):
     def __init__(self):
         self.menu = [
             "menu",
@@ -26,14 +27,27 @@ class Tray(sg.SystemTray):
             ]
         ]
         self.data_base64 = get_app_icon().encode("utf-8")
-        super().__init__(menu=self.menu, data_base64=get_app_icon())
+        super().__init__(menu=self.menu)
 
 
-class SettingsWindow(sg.Window):
+class MainWindow(sg.Window):
     def __init__(self):
-        self.title = "Settings"
+        self.title = "Screenshot Matcher"
+        self.menu = [
+            ["File", ["About","Exit"]]
+        ]
         self.layout = [
-            [sg.Checkbox("Allow fullscreen screenshots",
+            [sg.Menu(
+                menu_definition=self.menu,
+                background_color="snow",    # Menu does not use the theme and gets a blue background
+                text_color="black",
+                font=("Arial", 10))],
+            [sg.Text(
+                "Settings",
+                size=(14,1),
+                font=("Arial", 12, "underline"))],
+            [sg.Checkbox(
+                "Allow fullscreen screenshots",
                 enable_events=True,
                 key=KEY_ALLOW_FULLSCREEN,
                 default=Config.FULL_SCREENSHOTS_ENABLED,
@@ -76,10 +90,10 @@ class AboutWindow(sg.Window):
         self.layout = [
             [sg.Text(
                 text=Config.APP_NAME,
-                font=("Helvetica", 12))],
+                font=("Arial", 12))],
             [sg.Text(
                 text=("Version: " + Config.APP_VERSION),
-                font=("Helvetica", 8))],
+                font=("Arial", 8))],
             [sg.Text(
                 text="Homepage",
                 size=(10,1),
@@ -101,26 +115,23 @@ class App():
         self.tray = Tray()
         while True:
             tray_event = self.tray.read()
+            if tray_event == "__ACTIVATED__":
+                self.open_main_window()
 
-            if tray_event == "About":
-                self.open_about()
-            if tray_event == "Settings":
-                self.open_settings()
-            if tray_event == "Exit":
-                break
+            if not self.queue.empty():
+                item = self.queue.get(block=False)
+                if item == "SHUTDOWN_APPLICATION":
+                    break
 
-            # if not queue.empty():
-            #     item = queue.get(block=False)
-
-    def open_settings(self):
-        settings_window = SettingsWindow()
-        print(Config.UNKNOWN_DEVICE_HANDLING)
-        print(Config.FULL_SCREENSHOTS_ENABLED)
+    def open_main_window(self):
+        window = MainWindow()
         while True:
-            event, values = settings_window.read()
+            event, values = window.read()
             if event in [sg.WIN_CLOSED, "Cancel"]:
-                settings_window.close()
+                window.close()
                 break
+            elif event == "About":
+                self.open_about()
             elif event == "Ok":
                 if values["UKD_ALLOW"]:
                     Config.UNKNOWN_DEVICE_HANDLING = 1
@@ -131,7 +142,11 @@ class App():
 
                 Config.FULL_SCREENSHOTS_ENABLED = values[KEY_ALLOW_FULLSCREEN]
                 common.utility.update_user_config()
-                settings_window.close()
+                window.close()
+                break
+            elif event == "Exit":
+                self.queue.put("SHUTDOWN_APPLICATION")
+                window.close()
                 break
 
     def open_about(self):
