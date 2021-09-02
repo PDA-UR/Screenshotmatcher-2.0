@@ -3,6 +3,7 @@ package com.pda.screenshotmatcher2.helpers
 import android.app.Activity
 import android.graphics.Bitmap
 import android.os.Bundle
+import android.view.HapticFeedbackConstants
 import android.view.View
 import android.widget.FrameLayout
 import androidx.fragment.app.Fragment
@@ -22,6 +23,7 @@ class CameraActivityFragmentHandler(a: Activity) {
     private var fm: FragmentManager = activity.supportFragmentManager
 
     private fun openFragment(fragment: Fragment, containerID: Int, transition: Int? = null){
+        activity.window.decorView.performHapticFeedback(HapticFeedbackConstants.CONFIRM, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING)
         fm
             .beginTransaction()
             .add(containerID, fragment, fragment::class.simpleName)
@@ -41,9 +43,15 @@ class CameraActivityFragmentHandler(a: Activity) {
         }
     }
 
+    fun closeSelectDeviceFragment() {
+        fm.findFragmentByTag(SelectDeviceFragment::class.simpleName)?.let {
+            val selectDeviceFragment = it as SelectDeviceFragment
+            selectDeviceFragment.removeThisFragment(true)
+        }
+    }
+
     fun openErrorFragment(uid: String, extractedImage: Bitmap) {
         activity.onOpenErrorFragment()
-
         val bundle = Bundle().apply {
             putString(UID_KEY, uid)
             putString(URL_KEY, activity.serverConnection.mServerURL)
@@ -66,6 +74,12 @@ class CameraActivityFragmentHandler(a: Activity) {
         }
 
         mFragmentDarkBackground.visibility = View.VISIBLE
+    }
+
+    fun refreshGalleryFragment() {
+        val gFrag: GalleryFragment? =
+            fm.findFragmentByTag(GalleryFragment::class.simpleName) as GalleryFragment?
+        gFrag?.refreshAdapter()
     }
 
     fun openGalleryPreviewFragment(firstImage: File?, secondImage: File?, withTransition: Boolean = true) {

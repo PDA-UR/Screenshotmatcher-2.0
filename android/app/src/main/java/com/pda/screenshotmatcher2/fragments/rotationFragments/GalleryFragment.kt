@@ -1,6 +1,7 @@
 package com.pda.screenshotmatcher2.fragments.rotationFragments
 
 import android.os.Bundle
+import android.view.HapticFeedbackConstants
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.GridView
@@ -34,6 +35,9 @@ class GalleryFragment : RotationFragment() {
             removeThisFragment()
         }
     }
+    fun refreshAdapter() {
+        adapter.notifyDataSetChanged()
+    }
 
     override fun removeThisFragmentForRotation(): ArrayList<File?>? {
         val pFrag: GalleryPreviewFragment? =
@@ -52,6 +56,7 @@ class GalleryFragment : RotationFragment() {
 
     override fun removeThisFragment(removeBackground: Boolean) {
         containerView.visibility = View.INVISIBLE
+        ca.window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING)
         if (removeBackground) {
             var mFragmentBackground: FrameLayout = activity?.findViewById(R.id.ca_dark_background)!!
             mFragmentBackground.visibility = View.INVISIBLE

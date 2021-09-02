@@ -143,18 +143,18 @@
                     android:orientation="vertical">
 
                     <androidx.appcompat.widget.AppCompatImageButton
-                        android:id="@+id/pf_saveBothButton"
+                        android:id="@+id/pf_deleteImages"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_margin="5dp"
                         android:background="@color/white"
-                        android:src="@drawable/ic_baseline_filter_2_48"/>
+                        android:src="@drawable/ic_delete_24px_outlined"/>
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="@string/result_activity_saveBothButtonText_en"/>
+                        android:text="@string/result_activity_deleteImages_en"/>
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>

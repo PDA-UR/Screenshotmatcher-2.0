@@ -6,6 +6,8 @@ import android.content.pm.ResolveInfo
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
+import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -189,31 +191,20 @@ class GalleryPreviewFragment : RotationFragment() {
     }
 
     private fun saveBothImages() {
-        if (numberOfAvailableImages == 2) {
-            MediaStore.Images.Media.insertImage(
-                requireContext().contentResolver,
-                mCroppedImageFile?.absolutePath,
-                mCroppedImageFile?.name,
-                getString(R.string.screenshot_description_en)
-            )
-            MediaStore.Images.Media.insertImage(
-                requireContext().contentResolver,
-                mFullImageFile?.absolutePath,
-                mFullImageFile?.name,
-                getString(R.string.screenshot_description_en)
-            )
-            Toast.makeText(
-                requireContext(),
-                getText(R.string.result_activity_saved_both_en),
-                Toast.LENGTH_SHORT
-            ).show()
-        } else {
-            Toast.makeText(
-                requireContext(),
-                getText(R.string.preview_fragment_only_one_available_en),
-                Toast.LENGTH_SHORT
-            ).show()
+        val cameraActivity: CameraActivity = requireActivity() as CameraActivity
+        val images = ArrayList<File>()
+        images.apply {
+            mCroppedImageFile?.let {
+                Log.d("GF", "del cropped")
+                this.add(it)
+            }
+            mFullImageFile?.let {
+                Log.d("GF", "del full")
+                this.add(it)
+            }
         }
+        cameraActivity.deleteImagesFromInternalGallery(images)
+        removeThisFragment(true)
     }
 
     private fun shareImage() {
@@ -279,7 +270,7 @@ class GalleryPreviewFragment : RotationFragment() {
         mImagePreviewNextButton = activity?.findViewById(R.id.pf_imagePreview_nextButton)!!
         mScreenshotImageView = activity?.findViewById(R.id.pf_imagePreview_imageView)!!
         mShareButton = activity?.findViewById(R.id.pf_shareButton)!!
-        mSaveBothButton = activity?.findViewById(R.id.pf_saveBothButton)!!
+        mSaveBothButton = activity?.findViewById(R.id.pf_deleteImages)!!
         mSaveOneButton = activity?.findViewById(R.id.pf_saveOneButton)!!
         mShareButtonText = activity?.findViewById(R.id.pf_shareButtonText)!!
         mShareButtonText.text = getString(R.string.result_activity_shareButtonText1_en)
@@ -308,6 +299,7 @@ class GalleryPreviewFragment : RotationFragment() {
 
     override fun removeThisFragment(removeBackground: Boolean) {
         super.removeThisFragment(removeBackground)
+        requireActivity().window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING)
         if (removeBackground) mFragmentBackground.visibility = View.INVISIBLE
     }
     override fun removeThisFragmentForRotation(): ArrayList<File?> {
