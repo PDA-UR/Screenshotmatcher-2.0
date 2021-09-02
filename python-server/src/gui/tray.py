@@ -33,15 +33,9 @@ class Tray(sgwx.SystemTray):
 class MainWindow(sg.Window):
     def __init__(self):
         self.title = "Screenshot Matcher"
-        self.menu = [
-            ["File", ["About","Exit"]]
-        ]
+        self.menu = self.sys_specific_menu()
         self.layout = [
-            [sg.Menu(
-                menu_definition=self.menu,
-                background_color="snow",    # Menu does not use the theme and gets a blue background
-                text_color="black",
-                font=("Arial", 10))],
+            [self.menu],
             [sg.Text(
                 "Settings",
                 size=(14,1),
@@ -82,6 +76,17 @@ class MainWindow(sg.Window):
         self.icon = get_app_icon().encode("utf-8")
         super().__init__(title=self.title, layout=self.layout, icon=self.icon)
 
+    def sys_specific_menu(self):
+        if platform.system() == "Windows":
+            return sg.Menu(
+                menu_definition=[["File", ["About","Exit"]]],
+                background_color="snow",    # Menu does not use the theme and gets a blue background
+                text_color="black",
+                font=("Arial", 10))
+        else:
+            return sg.Menu(
+                menu_definition=[["File", ["About","Exit"]]],
+                font=("Arial", 10))
 
 class AboutWindow(sg.Window):
     def __init__(self):
