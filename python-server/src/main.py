@@ -4,12 +4,12 @@ import psutil
 import threading
 import ctypes
 import queue
-import gui.tray
 import server.server_discovery as discovery
 from common.config import Config
 from common.utility import read_user_config, get_current_ip_address
 from matching.matcher import Matcher
 from server.server import Server
+from gui.app import App
 
 def main():
     app_queue = queue.SimpleQueue()
@@ -32,7 +32,7 @@ def main():
     # udp_t.start()
     
     # Start the GUI
-    app = gui.tray.App(queue=app_queue)
+    app = App(queue=app_queue)
     app.main_loop()
 
 if __name__ == "__main__":
