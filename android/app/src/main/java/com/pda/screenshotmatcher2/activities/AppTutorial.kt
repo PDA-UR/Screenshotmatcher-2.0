@@ -30,7 +30,7 @@ class AppTutorial : AppIntro() {
         addSlide(AppIntroFragment.newInstance(
             title = getString(R.string.app_intro_header_2),
             description = getString(R.string.app_intro_description_2),
-            imageDrawable = R.drawable.placeholder_qr_code,
+            imageDrawable = R.drawable.intro_qr_code,
             titleColor = Color.BLACK,
             descriptionColor = Color.BLACK,
             backgroundColor = Color.WHITE
@@ -51,7 +51,14 @@ class AppTutorial : AppIntro() {
             descriptionColor = Color.BLACK,
             backgroundColor = Color.WHITE
         ))
-
+        addSlide(AppIntroFragment.newInstance(
+            title = getString(R.string.app_intro_header_5),
+            description = getString(R.string.app_intro_description_5),
+            imageDrawable = R.drawable.intro_picture_5,
+            titleColor = Color.BLACK,
+            descriptionColor = Color.BLACK,
+            backgroundColor = Color.WHITE
+        ))
        askForPermissions(
             permissions = arrayOf(
                 Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -59,7 +66,7 @@ class AppTutorial : AppIntro() {
                 Manifest.permission.INTERNET,
                 Manifest.permission.CAMERA
             ),
-            slideNumber = 4,
+            slideNumber = 5,
             required = true)
         setBackArrowColor(Color.BLACK)
         setNextArrowColor(Color.BLACK)
