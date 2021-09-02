@@ -1,14 +1,12 @@
 from PIL import Image, ImageDraw
-from pystray import Icon, Menu as menu, MenuItem as item
 from io import BytesIO
 import os
-import subprocess
 import platform
 import base64
-import common.utility
 import webbrowser
 import PySimpleGUIWx as sgwx
 import PySimpleGUI as sg
+import common.utility
 from common.config import Config
 
 sg.theme("Material2")
