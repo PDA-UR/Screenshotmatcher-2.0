@@ -10,7 +10,7 @@
     <string name="app_intro_welcomeHeader">Willkommen 👋</string>
     <string name="app_intro_description_1">Lass uns anfangen!</string>
     <string name="app_intro_header_2">Desktop Client 💻</string>
-    <string name="app_intro_description_2">Um die App zu verwenden müssen Sie den Desktop Client auf Ihrem Computer installieren \n\nDer Client kann mithilfe des QR-Codes oder über den folgenden Link geladen werden:\n\nwww.link.com</string>
+    <string name="app_intro_description_2">Um die App zu verwenden müssen Sie den Desktop Client auf Ihrem Computer installieren \n\nDer Client kann mithilfe des QR-Codes oder über den folgenden Link geladen werden:\n\nhttps://github.com/PDA-UR/Screenshotmatcher-2.0/releases</string>
     <string name="app_intro_header_3">Wie: Client finden 🔎</string>
     <string name="app_intro_header_4">Wie: Verbinden 🔗</string>
     <string name="app_intro_description_3">Klicken Sie in der App auf den Knopf oben links um alle verfügbaren Desktops zu sehen mit denen Sie sich verbinden können</string>
@@ -19,5 +19,7 @@
     <string name="app_intro_disabled_permission">Um die App zu verwenden werden die angeforderten Rechte benötigt, bitte genehmigen Sie diese in ihren Systemeinstellungen</string>
     <string name="result_activity_deleteImages_en">Bild(er) löschen</string>
     <string name="settings_about_header">Über diese App</string>
-    <string name="settings_about_description">Version 1.2 \nLizensiert unter der MIT Lizenz \nCopyright (c) 2021 Physical-Digital Affordances \n\n🔗 Hier klicken um mehr zu erfahren</string>
+    <string name="settings_about_description">Version 1.2 \nLizensiert unter der MIT Lizenz \nCopyright © 2021 Physical-Digital Affordances \n\n🔗 Hier klicken um mehr zu erfahren</string>
+    <string name="app_intro_header_5">Wie: Bild aufnehmen 📸</string>
+    <string name="app_intro_description_5">Machen Sie nun ein Foto von einer beliebigen Fläche ihres Monitors, \nScreenshotMatcher wird einen Screenshot davon zurückgeben \n\nMagic 🪄!</string>
 </resources>
