@@ -1,5 +1,6 @@
 package com.pda.screenshotmatcher2.fragments.rotationFragments
 import android.os.Bundle
+import android.view.HapticFeedbackConstants
 import android.view.View
 import android.widget.*
 import androidx.fragment.app.FragmentTransaction
@@ -9,7 +10,6 @@ import kotlin.concurrent.thread
 
 class SelectDeviceFragment : RotationFragment() {
     private lateinit var mSelectDeviceButton: ImageButton
-    private lateinit var mBackButton: ImageButton
     private lateinit var mListView: ListView
     private lateinit var adapter: ArrayAdapter<String>
     private var mServerList: ArrayList<String> = ArrayList()
@@ -40,13 +40,12 @@ class SelectDeviceFragment : RotationFragment() {
     private fun initViews() {
         mSelectDeviceButton = activity?.findViewById(R.id.select_device_button)!!
         mSelectDeviceButton.setOnClickListener { removeThisFragment() }
-        mBackButton = activity?.findViewById(R.id.capture_button)!!
-        mBackButton.setOnClickListener { removeThisFragment() }
         mListView = activity?.findViewById(R.id.select_device_fragment_list)!!
         adapter = ArrayAdapter(requireContext(),
             R.layout.select_device_list_item, mServerList)
         mListView.adapter = adapter
         mListView.onItemClickListener = AdapterView.OnItemClickListener { _, view, position, _ ->
+            requireActivity().window.decorView.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING)
             if (::lastSelectedItem.isInitialized){
                 lastSelectedItem.setTextColor(resources.getColor(R.color.white))
             }
@@ -58,6 +57,7 @@ class SelectDeviceFragment : RotationFragment() {
     }
 
     override fun removeThisFragment(removeBackground: Boolean) {
+        ca.window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING)
         ca.onCloseSelectDeviceFragment()
         super.removeThisFragment(removeBackground)
     }

@@ -66,8 +66,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     private var cameraInstance: CameraInstance =
         CameraInstance(this)
 
-    //Boolean for checking the orientation
-    var checkSensor: Boolean = true
     var isFirstBoot: Boolean = true
 
     // Activity lifecycle
@@ -156,13 +154,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         else {
             Toast.makeText(this, "Failed to get sensor data. Please restart your phone.", Toast.LENGTH_LONG).show()
         }
-        //only check orientation once every second
-        Handler().postDelayed(object : Runnable {
-            override fun run() {
-                checkSensor = true
-                Handler().postDelayed(this, 1000)
-            }
-        }, 1000)
     }
 
     override fun onPause() {
@@ -233,6 +224,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     // Functionality
     private fun capturePhoto(){
+        window.decorView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING)
         val mBitmap = cameraInstance.captureImageWithPreviewExtraction()
         val mServerURL = serverConnection.mServerURL
         if (mBitmap != null) {
@@ -275,6 +267,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
                     mSelectDeviceButtonText.text =
                         getString(R.string.select_device_button_notConnected_en)
                 }
+                mSelectDeviceButtonText.requestLayout()
             }
         }
     }
@@ -292,7 +285,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     // Orientation changes
     private fun changeOrientation() {
-        if (checkSensor){
             when (phoneOrientation) {
                 Surface.ROTATION_0 -> {
                     mSelectDeviceButton.setImageResource(android.R.color.transparent)
@@ -322,8 +314,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
                 }
             }
             cameraActivityFragmentHandler.rotateAllRotatableFragments()
-            checkSensor = false
-        }
 
     }
 
@@ -361,11 +351,13 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     fun onMatchResult(matchID: String, img: ByteArray) {
         cameraInstance.isCapturing = false
+        window.decorView.performHapticFeedback(HapticFeedbackConstants.REJECT, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING)
         startResultsActivity(matchID, img)
     }
 
     fun onMatchRequestError(){
         cameraInstance.isCapturing = false
+        window.decorView.performHapticFeedback(HapticFeedbackConstants.CONFIRM, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING)
         Toast.makeText(this, getString(R.string.match_request_error_en), Toast.LENGTH_LONG).show()
     }
 
@@ -377,6 +369,9 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     fun onOpenSelectDeviceFragment(){
         mSettingsButton.visibility = View.INVISIBLE
         mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_close_48))
+        mCaptureButton.setOnClickListener {
+            cameraActivityFragmentHandler.closeSelectDeviceFragment()
+        }
     }
 
     fun onCloseSelectDeviceFragment() {
@@ -496,6 +491,24 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             var fileCouple: ArrayList<File> = ArrayList()
             fileCouple.add(file)
             imageArray.add(fileCouple)
+        }
+    }
+
+    fun deleteImagesFromInternalGallery(images: ArrayList<File>) {
+        for (imagePair in imageArray) {
+            var didRemove = false
+            for (image in images) {
+                if (image in imagePair) {
+                    imagePair.forEach { imageFile ->
+                        if(imageFile.exists()) imageFile.delete()
+                    }
+                    imageArray.remove(imagePair)
+                    cameraActivityFragmentHandler.refreshGalleryFragment()
+                    didRemove = true
+                    break
+                }
+            }
+            if (didRemove) break
         }
     }
 
