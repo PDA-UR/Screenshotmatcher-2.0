@@ -42,6 +42,13 @@ class CameraActivityFragmentHandler(a: Activity) {
         }
     }
 
+    fun closeSelectDeviceFragment() {
+        fm.findFragmentByTag(SelectDeviceFragment::class.simpleName)?.let {
+            val selectDeviceFragment = it as SelectDeviceFragment
+            selectDeviceFragment.removeThisFragment(true)
+        }
+    }
+
     fun openErrorFragment(uid: String, extractedImage: Bitmap) {
         activity.onOpenErrorFragment()
 
