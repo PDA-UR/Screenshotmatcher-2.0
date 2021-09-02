@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
+import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -298,6 +299,7 @@ class GalleryPreviewFragment : RotationFragment() {
 
     override fun removeThisFragment(removeBackground: Boolean) {
         super.removeThisFragment(removeBackground)
+        requireActivity().window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING)
         if (removeBackground) mFragmentBackground.visibility = View.INVISIBLE
     }
     override fun removeThisFragmentForRotation(): ArrayList<File?> {
