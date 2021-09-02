@@ -66,8 +66,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     private var cameraInstance: CameraInstance =
         CameraInstance(this)
 
-    //Boolean for checking the orientation
-    var checkSensor: Boolean = true
     var isFirstBoot: Boolean = true
 
     // Activity lifecycle
@@ -156,13 +154,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         else {
             Toast.makeText(this, "Failed to get sensor data. Please restart your phone.", Toast.LENGTH_LONG).show()
         }
-        //only check orientation once every second
-        Handler().postDelayed(object : Runnable {
-            override fun run() {
-                checkSensor = true
-                Handler().postDelayed(this, 1000)
-            }
-        }, 1000)
     }
 
     override fun onPause() {
@@ -276,6 +267,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
                     mSelectDeviceButtonText.text =
                         getString(R.string.select_device_button_notConnected_en)
                 }
+                mSelectDeviceButtonText.requestLayout()
             }
         }
     }
@@ -293,7 +285,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     // Orientation changes
     private fun changeOrientation() {
-        if (checkSensor){
             when (phoneOrientation) {
                 Surface.ROTATION_0 -> {
                     mSelectDeviceButton.setImageResource(android.R.color.transparent)
@@ -323,8 +314,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
                 }
             }
             cameraActivityFragmentHandler.rotateAllRotatableFragments()
-            checkSensor = false
-        }
 
     }
 
@@ -380,6 +369,9 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     fun onOpenSelectDeviceFragment(){
         mSettingsButton.visibility = View.INVISIBLE
         mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_close_48))
+        mCaptureButton.setOnClickListener {
+            cameraActivityFragmentHandler.closeSelectDeviceFragment()
+        }
     }
 
     fun onCloseSelectDeviceFragment() {
