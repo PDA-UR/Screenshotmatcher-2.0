@@ -1,3 +1,7 @@
+<div align="center">
+<img src="https://user-images.githubusercontent.com/55558407/131850012-8d9aa470-18f3-419c-a7f4-7e69bb1f44d7.png" alt="logo" width="200" align="center"/>
+</div>
+
 #  ScreenshotMatcher (WIP)
 
 Oftentimes, taking photographs of a computer screen is preferred to capturing proper screenshots as it is fast, convenient and the picture is shared via the smartphone anyway.
