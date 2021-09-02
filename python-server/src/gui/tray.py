@@ -27,7 +27,7 @@ class Tray(sgwx.SystemTray):
             ]
         ]
         self.data_base64 = get_app_icon().encode("utf-8")
-        super().__init__(menu=self.menu)
+        super().__init__(menu=self.menu, data_base64=get_app_icon())
 
 
 class MainWindow(sg.Window):
