@@ -57,6 +57,7 @@ class SelectDeviceFragment : RotationFragment() {
     }
 
     override fun removeThisFragment(removeBackground: Boolean) {
+        ca.window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING)
         ca.onCloseSelectDeviceFragment()
         super.removeThisFragment(removeBackground)
     }

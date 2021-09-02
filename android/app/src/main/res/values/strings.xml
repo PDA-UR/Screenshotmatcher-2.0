@@ -59,7 +59,7 @@
     <string name="app_intro_description_3">In the app click the top right button to show all available desktops you can connect to</string>
     <string name="app_intro_denied_permission">You need to grant the requested permissions in order to use the app</string>
     <string name="result_activity_deleteImages_en">Delete image(s)</string>
-    <string name="settings_about_header">About this App</string>
+    <string name="settings_about_header">About this app</string>
     <string name="settings_about_button" translatable="false">s_about_button</string>
     <string name="settings_about_description">Version 1.2 \nLicensed under the MIT License \nCopyright (c) 2021 Physical-Digital Affordances \n\n🔗 Click to find out more</string>
 </resources>
