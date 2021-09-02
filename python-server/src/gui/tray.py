@@ -120,9 +120,17 @@ class App():
         self.tray = Tray()
         while True:
             tray_event = self.tray.read()
-            if tray_event == "__ACTIVATED__":
+            # right click to open the menu does not work on linux somehow
+            if platform.system == "Linux" and tray_event == "__ACTIVATED__":
                 self.open_main_window()
+            elif tray_event == "About":
+                self.open_about()
+            elif tray_event == "Settings":
+                self.open_main_window()
+            elif tray_event == "Exit":
+                break
 
+            # Check the queue for instructions from other threads or GUI elements
             if not self.queue.empty():
                 item = self.queue.get(block=False)
                 if item == "SHUTDOWN_APPLICATION":
