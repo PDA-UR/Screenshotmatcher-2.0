@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.HapticFeedbackConstants
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.preference.PreferenceManager
 import com.android.volley.DefaultRetryPolicy
 import com.android.volley.Request
 import com.android.volley.toolbox.JsonObjectRequest
@@ -137,18 +138,23 @@ fun sendHeartbeatRequest(serverURL: String, activity: Activity){
 
 
 fun sendLog(serverURL: String, context: Context){
-    // Instantiate the RequestQueue.
-    val queue = Volley.newRequestQueue(context)
-    val json = JSONObject(StudyLogger.hashMap)
-    val jsonObjectRequest = JsonObjectRequest(Request.Method.POST, serverURL + LOG_DEST, json,
-        { _ ->
-        },
-        { error ->
-            Log.d("log", "Error sending Study Log, server offline")
-        }
-    )
-    // Add the request to the RequestQueue.
-    queue.add(jsonObjectRequest)
+    //Only send log if preference is set to true
+    val MATCHING_MODE_PREF_KEY = context.getString(R.string.settings_logging_key)
+    val sp = PreferenceManager.getDefaultSharedPreferences(context)
+    val sendLog = sp.getBoolean(MATCHING_MODE_PREF_KEY,false)
+    if(sendLog) {
+        val queue = Volley.newRequestQueue(context)
+        val json = JSONObject(StudyLogger.hashMap)
+        val jsonObjectRequest = JsonObjectRequest(Request.Method.POST, serverURL + LOG_DEST, json,
+            { _ ->
+            },
+            { error ->
+                Log.d("log", "Error sending Study Log, server offline")
+            }
+        )
+        // Add the request to the RequestQueue.
+        queue.add(jsonObjectRequest)
+    }
 }
 
 fun sendFeedbackToServer(

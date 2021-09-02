@@ -190,7 +190,7 @@ class GalleryPreviewFragment : RotationFragment() {
         }
     }
 
-    private fun saveBothImages() {
+    private fun deleteBothImages() {
         val cameraActivity: CameraActivity = requireActivity() as CameraActivity
         val images = ArrayList<File>()
         images.apply {
@@ -293,7 +293,7 @@ class GalleryPreviewFragment : RotationFragment() {
         mImagePreviewPreviousButton.setOnClickListener { togglePillNavigationSelection() }
         mImagePreviewNextButton.setOnClickListener { togglePillNavigationSelection() }
         mShareButton.setOnClickListener { shareImage() }
-        mSaveBothButton.setOnClickListener { saveBothImages() }
+        mSaveBothButton.setOnClickListener { deleteBothImages() }
         mSaveOneButton.setOnClickListener { saveCurrentPreviewImage() }
     }
 
