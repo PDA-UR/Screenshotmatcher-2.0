@@ -9,7 +9,8 @@ from common.utility import get_current_ms
 from common.permission import is_device_allowed, request_permission_for_device, create_single_match_token
 
 class Server():
-    def __init__(self):
+    def __init__(self, queue):
+        self.queue = queue
         self.last_logs = []
         self.last_screenshots = []
         self.MAX_LOGS = 3
@@ -156,7 +157,7 @@ class Server():
             return Response(json.dumps(error), mimetype='application/json')
 
         # ask the user for input via prompt
-        user_response = request_permission_for_device(device_id, device_name)
+        user_response = request_permission_for_device(device_name=device_name, device_id=device_id, queue=self.queue)
 
         response = {}
         if user_response == "allow once":
