@@ -12,6 +12,10 @@ from common.config import Config
 sg.theme("Material2")
 KEY_ALLOW_FULLSCREEN = "CB_ALLOW_FULLSCR"
 KEY_UNKNOWN_DEVICE = "RADIO_UNK_DEV"
+Q_KEYS_MAIN_LOOP = [
+    "SHUTDOWN_APPLICATION",
+    "permission_request"
+]
 
 class Tray(sgwx.SystemTray):
     def __init__(self):
@@ -109,30 +113,64 @@ class AboutWindow(sg.Window):
         super().__init__(title=self.title, layout=self.layout, icon=self.icon)
 
 
+class PermissionPrompt(sg.Window):
+    def __init__(self, device_name, device_id):
+        self.title= "Permission required"
+        self.icon = get_app_icon().encode("utf-8")
+        self.text = "The device \"{}\" is asking for permission to connect to ScreenshotMatcher.\n(ID: {})".format(device_name, device_id)
+        self.layout = [
+            [sg.Text(self.text)],
+            [
+                sg.Button("Allow once"),
+                sg.Button("Allow always"),
+                sg.Button("Block")
+            ]
+        ]
+        super().__init__(title=self.title, layout=self.layout, icon=self.icon)
+
+
 class App():
     def __init__(self, queue):
         self.queue = queue
         self.icon = get_app_icon().encode("utf-8")
 
+    # the app's main logic loop.
+    # run in the main thread, because of GUI requirements
     def main_loop(self):
         self.tray = Tray()
-        while True:
-            tray_event = self.tray.read()
-            # right click to open the menu does not work on linux somehow
-            if platform.system == "Linux" and tray_event == "__ACTIVATED__":
-                self.open_main_window()
-            elif tray_event == "About":
-                self.open_about()
-            elif tray_event == "Settings":
-                self.open_main_window()
-            elif tray_event == "Exit":
-                break
 
-            # Check the queue for instructions from other threads or GUI elements
-            if not self.queue.empty():
-                item = self.queue.get(block=False)
-                if item == "SHUTDOWN_APPLICATION":
+        while True:
+            if self.queue.empty():
+                tray_event = self.tray.read(timeout=0.010)    # T/O to not block the thread
+                # right click to open the menu does not work on linux somehow. use left click.
+                if platform.system == "Linux" and tray_event == "__ACTIVATED__":
+                    self.open_main_window()
+                elif tray_event == "About":
+                    self.open_about()
+                elif tray_event == "Settings":
+                    self.open_main_window()
+                elif tray_event == "Exit":
                     break
+
+            # Check the queue for instructions from other threads or GUI elements.
+            else:
+                # prevent going out of range, when another thread pops the item at indexing time
+                try:
+                    last_item_key = self.queue.queue[0][0]
+                except IndexError:
+                    continue
+                # do not pop the item, if it is not meant for the main loop
+                if not last_item_key in Q_KEYS_MAIN_LOOP:
+                    continue
+                item = self.queue.get_nowait()
+
+                if item[0] == "SHUTDOWN_APPLICATION":
+                    break
+                elif item[0] == "permission_request":
+                    device_name = item[1][0]
+                    device_id = item[1][1]
+                    user_response = self.open_permission_prompt(device_name=device_name, device_id=device_id)
+                    self.queue.put(("permission_response", user_response))
 
     def open_main_window(self):
         window = MainWindow()
@@ -156,7 +194,7 @@ class App():
                 window.close()
                 break
             elif event == "Exit":
-                self.queue.put("SHUTDOWN_APPLICATION")
+                self.queue.put(("SHUTDOWN_APPLICATION"))
                 window.close()
                 break
 
@@ -169,6 +207,24 @@ class App():
                 break
             if event == "homepage clicked":
                 webbrowser.open(Config.HOMEPAGE)
+
+    def open_permission_prompt(self, device_name, device_id):
+        user_response = ""
+        window = PermissionPrompt(device_name=device_name, device_id=device_id)
+        while True:
+            event, value = window.read()
+            if event == "Allow once":
+                user_response = "allow once"
+            elif event == "Allow always":
+                user_response = "allow"
+            elif event == "Block":
+                user_response = "block"
+
+            if event in ["Allow once", "Allow always", "Block", sg.WIN_CLOSED]:
+                window.close()
+                break
+
+        return user_response
 
     def ask_for_id(self):
         _id = sg.popup_get_text(
