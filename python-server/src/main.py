@@ -12,7 +12,8 @@ from server.server import Server
 from gui.app import App
 
 def main():
-    app_queue = queue.SimpleQueue()
+    # Queue used for cross-thread communication. Only put (key, value) tuples in there.
+    app_queue = queue.PriorityQueue()
 
     # Read user settings
     read_user_config()
@@ -21,15 +22,15 @@ def main():
     Config.HOST = get_current_ip_address()
     
     # Init Server
-    server = Server()
+    server = Server(queue=app_queue)
     
     # Start server in different thread
     x = threading.Thread(target=server.start, args=(), daemon=True)
-    # x.start()
+    x.start()
     
     # Start server discovery via UDP socket in different thread
     udp_t = threading.Thread(target=discovery.start, args=(), daemon=True)
-    # udp_t.start()
+    udp_t.start()
     
     # Start the GUI
     app = App(queue=app_queue)
