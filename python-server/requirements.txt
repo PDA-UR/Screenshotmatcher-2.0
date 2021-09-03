@@ -12,7 +12,6 @@ MarkupSafe>=1.1.1
 mss>=5.1.0
 numpy>=1.18.4
 Pillow>=7.1.2
-pyscreenshot>=2.1
 PySimpleGUI>=4.19.0
 pystray>=0.15.0
 qrcode>=6.1
