@@ -70,7 +70,12 @@ fun sendBitmap(
         Request.Method.POST, serverURL + MATCH_DEST, json,
         { response ->
             StudyLogger.hashMap["tc_http_response"] = System.currentTimeMillis()
-            StudyLogger.hashMap["match_id"] = response.get("uid").toString()
+            try{
+                StudyLogger.hashMap["match_id"] = response.get("uid").toString()
+            } catch (e: Exception) {
+                Log.d("HTTP", e.toString())
+                Log.d("HTTP", response.toString())
+            }
             if (response.has("error")){
                 if(activity is CameraActivity && response.getString("error") == "permission_error") {
                     activity.onPermissionDenied()
@@ -236,6 +241,8 @@ fun requestPermission(
         { error ->
             if(error.networkResponse == null) {
                 Toast.makeText(activity.applicationContext, "Permission request timeout", Toast.LENGTH_LONG).show()
+                val ca = activity as CameraActivity
+                ca.cameraInstance.isCapturing = false
             }
             else{
                 error.printStackTrace()

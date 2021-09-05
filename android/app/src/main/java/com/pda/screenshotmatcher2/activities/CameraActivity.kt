@@ -63,7 +63,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     //custom helper classes for server connection, fragment management and camera preview
     var serverConnection = ServerConnection(this)
     lateinit var cameraActivityFragmentHandler: CameraActivityFragmentHandler
-    private var cameraInstance: CameraInstance =
+    var cameraInstance: CameraInstance =
         CameraInstance(this)
 
     var isFirstBoot: Boolean = true
@@ -376,7 +376,12 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     fun onCloseSelectDeviceFragment() {
         mCaptureButton.setImageResource(R.drawable.ic_baseline_photo_camera_24)
-        mCaptureButton.setOnClickListener(mCaptureButtonListener)
+        mCaptureButton.setOnClickListener {
+            if (!cameraInstance.isCapturing){
+                StudyLogger.hashMap["tc_button_pressed"] = System.currentTimeMillis()
+                capturePhoto()
+            }
+        }
         mSelectDeviceButton.setOnClickListener(mSelectDeviceButtonListener)
         mSettingsButton.visibility = View.VISIBLE
     }
