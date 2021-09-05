@@ -13,7 +13,7 @@
     <string name="app_intro_description_2">Um die App zu verwenden müssen Sie den Desktop Client auf Ihrem Computer installieren \n\nDer Client kann mithilfe des QR-Codes oder über den folgenden Link geladen werden:\n\nhttps://github.com/PDA-UR/Screenshotmatcher-2.0/releases</string>
     <string name="app_intro_header_3">Wie: Client finden 🔎</string>
     <string name="app_intro_header_4">Wie: Verbinden 🔗</string>
-    <string name="app_intro_description_3">Klicken Sie in der App auf den Knopf oben links um alle verfügbaren Desktops zu sehen mit denen Sie sich verbinden können</string>
+    <string name="app_intro_description_3">Klicken Sie in der App auf den Knopf oben rechts um alle verfügbaren Desktops zu sehen mit denen Sie sich verbinden können</string>
     <string name="app_intro_description_4">Falls Sie den Desktop Client gestartet haben wird er in der Liste erscheinen und sie können sich mit ihm verbinden</string>
     <string name="app_intro_denied_permission">Um die App zu verwenden werden die angeforderten Rechte benötigt</string>
     <string name="app_intro_disabled_permission">Um die App zu verwenden werden die angeforderten Rechte benötigt, bitte genehmigen Sie diese in ihren Systemeinstellungen</string>
