@@ -111,7 +111,6 @@ class Server():
 
     # Return a screenshot with the sae match_id as in the http POST request
     def screenshot_route(self):
-        print("screenshot request")
         response = {}
         if not Config.FULL_SCREENSHOTS_ENABLED:
             response["error"] = "disabled_by_host_error"
@@ -120,8 +119,6 @@ class Server():
             if match_id:
                 try:
                     response["result"] = self.matching_requests.get(match_id).match_result.screenshot_encoded
-                    print(len(self.matching_requests.get(match_id).match_result.screenshot_encoded))
-                    print(len(self.matching_requests.get(match_id).match_result.img_encoded))
                 except IndexError:
                     response["error"] = "Screenshot for given match_id not found on server."
             else:
