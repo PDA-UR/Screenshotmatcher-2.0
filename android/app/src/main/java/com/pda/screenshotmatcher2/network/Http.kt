@@ -98,7 +98,7 @@ fun sendBitmap(
                         }
                     }
                 } catch (e: InvocationTargetException) {
-                    Log.d("HTTP", "b64 string error")
+                    Log.e("HTTP", "b64 string error")
                 }
             }
             else if (activity is CameraActivity) {
@@ -145,13 +145,11 @@ fun sendLog(serverURL: String, context: Context){
     if(sendLog) {
         val queue = Volley.newRequestQueue(context)
         val json = JSONObject(StudyLogger.hashMap)
-        Log.d("FUG", "in logger")
-        Log.d("FUG", StudyLogger.hashMap["match_id"].toString())
         val jsonObjectRequest = JsonObjectRequest(Request.Method.POST, serverURL + LOG_DEST, json,
             { _ ->
             },
             { error ->
-                Log.d("log", "Error sending Study Log, server offline")
+                Log.e("log", "Error sending Study Log, server offline")
             }
         )
         // Add the request to the RequestQueue.
