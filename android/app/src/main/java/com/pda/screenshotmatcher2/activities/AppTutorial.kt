@@ -30,9 +30,9 @@ class AppTutorial : AppIntro() {
         addSlide(AppIntroFragment.newInstance(
             title = getString(R.string.app_intro_header_2),
             description = getString(R.string.app_intro_description_2),
-            imageDrawable = R.drawable.intro_qr_code,
             titleColor = Color.BLACK,
             descriptionColor = Color.BLACK,
+            imageDrawable = R.drawable.ic_download_24px_outlined,
             backgroundColor = Color.WHITE
         ))
         addSlide(AppIntroFragment.newInstance(
