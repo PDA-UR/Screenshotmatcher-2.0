@@ -70,6 +70,7 @@ fun sendBitmap(
         Request.Method.POST, serverURL + MATCH_DEST, json,
         { response ->
             StudyLogger.hashMap["tc_http_response"] = System.currentTimeMillis()
+            StudyLogger.hashMap["match_id"] = response.get("uid").toString()
             if (response.has("error")){
                 if(activity is CameraActivity && response.getString("error") == "permission_error") {
                     activity.onPermissionDenied()
@@ -84,7 +85,6 @@ fun sendBitmap(
                 }
             }
             else if (response.get("hasResult").toString() != "false") {
-                StudyLogger.hashMap["match_id"] = response.get("uid").toString()
                 try {
                     val b64ImageString = response.get("b64").toString()
                     if (b64ImageString.isNotEmpty()) {
@@ -98,7 +98,7 @@ fun sendBitmap(
                         }
                     }
                 } catch (e: InvocationTargetException) {
-                    Log.d("HTTP", "b64 string error")
+                    Log.e("HTTP", "b64 string error")
                 }
             }
             else if (activity is CameraActivity) {
@@ -149,7 +149,7 @@ fun sendLog(serverURL: String, context: Context){
             { _ ->
             },
             { error ->
-                Log.d("log", "Error sending Study Log, server offline")
+                Log.e("log", "Error sending Study Log, server offline")
             }
         )
         // Add the request to the RequestQueue.

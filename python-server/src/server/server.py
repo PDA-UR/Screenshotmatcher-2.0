@@ -5,6 +5,7 @@ import queue
 import sched
 import threading
 import time
+import logging
 from flask import Flask, request, Response
 import common.log
 from common.config import Config
@@ -29,6 +30,8 @@ class Server():
         self.app.add_url_rule('/permission', 'permission', self.permission_route, methods=['POST'])
 
     def start(self):
+        werkzeug_logger = logging.getLogger("werkzeug")
+        werkzeug_logger.setLevel(logging.ERROR)
         self.app.run(host=Config.HOST, port=Config.PORT, threaded=True)
 
     def stop(self):
