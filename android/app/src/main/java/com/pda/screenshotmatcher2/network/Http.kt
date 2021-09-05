@@ -70,6 +70,7 @@ fun sendBitmap(
         Request.Method.POST, serverURL + MATCH_DEST, json,
         { response ->
             StudyLogger.hashMap["tc_http_response"] = System.currentTimeMillis()
+            StudyLogger.hashMap["match_id"] = response.get("uid").toString()
             if (response.has("error")){
                 if(activity is CameraActivity && response.getString("error") == "permission_error") {
                     activity.onPermissionDenied()
@@ -84,7 +85,6 @@ fun sendBitmap(
                 }
             }
             else if (response.get("hasResult").toString() != "false") {
-                StudyLogger.hashMap["match_id"] = response.get("uid").toString()
                 try {
                     val b64ImageString = response.get("b64").toString()
                     if (b64ImageString.isNotEmpty()) {
@@ -145,6 +145,8 @@ fun sendLog(serverURL: String, context: Context){
     if(sendLog) {
         val queue = Volley.newRequestQueue(context)
         val json = JSONObject(StudyLogger.hashMap)
+        Log.d("FUG", "in logger")
+        Log.d("FUG", StudyLogger.hashMap["match_id"].toString())
         val jsonObjectRequest = JsonObjectRequest(Request.Method.POST, serverURL + LOG_DEST, json,
             { _ ->
             },
