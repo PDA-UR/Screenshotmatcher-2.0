@@ -2,7 +2,6 @@ import uuid
 import json
 import platform
 import queue
-import sched
 import threading
 import time
 import logging
@@ -10,13 +9,14 @@ from flask import Flask, request, Response
 import common.log
 from common.config import Config
 from matching.matcher import Matcher
-from common.utility import get_current_ms
+from common.utility import get_current_ms, RepeatTimer
 from common.permission import is_device_allowed, request_permission_for_device, create_single_match_token
 from server.matching_request import MatchingRequest
 
 class Server():
     def __init__(self):
-        self.CLEANUP_INTERVAL_MS = 120000
+        self.CLEANUP_INTERVAL = 30       # seconds
+        self.REQUEST_LIFETIME = 25000    # miliseconds
         self.matching_requests = {}
         self.app = Flask(__name__)
 
@@ -32,6 +32,7 @@ class Server():
     def start(self):
         werkzeug_logger = logging.getLogger("werkzeug")
         werkzeug_logger.setLevel(logging.ERROR)
+        self.start_cleanup_routine()
         self.app.run(host=Config.HOST, port=Config.PORT, threaded=True)
 
     def stop(self):
@@ -155,16 +156,15 @@ class Server():
         self.matching_requests[uid] = MatchingRequest(uid=uid, data=data, time=time)
 
 
-    def cleanup_routine(self):
-        s = sched.scheduler(time.time, time.sleep)
-        s.enter(self.CLEANUP_INTERVAL, 2, self.clean_backlog)
-        s.run(blocking=False)
-
+    def start_cleanup_routine(self):
+        cleanup_thread = RepeatTimer(self.CLEANUP_INTERVAL, self.clean_backlog)
+        cleanup_thread.start()
+        
     def clean_backlog(self):
         to_remove = []
         cur_time = get_current_ms()
         for match_id, request in self.matching_requests.items():
-            if cur_time - request.time_created > self.CLEANUP_INTERVAL_MS:
+            if cur_time - request.time_created > self.REQUEST_LIFETIME:   
                 to_remove.append(match_id)
 
         for mid in to_remove:

@@ -1,6 +1,7 @@
 import time
 import socket
 import os
+import threading
 import tkinter as tk
 import tkinter.simpledialog
 
@@ -54,3 +55,9 @@ def ask_for_id():
         tk.messagebox.showerror("Entry error", "No participant ID entered. Closing.")  
 
     return _input
+
+# https://stackoverflow.com/a/48741004
+class RepeatTimer(threading.Timer):
+    def run(self):
+        while not self.finished.wait(self.interval):
+            self.function(*self.args, **self.kwargs)
