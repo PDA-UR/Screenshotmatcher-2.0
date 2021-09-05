@@ -24,6 +24,7 @@ import com.pda.screenshotmatcher2.helpers.getDeviceName
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.lang.reflect.InvocationTargetException
+import java.util.*
 import kotlin.collections.HashMap
 
 private const val LOG_DEST = "/logs"
@@ -143,23 +144,33 @@ fun sendHeartbeatRequest(serverURL: String, activity: Activity){
 
 
 fun sendLog(serverURL: String, context: Context){
-    //Only send log if preference is set to true
+    // Only send log if preference is set to true
+    // otherwise send the match_id only, so the server can delete the corresponding object for the request
     val MATCHING_MODE_PREF_KEY = context.getString(R.string.settings_logging_key)
     val sp = PreferenceManager.getDefaultSharedPreferences(context)
     val sendLog = sp.getBoolean(MATCHING_MODE_PREF_KEY,false)
+    
+    val queue = Volley.newRequestQueue(context)
+    var json : JSONObject = JSONObject()
     if(sendLog) {
-        val queue = Volley.newRequestQueue(context)
-        val json = JSONObject(StudyLogger.hashMap)
-        val jsonObjectRequest = JsonObjectRequest(Request.Method.POST, serverURL + LOG_DEST, json,
-            { _ ->
-            },
-            { error ->
-                Log.e("log", "Error sending Study Log, server offline")
-            }
-        )
-        // Add the request to the RequestQueue.
-        queue.add(jsonObjectRequest)
+        json = JSONObject(StudyLogger.hashMap)
     }
+    else {
+        val map = HashMap<Any?, Any?>()
+        map["match_id"] = StudyLogger.hashMap["match_id"]
+        map["logging_disabled"] = true
+        json = JSONObject(map)
+    }
+
+    val jsonObjectRequest = JsonObjectRequest(Request.Method.POST, serverURL + LOG_DEST, json,
+        { _ ->
+        },
+        { error ->
+            Log.e("log", "Error sending Study Log, server offline")
+        }
+    )
+    // Add the request to the RequestQueue.
+    queue.add(jsonObjectRequest)
 }
 
 fun sendFeedbackToServer(

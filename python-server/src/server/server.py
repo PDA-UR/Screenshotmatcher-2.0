@@ -47,9 +47,15 @@ class Server():
 
     def log_route(self):
         phone_log = request.json
+
         matching_request = self.matching_requests.get(phone_log.get("match_id"))
         if not matching_request:
             return {'response' : 'log does not match any match_id'}
+
+        # logging disabled. delete corresponding request object
+        if phone_log.get("logging_disabled"):
+            self.matching_requests.pop(phone_log.get("match_id"), None)
+            return {'response': 'ok'}
 
         server_log = matching_request.log
         if not server_log:
@@ -123,6 +129,8 @@ class Server():
             if match_id:
                 try:
                     response["result"] = self.matching_requests.get(match_id).match_result.screenshot_encoded
+                    # Delete the image to free up RAM
+                    del self.matching_requests.get(match_id).match_result.screenshot_encoded
                 except IndexError:
                     response["error"] = "Screenshot for given match_id not found on server."
             else:
@@ -155,11 +163,11 @@ class Server():
     def new_matching_request(self, uid, data, time):
         self.matching_requests[uid] = MatchingRequest(uid=uid, data=data, time=time)
 
-
     def start_cleanup_routine(self):
         cleanup_thread = RepeatTimer(self.CLEANUP_INTERVAL, self.clean_backlog)
         cleanup_thread.start()
         
+    # delete lingering request objects from memory
     def clean_backlog(self):
         to_remove = []
         cur_time = get_current_ms()
@@ -168,4 +176,4 @@ class Server():
                 to_remove.append(match_id)
 
         for mid in to_remove:
-            self.matching_requests.pop(mid)
+            self.matching_requests.pop(mid, None)

@@ -61,7 +61,9 @@ class MatchingRequest():
         self.match_result = self.matcher.match()
         if self.match_result:
             self.response = self.create_response()
-
+           
+        # delete the cropped image to free RAM
+        del self.match_result.img_encoded
         return
 
     def create_response(self):
