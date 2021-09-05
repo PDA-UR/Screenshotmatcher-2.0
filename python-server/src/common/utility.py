@@ -2,6 +2,7 @@ import time
 import socket
 import os
 import tkinter as tk
+import tkinter.simpledialog
 
 def get_current_ms():
     return round(time.time() * 1000)
@@ -45,7 +46,7 @@ def set_participant_id():
 def ask_for_id():
     ROOT = tk.Tk()
     ROOT.withdraw()
-    _input = tk.simpledialog.askinteger(
+    _input = tkinter.simpledialog.askinteger(
         title="Input ID",
         prompt="Please enter your participant ID:"
     )
