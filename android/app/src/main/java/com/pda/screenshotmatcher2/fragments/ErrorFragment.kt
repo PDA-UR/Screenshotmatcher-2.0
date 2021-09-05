@@ -111,7 +111,7 @@ class ErrorFragment : Fragment() {
 
 
     private fun removeThisFragment() {
-        requireActivity().window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING)
+        requireActivity().window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
         mFragmentBackground.visibility = View.INVISIBLE
         containerView.visibility = View.INVISIBLE
         activity?.supportFragmentManager?.beginTransaction()?.remove(this)

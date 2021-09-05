@@ -54,7 +54,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
     private fun removeThisFragment() {
         containerView.visibility = View.INVISIBLE
         mFragmentBackground.visibility = View.INVISIBLE
-        activity?.window?.decorView?.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING)
+        activity?.window?.decorView?.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
         activity?.supportFragmentManager?.beginTransaction()?.remove(this)
             ?.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)?.commit()
     }
