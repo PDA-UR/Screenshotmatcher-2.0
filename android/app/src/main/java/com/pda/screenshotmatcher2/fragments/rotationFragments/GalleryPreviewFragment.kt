@@ -299,7 +299,7 @@ class GalleryPreviewFragment : RotationFragment() {
 
     override fun removeThisFragment(removeBackground: Boolean) {
         super.removeThisFragment(removeBackground)
-        requireActivity().window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING)
+        requireActivity().window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
         if (removeBackground) mFragmentBackground.visibility = View.INVISIBLE
     }
     override fun removeThisFragmentForRotation(): ArrayList<File?> {
