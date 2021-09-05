@@ -1,5 +1,7 @@
 package com.pda.screenshotmatcher2.fragments.rotationFragments
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.HapticFeedbackConstants
 import android.view.View
 import android.widget.*
@@ -14,27 +16,30 @@ class SelectDeviceFragment : RotationFragment() {
     private lateinit var adapter: ArrayAdapter<String>
     private var mServerList: ArrayList<String> = ArrayList()
     private lateinit var lastSelectedItem: TextView
-
+    private lateinit var mHandler: Handler
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        mHandler = Handler(Looper.getMainLooper())
         initServerList()
         initViews()
     }
 
+    private val mServerUrlRunnable = Runnable { initServerList() }
+
     private fun initServerList() {
         val l = ca.serverConnection.getServerUrlList()
         if (l != null){
-            l.forEach { mServerList.add(it.second) }
-        } else {
-            thread {
-                Thread.sleep(100)
-                initServerList()
-                if (::adapter.isInitialized){
-                    requireActivity().runOnUiThread {  adapter.notifyDataSetChanged() }
+            mServerList = ArrayList()
+            l.forEach {
+                if(!mServerList.contains(it.second)) mServerList.add(it.second)
+            }
+            if (::adapter.isInitialized){
+                requireActivity().runOnUiThread {  adapter.notifyDataSetChanged()
                 }
-            }.start()
+            }
         }
+        mHandler.postDelayed(mServerUrlRunnable, 500)
     }
 
     private fun initViews() {
@@ -60,5 +65,10 @@ class SelectDeviceFragment : RotationFragment() {
         ca.window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
         ca.onCloseSelectDeviceFragment()
         super.removeThisFragment(removeBackground)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        mHandler.removeCallbacksAndMessages(null)
     }
 }
