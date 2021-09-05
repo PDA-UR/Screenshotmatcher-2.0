@@ -89,10 +89,12 @@ class Server():
 
         # Check if this device is permitted to request a match
         # Let the client send a request to /permission if unknown devices require individual prompts (tray setting)
-        device_id = r_json.get("device_id")
-        device_name = r_json.get("device_name")
-        permission_token = r_json.get("permission_token")
-        is_allowed = is_device_allowed(Config.UNKNOWN_DEVICE_HANDLING, device_id, device_name, permission_token)
+        is_allowed = is_device_allowed(
+            current_setting=Config.UNKNOWN_DEVICE_HANDLING, 
+            device_id=r_json.get("device_id"),
+            device_name=r_json.get("device_name"),
+            token=r_json.get("permission_token")
+        )
         if is_allowed == 1:
             pass
         elif is_allowed == -1:
