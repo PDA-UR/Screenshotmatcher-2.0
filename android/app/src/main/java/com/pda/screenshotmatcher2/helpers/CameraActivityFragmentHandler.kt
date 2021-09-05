@@ -23,7 +23,7 @@ class CameraActivityFragmentHandler(a: Activity) {
     private var fm: FragmentManager = activity.supportFragmentManager
 
     private fun openFragment(fragment: Fragment, containerID: Int, transition: Int? = null){
-        activity.window.decorView.performHapticFeedback(HapticFeedbackConstants.CONFIRM, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING)
+        activity.window.decorView.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
         fm
             .beginTransaction()
             .add(containerID, fragment, fragment::class.simpleName)

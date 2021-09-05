@@ -98,12 +98,12 @@ class AppTutorial : AppIntro() {
     }
     override fun onSlideChanged(oldFragment: Fragment?, newFragment: Fragment?) {
         super.onSlideChanged(oldFragment, newFragment)
-        window.decorView.performHapticFeedback(HapticFeedbackConstants.CONFIRM, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING)
+        window.decorView.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
     }
     private fun savePerfAndStartCamera() {
         // debug: val FIRST_RUN_KEY = "r"
         val FIRST_RUN_KEY = getString(R.string.FIRST_RUN_KEY)
-        window.decorView.performHapticFeedback(HapticFeedbackConstants.GESTURE_END, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING)
+        window.decorView.performHapticFeedback(HapticFeedbackConstants.GESTURE_END)
         val sp = PreferenceManager.getDefaultSharedPreferences(this)
         sp.edit().putBoolean(FIRST_RUN_KEY, false).apply()
         val intent = Intent(this, CameraActivity::class.java)

@@ -119,7 +119,7 @@ class FeedbackFragment : Fragment() {
     }
 
     private fun removeThisFragment() {
-        requireActivity().window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING)
+        requireActivity().window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
         containerView.visibility = View.INVISIBLE
         mFragmentBackground.visibility = View.INVISIBLE
         activity?.supportFragmentManager

@@ -45,7 +45,7 @@ class SelectDeviceFragment : RotationFragment() {
             R.layout.select_device_list_item, mServerList)
         mListView.adapter = adapter
         mListView.onItemClickListener = AdapterView.OnItemClickListener { _, view, position, _ ->
-            requireActivity().window.decorView.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING)
+            requireActivity().window.decorView.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK)
             if (::lastSelectedItem.isInitialized){
                 lastSelectedItem.setTextColor(resources.getColor(R.color.white))
             }
@@ -57,7 +57,7 @@ class SelectDeviceFragment : RotationFragment() {
     }
 
     override fun removeThisFragment(removeBackground: Boolean) {
-        ca.window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING)
+        ca.window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
         ca.onCloseSelectDeviceFragment()
         super.removeThisFragment(removeBackground)
     }

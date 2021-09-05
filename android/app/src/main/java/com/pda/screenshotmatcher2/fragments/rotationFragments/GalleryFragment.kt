@@ -56,7 +56,7 @@ class GalleryFragment : RotationFragment() {
 
     override fun removeThisFragment(removeBackground: Boolean) {
         containerView.visibility = View.INVISIBLE
-        ca.window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING)
+        ca.window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
         if (removeBackground) {
             var mFragmentBackground: FrameLayout = activity?.findViewById(R.id.ca_dark_background)!!
             mFragmentBackground.visibility = View.INVISIBLE
