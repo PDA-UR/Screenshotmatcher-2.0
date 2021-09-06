@@ -14,10 +14,11 @@ from common.permission import is_device_allowed, request_permission_for_device, 
 from server.matching_request import MatchingRequest
 
 class Server():
-    def __init__(self):
+    def __init__(self, queue):
         self.CLEANUP_INTERVAL = 30       # seconds
         self.REQUEST_LIFETIME = 25000    # miliseconds
         self.matching_requests = {}
+        self.queue = queue
         self.app = Flask(__name__)
 
         self.app.add_url_rule('/heartbeat', 'heartbeat', self.heartbeat_route)
@@ -65,7 +66,7 @@ class Server():
             server_log.value_pairs[key] = value
 
         server_log.value_pairs.pop('match_uid', None)  # remove duplicate match_id entry
-        server_log.value_pairs["participant_id"] = Config.PARTICIPANT_ID
+        server_log.value_pairs["participant_id"] = Config.ID
         server_log.value_pairs["operating_system"] = platform.platform()
         server_log.send_log()
         self.matching_requests.pop(phone_log.get("match_id"))
@@ -148,7 +149,7 @@ class Server():
             error = {"error" : "data_error"}
             return Response(json.dumps(error), mimetype='application/json')
 
-        user_response = request_permission_for_device(device_id, device_name)
+        user_response = request_permission_for_device(device_id, device_name, self.queue)
         response = {}
         if user_response == "allow once":
             permission_token = create_single_match_token()

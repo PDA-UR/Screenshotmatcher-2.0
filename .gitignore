@@ -99,3 +99,4 @@ log-server/value_errors.txt
 python-server/src/blacklist.txt
 python-server/src/whitelist.txt
 python-server/src/config.ini
+python-server/src/config.ini
