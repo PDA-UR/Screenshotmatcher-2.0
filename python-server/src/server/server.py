@@ -150,7 +150,10 @@ class Server():
             error = {"error" : "data_error"}
             return Response(json.dumps(error), mimetype='application/json')
 
-        user_response = request_permission_for_device(device_id, device_name, self.queue)
+        user_response = request_permission_for_device(
+            device_id=device_id,
+            device_name=device_name,
+            queue=self.queue)
         response = {}
         if user_response == "allow once":
             response["response"] = "permission_granted"
