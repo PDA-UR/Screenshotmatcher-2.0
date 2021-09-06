@@ -108,10 +108,11 @@ class Server():
         if is_allowed == 1:
             pass
         elif is_allowed == -1:
-            error = {"error" : "permission_denied"}
+            error = {"error" : "permission_denied"} 
             return Response(json.dumps(error), mimetype='application/json')
         elif is_allowed == 0:
             error = {"error" : "permission_required"}
+            error["uid"] = uid
             return Response(json.dumps(error), mimetype='application/json')
     
         # wait for the matching result
