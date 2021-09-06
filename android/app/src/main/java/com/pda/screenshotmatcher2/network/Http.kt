@@ -229,6 +229,7 @@ fun requestPermission(
         getDeviceID(activity.applicationContext)
     )
     json.put("device_name", getDeviceName())
+    json.put("match_id", matchID)
 
     val jsonObjectRequest = JsonObjectRequest(Request.Method.POST, serverURL + PERMISSION_DEST, json,
         { response ->

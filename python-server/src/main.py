@@ -3,27 +3,26 @@ import sys
 import psutil
 import threading
 import ctypes
-
-import gui.tray
+import queue
 import server.server_discovery as discovery
 from common.config import Config
-from common.utility import set_participant_id
+from common.utility import read_user_config, get_current_ip_address
 from matching.matcher import Matcher
 from server.server import Server
+from gui.app import App
 
 def main():
-    # Set the participant ID
-    _id = set_participant_id()
-    if _id:
-        Config.PARTICIPANT_ID = _id
-    else:
-        return 0
+    # Queue used for cross-thread communication. Only put (key, value) tuples in there.
+    app_queue = queue.PriorityQueue()
+
+    # Read user settings
+    read_user_config()
+
+    # Set the current host IP
+    Config.HOST = get_current_ip_address()
     
     # Init Server
-    server = Server()
-    
-    # Init Tray
-    tray = gui.tray.Tray(Config.APP_NAME)
+    server = Server(queue=app_queue)
     
     # Start server in different thread
     x = threading.Thread(target=server.start, args=(), daemon=True)
@@ -33,8 +32,9 @@ def main():
     udp_t = threading.Thread(target=discovery.start, args=(), daemon=True)
     udp_t.start()
     
-    # Start Tray event loop
-    tray.run()
+    # Start the GUI
+    app = App(queue=app_queue)
+    app.main_loop()
 
 if __name__ == "__main__":
     # program already running. abort.
