@@ -10,6 +10,7 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.*
+import android.util.Log
 import android.view.*
 import android.widget.FrameLayout
 import android.widget.ImageButton
@@ -62,11 +63,9 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     //custom helper classes for server connection, fragment management and camera preview
     var serverConnection = ServerConnection(this)
     lateinit var cameraActivityFragmentHandler: CameraActivityFragmentHandler
-    private var cameraInstance: CameraInstance =
+    var cameraInstance: CameraInstance =
         CameraInstance(this)
 
-    //Boolean for checking the orientation
-    var checkSensor: Boolean = true
     var isFirstBoot: Boolean = true
 
     // Activity lifecycle
@@ -74,9 +73,10 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         hideStatusAndActionBars()
+        setupSharedPref()
+        checkForFirstRun(this)
         setContentView(R.layout.activity_camera)
         verifyPermissions(this)
-        setupSharedPref()
         createDeviceID(this)
         initViews()
         setViewListeners()
@@ -98,6 +98,17 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             thread { fillUpImageList() }
         }
     }
+    private fun checkForFirstRun(context: Context) {
+        val FIRST_RUN_KEY = getString(R.string.FIRST_RUN_KEY)
+        // debug: val FIRST_RUN_KEY = "d"
+        val isFirstRun: Boolean = sp.getBoolean(FIRST_RUN_KEY, true)
+        if(isFirstRun) {
+        // debug: if(true){
+            val intent = Intent(context, AppTutorial::class.java)
+            startActivity(intent)
+            finish()
+        }
+    }
 
     private fun restoreFromSavedInstance(savedInstanceState: Bundle) {
         imageArray = savedInstanceState.getSerializable(getString(R.string.ca_saved_instance_image_list_key)) as ArrayList<ArrayList<File>>
@@ -116,14 +127,14 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
         val serverUrlList: ArrayList<String> = ArrayList()
         val serverHostList: ArrayList<String> = ArrayList()
-        serverConnection.mServerUrlList.forEach {
+        serverConnection?.mServerUrlList.forEach {
             serverHostList.add(it.second)
             serverUrlList.add(it.first)
         }
         outState.apply {
             putStringArrayList(getString(R.string.ca_saved_instance_url_list_key), serverUrlList)
             putStringArrayList(getString(R.string.ca_saved_instance_host_list_key), serverHostList)
-            putString(getString(R.string.ca_saved_instance_url_key), serverConnection.mServerURL)
+            putString(getString(R.string.ca_saved_instance_url_key), serverConnection?.mServerURL)
             putSerializable(getString(R.string.ca_saved_instance_image_list_key), imageArray)
         }
     }
@@ -131,16 +142,18 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     override fun onResume() {
         super.onResume()
         serverConnection.start()
-        mAccelerometer.also { accel ->
-            mSensorManager.registerListener(this, accel, SensorManager.SENSOR_DELAY_UI)
-        }
-        //only check orientation once every second
-        Handler().postDelayed(object : Runnable {
-            override fun run() {
-                checkSensor = true
-                Handler().postDelayed(this, 1000)
+
+        // due to a bug in Android, the list of sensors returned by the SensorManager can be empty
+        // it will stay that way until reboot.
+        // make sure we tell the user about it.
+        if (mAccelerometer.name.isNotEmpty()) {
+            mAccelerometer.also { accel ->
+                mSensorManager.registerListener(this, accel, SensorManager.SENSOR_DELAY_UI)
             }
-        }, 1000)
+        }
+        else {
+            Toast.makeText(this, "Failed to get sensor data. Please restart your phone.", Toast.LENGTH_LONG).show()
+        }
     }
 
     override fun onPause() {
@@ -202,24 +215,16 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     private fun hideStatusAndActionBars() {
         supportActionBar?.hide()
-        when (Build.VERSION.SDK_INT) {
-            in 0..15 -> {
-                requestWindowFeature(Window.FEATURE_NO_TITLE)
-                window.setFlags(
-                    WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                    WindowManager.LayoutParams.FLAG_FULLSCREEN
-                )
-            }
-            in 16..29 -> {
-                val decorView = window.decorView
-                val uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN
-                decorView.systemUiVisibility = uiOptions
-            }
-        }
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_FULLSCREEN,
+            WindowManager.LayoutParams.FLAG_FULLSCREEN
+        )
+
     }
 
     // Functionality
     private fun capturePhoto(){
+        window.decorView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
         val mBitmap = cameraInstance.captureImageWithPreviewExtraction()
         val mServerURL = serverConnection.mServerURL
         if (mBitmap != null) {
@@ -262,6 +267,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
                     mSelectDeviceButtonText.text =
                         getString(R.string.select_device_button_notConnected_en)
                 }
+                mSelectDeviceButtonText.requestLayout()
             }
         }
     }
@@ -279,7 +285,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     // Orientation changes
     private fun changeOrientation() {
-        if (checkSensor){
             when (phoneOrientation) {
                 Surface.ROTATION_0 -> {
                     mSelectDeviceButton.setImageResource(android.R.color.transparent)
@@ -309,8 +314,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
                 }
             }
             cameraActivityFragmentHandler.rotateAllRotatableFragments()
-            checkSensor = false
-        }
 
     }
 
@@ -348,11 +351,13 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     fun onMatchResult(matchID: String, img: ByteArray) {
         cameraInstance.isCapturing = false
+        window.decorView.performHapticFeedback(HapticFeedbackConstants.REJECT)
         startResultsActivity(matchID, img)
     }
 
     fun onMatchRequestError(){
         cameraInstance.isCapturing = false
+        window.decorView.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
         Toast.makeText(this, getString(R.string.match_request_error_en), Toast.LENGTH_LONG).show()
     }
 
@@ -364,11 +369,19 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     fun onOpenSelectDeviceFragment(){
         mSettingsButton.visibility = View.INVISIBLE
         mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_close_48))
+        mCaptureButton.setOnClickListener {
+            cameraActivityFragmentHandler.closeSelectDeviceFragment()
+        }
     }
 
     fun onCloseSelectDeviceFragment() {
         mCaptureButton.setImageResource(R.drawable.ic_baseline_photo_camera_24)
-        mCaptureButton.setOnClickListener(mCaptureButtonListener)
+        mCaptureButton.setOnClickListener {
+            if (!cameraInstance.isCapturing){
+                StudyLogger.hashMap["tc_button_pressed"] = System.currentTimeMillis()
+                capturePhoto()
+            }
+        }
         mSelectDeviceButton.setOnClickListener(mSelectDeviceButtonListener)
         mSettingsButton.visibility = View.VISIBLE
     }
@@ -483,6 +496,24 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             var fileCouple: ArrayList<File> = ArrayList()
             fileCouple.add(file)
             imageArray.add(fileCouple)
+        }
+    }
+
+    fun deleteImagesFromInternalGallery(images: ArrayList<File>) {
+        for (imagePair in imageArray) {
+            var didRemove = false
+            for (image in images) {
+                if (image in imagePair) {
+                    imagePair.forEach { imageFile ->
+                        if(imageFile.exists()) imageFile.delete()
+                    }
+                    imageArray.remove(imagePair)
+                    cameraActivityFragmentHandler.refreshGalleryFragment()
+                    didRemove = true
+                    break
+                }
+            }
+            if (didRemove) break
         }
     }
 

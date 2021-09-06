@@ -1,3 +1,7 @@
+<div align="center">
+<img src="https://user-images.githubusercontent.com/55558407/131850012-8d9aa470-18f3-419c-a7f4-7e69bb1f44d7.png" alt="logo" width="200" align="center"/>
+</div>
+
 #  ScreenshotMatcher (WIP)
 
 Oftentimes, taking photographs of a computer screen is preferred to capturing proper screenshots as it is fast, convenient and the picture is shared via the smartphone anyway.
@@ -78,12 +82,13 @@ You can now continue with installing the Android app.
 # Installing the Android App
 
 **Step 1:**
-Download the **ScreenshotMatcher** Android app by opening following link on your smartphone:
-[TODO]
+Download the **ScreenshotMatcher** Android app by opening following [this link](https://github.com/PDA-UR/Screenshotmatcher-2.0/blob/master/android/app/build/outputs/apk/debug/app-debug.apk) on your smartphone.
 
 You can also access the download link by scanning this QR code:
 
-![](documentation/qr_download_app.png){ width=300px height=300px }
+<p align="center">
+  <img src="documentation/resources/qr_app_debug.png" width=350 height=350>
+</p>
 
 **Step 2:**
 Open the downloaded `screenshotmatcher2.apk` on your Android phone to start the installation.

@@ -2,6 +2,7 @@ package com.pda.screenshotmatcher2.fragments
 
 import android.content.Context
 import android.os.Bundle
+import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -118,6 +119,7 @@ class FeedbackFragment : Fragment() {
     }
 
     private fun removeThisFragment() {
+        requireActivity().window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
         containerView.visibility = View.INVISIBLE
         mFragmentBackground.visibility = View.INVISIBLE
         activity?.supportFragmentManager

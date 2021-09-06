@@ -1,14 +1,19 @@
 package com.pda.screenshotmatcher2.fragments
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.cardview.widget.CardView
 import androidx.fragment.app.FragmentTransaction
+import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.pda.screenshotmatcher2.R
+
 
 class SettingsFragment : PreferenceFragmentCompat() {
 
@@ -36,11 +41,20 @@ class SettingsFragment : PreferenceFragmentCompat() {
             setOnClickListener{removeThisFragment()}
             visibility = View.VISIBLE
         }
+        val button: Preference? = findPreference(getString(R.string.settings_about_button))
+        button?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+            val uri: Uri =
+                Uri.parse("https://github.com/PDA-UR/Screenshotmatcher-2.0")
+            val intent = Intent(Intent.ACTION_VIEW, uri)
+            startActivity(intent)
+            true
+        }
     }
 
     private fun removeThisFragment() {
         containerView.visibility = View.INVISIBLE
         mFragmentBackground.visibility = View.INVISIBLE
+        activity?.window?.decorView?.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
         activity?.supportFragmentManager?.beginTransaction()?.remove(this)
             ?.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)?.commit()
     }
