@@ -1,9 +1,12 @@
 import time
-import socket
-import os
 import threading
+import socket
+import queue
+import os
+import uuid
 import tkinter as tk
-import tkinter.simpledialog
+from common.config import Config
+from configparser import ConfigParser
 
 def get_current_ms():
     return round(time.time() * 1000)
@@ -22,39 +25,56 @@ def get_current_ip_address():
         s_ip.close()
     return ip
 
-def set_participant_id():
-    if not os.path.isfile("pid.txt"):
-        with open("pid.txt", "w+") as f:
+# Read the file containing user settings
+# Create with default values, if no file exists yet
+def read_user_config():
+    if not os.path.isfile("config.ini"):
+        with open("config.ini", "w") as f:
             pass
 
-    with open("pid.txt", "r") as f:
-        _id = f.readline()
-        if _id:
-            try:
-                int(_id)
-                return int(_id)
-            except ValueError:
-                pass
+    config = ConfigParser()
+    config.read("config.ini")
+    if not config.has_section("main"):
+        config.add_section("main")
 
-    _input = ask_for_id()
-    if not _input:
-        return None
+    # ID
+    if config.has_option("main", "uuid"):
+        _id = config.get("main", "uuid")
+    else:
+        _id = str(uuid.uuid4())
+        config.set("main", "uuid", _id)
+    Config.ID = _id
+ 
+    # Unknown devices
+    if config.has_option("main", "unknown_device_handling"):
+        Config.UNKNOWN_DEVICE_HANDLING = config.getint("main", "unknown_device_handling")
+    else:
+        config.set("main", "unknown_device_handling", "0")
     
-    with open("pid.txt", "w") as f:
-        f.write(str(_input))
-        return _input
+    # Full screenshots
+    if config.has_option("main", "FULL_SCREENSHOTS_ENABLED"):
+        Config.FULL_SCREENSHOTS_ENABLED = config.getboolean("main", "FULL_SCREENSHOTS_ENABLED")
+    else:
+        config.set("main", "FULL_SCREENSHOTS_ENABLED", "0")
 
-def ask_for_id():
-    ROOT = tk.Tk()
-    ROOT.withdraw()
-    _input = tkinter.simpledialog.askinteger(
-        title="Input ID",
-        prompt="Please enter your participant ID:"
-    )
-    if not _input:
-        tk.messagebox.showerror("Entry error", "No participant ID entered. Closing.")  
+    # Save
+    with open("config.ini", "w") as f:
+        config.write(f)
 
-    return _input
+def set_user_config_option(option, value):
+    config = ConfigParser()
+    config.read("config.ini")
+    config.set("main", option, value)
+    with open("config.ini", "w") as f:
+        config.write(f)
+
+def update_user_config():
+    config = ConfigParser()
+    config.read("config.ini")
+    config.set("main", "unknown_device_handling", str(Config.UNKNOWN_DEVICE_HANDLING))
+    config.set("main", "FULL_SCREENSHOTS_ENABLED", str(Config.FULL_SCREENSHOTS_ENABLED))
+    with open("config.ini", "w") as f:
+        config.write(f)
 
 # https://stackoverflow.com/a/48741004
 class RepeatTimer(threading.Timer):

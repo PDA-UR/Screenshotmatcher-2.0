@@ -65,40 +65,44 @@ def set_token_timeout(token):
     except ValueError:
         pass
 
-def request_permission_for_device(device_id, device_name):
+def request_permission_for_device(device_id, device_name, queue):
     global prompt_open
-    user_response = ""
     if prompt_open: # prevent multiple popups
         return ""
+    user_input = ""
 
-    prompt_text = "The device \"{}\" is asking for permission to connect to ScreenshotMatcher.\n(ID: {})".format(device_name, device_id)
-    prompt_open = True
+    # put a command into the queue. will be called by App
+    queue.put_nowait(
+        ("permission_request", (device_name, device_id))
+    )
 
-    layout = [
-        [sg.Text(prompt_text)],
-        [sg.Button('Allow'), sg.Button("Allow Once"), sg.Button("Block")],
-    ]
-
-    window = sg.Window('ScreenshotMatcher Permission Request', layout)
-                                                    
-    # Display and interact with the window
+    # wait for a response.
+    # put the item back last in the queue if it is not what we need
     while True:
-        event, values = window.read()
-        if event == sg.WINDOW_CLOSED:
-            break
-        elif event == "Allow":
-            user_response = "allow"
-            add_device_to_list(device_id, "whitelist.txt")
-            break
-        elif event == "Allow Once":
-            user_response = "allow once"
-            break
-        elif event == "Block":
-            add_device_to_list(device_id, "blacklist.txt")
-            user_response = "block"
+        if queue.empty():
+            continue
+
+        # prevent going out of range, when another thread pops the item at indexing time
+        try:
+            last_item_key = queue.queue[0][0]
+        except IndexError:
+            continue
+        if last_item_key == "permission_response":
+            item = queue.get_nowait()
+            user_input = item[1]
             break
 
-    window.close()
+    # white-/blacklist if necessary
+    if user_input == "allow":
+        add_device_to_list(device_id, "whitelist.txt")
+    elif user_input == "block":
+        add_device_to_list(device_id, "blacklist.txt")
+
     prompt_open = False
+    return user_input
 
-    return user_response
+def on_permission_response(user_input):
+    if user_input == "allow":
+        add_device_to_list(device_id, "whitelist.txt")
+    elif user_input == "block":
+        add_device_to_list(device_id, "blacklist.txt")
