@@ -38,6 +38,7 @@ def main():
 
 if __name__ == "__main__":
     # program already running. abort.
+    # check causes issues with virtual environments.
     procs = [p for p in psutil.process_iter() if ('python.exe' in p.name() and __file__ in p.cmdline()) or 'Screenshotmatcher.exe' in p.name()]
     if len(procs) > 1:
         # EXE
