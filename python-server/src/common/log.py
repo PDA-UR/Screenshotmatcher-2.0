@@ -7,8 +7,8 @@ class Logger():
         self.value_pairs = {}
 
     def send_log(self):
-        # print('sending log data:')
-        # print(self.value_pairs)
+        print('sending log data:')
+        print(self.value_pairs)
         urllib3.disable_warnings()
         requests.post(url=Config.LOG_HOST, json=self.value_pairs, verify=False)
 

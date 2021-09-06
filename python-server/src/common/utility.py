@@ -1,5 +1,7 @@
 import time
+import threading
 import socket
+import queue
 import os
 import uuid
 import tkinter as tk
@@ -73,3 +75,9 @@ def update_user_config():
     config.set("main", "FULL_SCREENSHOTS_ENABLED", str(Config.FULL_SCREENSHOTS_ENABLED))
     with open("config.ini", "w") as f:
         config.write(f)
+
+# https://stackoverflow.com/a/48741004
+class RepeatTimer(threading.Timer):
+    def run(self):
+        while not self.finished.wait(self.interval):
+            self.function(*self.args, **self.kwargs)
