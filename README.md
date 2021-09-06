@@ -33,14 +33,13 @@ On Windows, a setup wizard can be used for the installation, on MacOS and Linux 
 ### Windows
 
 **Step 1:**
-Download the setup wizard:
-[TODO]
+Download the setup wizard from the [latest release](https://github.com/PDA-UR/Screenshotmatcher-2.0/releases/latest).
 
 **Step 2:**
 Run the setup wizard to install the application.
 By default, **ScreenshotMatcher** is configured to automatically start when the system is turned on.
 On some systems, a warning due to the installation of software from unknown sources pops up before the installation.
-This warning can be ignored.
+This warning can be ignored. If you are unsure, there should be a virustotal scan link on the [release page](https://github.com/PDA-UR/Screenshotmatcher-2.0/releases/latest)
 
 **Step 3:**
 After the installation, **ScreenshotMatcher** starts automatically and can be accessed via an icon in the system tray (bottom right).
@@ -51,30 +50,21 @@ You can now continue with installing the Android app.
 
 ## Linux and MacOS
 
+**Requirements:**
+- [python >=3.7.9](https://realpython.com/installing-python/)
+- [pip](https://pip.pypa.io/en/stable/installation/)
+
 **Step 1:**
-Install python 3.
-A detailed guide for all major operating systems can be found here:
-[https://realpython.com/installing-python/](https://realpython.com/installing-python/)
+Download the desktop application's source code from the [latest release](https://github.com/PDA-UR/Screenshotmatcher-2.0/releases/latest) and extract it.
 
 **Step 2:**
-Install the python package manager pip:
-A detailed guide for all major operating systems can be found here:
-[https://www.makeuseof.com/tag/install-pip-for-python/](https://www.makeuseof.com/tag/install-pip-for-python/)
-
-**Step 3:**
-Download the desktop application's source code:
-[TODO]
-
-**Step 4:**
-Unzip the download archive at a location of your choice.
-
-**Step 5:**
-Open a terminal and navigate to the directory with downloaded and extracted archive.
+Open a terminal and navigate to the directory of the extracted archive.
 Enter the `Screenshotmatcher` directory and install requirements by running `pip install -r requirements.txt`.
 On some systems, such as Debian based Linux distributions, it might be necessary to use `pip3` instead of `pip`.
 
-**Step 6:**
-Start **ScreenshotMatcher** either executing `sh ScreenshotMatcher` or by clicking on the **ScreenshotMatcher** shortcut in a visual file manager.
+**Step 4:**
+Start **ScreenshotMatcher** either executing `sh ScreenshotMatcher`, clicking on the **ScreenshotMatcher** shortcut in a visual file manager or running `python ./python-server/src/main.py`.
+Debian may require the use use of `python3` instead of `python`.
 
 **Done!**
 You can now continue with installing the Android app.
@@ -82,20 +72,16 @@ You can now continue with installing the Android app.
 # Installing the Android App
 
 **Step 1:**
-Download the **ScreenshotMatcher** Android app by opening following [this link](https://github.com/PDA-UR/Screenshotmatcher-2.0/blob/master/android/app/build/outputs/apk/debug/app-debug.apk) on your smartphone.
-
-You can also access the download link by scanning this QR code:
-
-<p align="center">
-  <img src="documentation/resources/qr_app_debug.png" width=350 height=350>
-</p>
+Download the **ScreenshotMatcher** APK from the [latest release](https://github.com/PDA-UR/Screenshotmatcher-2.0/releases/latest) on your smartphone.
+For ease of use, we recommend using the provided QR-Code there.
 
 **Step 2:**
-Open the downloaded `screenshotmatcher2.apk` on your Android phone to start the installation.
+Open the downloaded `screenshotmatcher.apk` on your Android phone to start the installation.
+Make sure the Android setting for "Allow Installation from Unknown Sources" is enabled for your installation source (browser, file manager, etc.).
 Warnings regarding the app not being certified by Google Play can be ignored.
 
 **Step 3:**
-Start the **ScreenshotMatcher** app and grant it access to the phone's camera and file system.
+Start the **ScreenshotMatcher** app and grant the privileges it asks for. (camera, file access)
 
 **Step 4:**
 In case **ScreenshotMatcher** is already running on the PC, the app should connect automatically.
@@ -131,3 +117,5 @@ This way, only people who have line of sight to your monitor can capture your sc
 
 In networks with multiple users, it is recommended to restrict requests from unknown devices by either deciding individually or blocking all.
 This way, only trusted devices can capture your screen's content.
+
+**Note**: Windows and Mac access the tray menu via right click. Linux devices have to left click the tray icon. This is a current limitation of the PySimpleGUIWx library used and will hopefully be fixed in the future.
