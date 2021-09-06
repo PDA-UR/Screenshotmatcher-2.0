@@ -143,7 +143,7 @@ class App():
             if self.queue.empty():
                 tray_event = self.tray.read(timeout=0.010)    # T/O to not block the thread
                 # right click to open the menu does not work on linux somehow. use left click.
-                if platform.system == "Linux" and tray_event == "__ACTIVATED__":
+                if platform.system() == "Linux" and tray_event == "__ACTIVATED__":
                     self.open_main_window()
                 elif tray_event == "About":
                     self.open_about()
