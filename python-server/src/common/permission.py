@@ -65,7 +65,7 @@ def set_token_timeout(token):
     except ValueError:
         pass
 
-def request_permission_for_device(device_name, device_id, queue):
+def request_permission_for_device(device_id, device_name, queue):
     global prompt_open
     if prompt_open: # prevent multiple popups
         return ""
