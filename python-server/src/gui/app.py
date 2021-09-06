@@ -100,7 +100,11 @@ class AboutWindow(sg.Window):
                 font=("Arial", 12))],
             [sg.Text(
                 text=("Version: " + Config.APP_VERSION),
-                font=("Arial", 8))],
+                font=("Arial", 10))],
+            [sg.Text(
+                text=("Copyright 2021 Physical-Digital Affordances Group"),
+                font=("Arial", 10)
+            )],
             [sg.Text(
                 text="Homepage",
                 size=(10,1),
