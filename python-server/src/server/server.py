@@ -82,22 +82,14 @@ class Server():
         # Convert the json data
         r_json = request.json
 
-        # Client is requesting a previous match, after outstanding permission has been granted
-        # TODO: might cause a race condition
-        prev_muid = r_json.get("match_id")
-        if prev_muid:
-            response = self.matching_requests.get(prev_muid).response
-            return response
-            
-        # new match
         uid = uuid.uuid4().hex
-        # run all matching in a new thread
+        
+        # Create thread for a new request
         request_thread = threading.Thread(
             target=self.new_matching_request,
             args=[uid, r_json, t_request_received],
             daemon=True)
-        request_thread.start()
-
+        
         # Check if this device is permitted to request a match
         # Let the client send a request to /permission if unknown devices require individual prompts (tray setting)
         is_allowed = is_device_allowed(
@@ -106,16 +98,25 @@ class Server():
             device_name=r_json.get("device_name"),
             token=r_json.get("permission_token")
         )
+
         if is_allowed == 1:
-            pass
+            request_thread.start()
         elif is_allowed == -1:
-            error = {"error" : "permission_denied"} 
+            error = {"error" : "permission_denied"}
             return Response(json.dumps(error), mimetype='application/json')
         elif is_allowed == 0:
+            request_thread.start()
             error = {"error" : "permission_required"}
             error["uid"] = uid
             return Response(json.dumps(error), mimetype='application/json')
     
+        # Client is requesting a previous match, after outstanding permission has been granted
+        # TODO: might cause a race condition
+        prev_muid = r_json.get("match_id")
+        if prev_muid:
+            response = self.matching_requests.get(prev_muid).response
+            return response
+
         # wait for the matching result
         request_thread.join()
         matcher = self.matching_requests.get(uid)
@@ -152,9 +153,8 @@ class Server():
         user_response = request_permission_for_device(device_id, device_name, self.queue)
         response = {}
         if user_response == "allow once":
-            permission_token = create_single_match_token()
             response["response"] = "permission_granted"
-            response["permission_token"] = permission_token
+            response["permission_token"] = create_single_match_token()
         elif user_response == "allow":
             response["response"] = "permission_granted"
         else:
