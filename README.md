@@ -14,7 +14,7 @@ ScreenshotMatcher consists of a python program running on the PC and an Android 
 
 The project is in a late development stage.
 All major features work, but there is still some refactoring, bugfixing and documentation to be done.
-If interested in the project, check out [the paper](https://epub.uni-regensburg.de/47814/1/screenshotmatcher.pdf) or contact us (andreas.schmid@ur.de).
+If interested in the project, check out [the paper](https://epub.uni-regensburg.de/47814/1/screenshotmatcher.pdf), the [project website](https://hci.ur.de/projects/screenshotmatcher) or contact us (andreas.schmid@ur.de).
 
 ## Known Issues
 
