@@ -4,6 +4,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -110,6 +111,7 @@ class ErrorFragment : Fragment() {
 
 
     private fun removeThisFragment() {
+        requireActivity().window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
         mFragmentBackground.visibility = View.INVISIBLE
         containerView.visibility = View.INVISIBLE
         activity?.supportFragmentManager?.beginTransaction()?.remove(this)

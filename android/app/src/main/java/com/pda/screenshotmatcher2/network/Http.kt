@@ -5,8 +5,10 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.util.Base64
 import android.util.Log
+import android.view.HapticFeedbackConstants
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.preference.PreferenceManager
 import com.android.volley.DefaultRetryPolicy
 import com.android.volley.Request
 import com.android.volley.toolbox.JsonObjectRequest
@@ -22,6 +24,7 @@ import com.pda.screenshotmatcher2.helpers.getDeviceName
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.lang.reflect.InvocationTargetException
+import java.util.*
 import kotlin.collections.HashMap
 
 private const val LOG_DEST = "/logs"
@@ -36,7 +39,7 @@ fun sendBitmap(
     serverURL: String,
     activity: Activity,
     matchingOptions: HashMap<Any?, Any?>? = null,
-    permissionToken: String = "",
+    permissionToken: String = ""
     ){
     val baos = ByteArrayOutputStream()
     bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
@@ -68,6 +71,12 @@ fun sendBitmap(
         Request.Method.POST, serverURL + MATCH_DEST, json,
         { response ->
             StudyLogger.hashMap["tc_http_response"] = System.currentTimeMillis()
+            try{
+                StudyLogger.hashMap["match_id"] = response.get("uid").toString()
+            } catch (e: Exception) {
+                Log.d("HTTP", e.toString())
+                Log.d("HTTP", response.toString())
+            }
             if (response.has("error")){
                 if(activity is CameraActivity && response.getString("error") == "permission_error") {
                     activity.onPermissionDenied()
@@ -82,7 +91,6 @@ fun sendBitmap(
                 }
             }
             else if (response.get("hasResult").toString() != "false") {
-                StudyLogger.hashMap["match_id"] = response.get("uid").toString()
                 try {
                     val b64ImageString = response.get("b64").toString()
                     if (b64ImageString.isNotEmpty()) {
@@ -96,7 +104,7 @@ fun sendBitmap(
                         }
                     }
                 } catch (e: InvocationTargetException) {
-                    Log.d("HTTP", "b64 string error")
+                    Log.e("HTTP", "b64 string error")
                 }
             }
             else if (activity is CameraActivity) {
@@ -136,14 +144,29 @@ fun sendHeartbeatRequest(serverURL: String, activity: Activity){
 
 
 fun sendLog(serverURL: String, context: Context){
-    // Instantiate the RequestQueue.
+    // Only send log if preference is set to true
+    // otherwise send the match_id only, so the server can delete the corresponding object for the request
+    val MATCHING_MODE_PREF_KEY = context.getString(R.string.settings_logging_key)
+    val sp = PreferenceManager.getDefaultSharedPreferences(context)
+    val sendLog = sp.getBoolean(MATCHING_MODE_PREF_KEY,false)
+    
     val queue = Volley.newRequestQueue(context)
-    val json = JSONObject(StudyLogger.hashMap)
+    var json : JSONObject = JSONObject()
+    if(sendLog) {
+        json = JSONObject(StudyLogger.hashMap)
+    }
+    else {
+        val map = HashMap<Any?, Any?>()
+        map["match_id"] = StudyLogger.hashMap["match_id"]
+        map["logging_disabled"] = true
+        json = JSONObject(map)
+    }
+
     val jsonObjectRequest = JsonObjectRequest(Request.Method.POST, serverURL + LOG_DEST, json,
         { _ ->
         },
         { error ->
-            Log.d("log", "Error sending Study Log, server offline")
+            Log.e("log", "Error sending Study Log, server offline")
         }
     )
     // Add the request to the RequestQueue.
@@ -229,6 +252,8 @@ fun requestPermission(
         { error ->
             if(error.networkResponse == null) {
                 Toast.makeText(activity.applicationContext, "Permission request timeout", Toast.LENGTH_LONG).show()
+                val ca = activity as CameraActivity
+                ca.cameraInstance.isCapturing = false
             }
             else{
                 error.printStackTrace()
