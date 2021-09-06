@@ -37,6 +37,8 @@ class ErrorFragment : Fragment() {
     lateinit var url: String
     lateinit var bmp: Bitmap
 
+    var resultsOpened = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val bundle = this.arguments
@@ -88,6 +90,7 @@ class ErrorFragment : Fragment() {
         val intent = Intent(activity, ResultsActivity::class.java)
         intent.putExtra("matchID", uid)
         intent.putExtra("ServerURL", url)
+        resultsOpened = true
         activity?.startActivityForResult(intent,
             RESULT_ACTIVITY_REQUEST_CODE
         )
@@ -120,7 +123,9 @@ class ErrorFragment : Fragment() {
 
     override fun onStop() {
         super.onStop()
-        sendLog(url, requireContext())
-        StudyLogger.hashMap.clear()
+        if (!resultsOpened) {
+            sendLog(url, requireContext())
+            StudyLogger.hashMap.clear()
+        }
     }
 }

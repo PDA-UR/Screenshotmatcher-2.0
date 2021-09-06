@@ -39,7 +39,8 @@ fun sendBitmap(
     serverURL: String,
     activity: Activity,
     matchingOptions: HashMap<Any?, Any?>? = null,
-    permissionToken: String = ""
+    permissionToken: String = "",
+    matchID: String = ""
     ){
     val baos = ByteArrayOutputStream()
     bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
@@ -62,6 +63,9 @@ fun sendBitmap(
 
     if(permissionToken.isNotEmpty()) {
         json.put("permission_token", permissionToken)
+    }
+    if(matchID.isNotEmpty()) {
+        json.put("match_id", matchID)
     }
 
     // add the image
@@ -86,7 +90,8 @@ fun sendBitmap(
                         bitmap,
                         serverURL,
                         activity,
-                        matchingOptions
+                        matchingOptions,
+                        response.get("uid").toString()
                     )
                 }
             }
@@ -214,7 +219,8 @@ fun requestPermission(
     bitmap: Bitmap,
     serverURL: String,
     activity: Activity,
-    matchingOptions: HashMap<Any?, Any?>? = null
+    matchingOptions: HashMap<Any?, Any?>? = null,
+    matchID: String
 ){
     // Instantiate the RequestQueue.
     val queue = Volley.newRequestQueue(activity.applicationContext)
@@ -233,7 +239,8 @@ fun requestPermission(
                         serverURL,
                         activity,
                         matchingOptions,
-                        permissionToken = response.getString("permission_token")
+                        permissionToken = response.getString("permission_token"),
+                        matchID = matchID
                     )
                 }
                 else {
