@@ -1,4 +1,4 @@
-import PIL.ImageGrab
+import PIL.ImageGrab as ImageGrab
 import numpy as np
 import base64
 import cv2
@@ -27,10 +27,11 @@ class Matcher():
     SURF = 'SURF'
     ORB = 'ORB'
 
-    def __init__(self, match_uid, img_encoded, log):
+    def __init__(self, match_uid, log):
         self.match_uid = match_uid
 
-        self.img_encoded = img_encoded
+        self.img_encoded = ""
+        self.screenshot_encoded= ""
 
         self.algorithm = Config.CURRENT_ALGORITHM
         self.ORB_descriptor_matcher = 'BruteForce-Hamming'
@@ -40,12 +41,13 @@ class Matcher():
 
         self.log = log
 
-        log.value_pairs['ts_screenshot_start'] = get_current_ms()
-        self.screenshot = PIL.ImageGrab.grab(all_screens=True)
-        self.screenshot_encoded= ""
-        log.value_pairs['pc_screen_width'] = self.screenshot.width
-        log.value_pairs['pc_screen_height'] = self.screenshot.height
-        log.value_pairs['ts_screenshot_finished'] = get_current_ms()
+
+    def grab_full_screenshot(self):
+        self.log.value_pairs['ts_screenshot_start'] = get_current_ms()
+        self.screenshot = ImageGrab.grab(all_screens=True)
+        self.log.value_pairs['pc_screen_width'] = self.screenshot.width
+        self.log.value_pairs['pc_screen_height'] = self.screenshot.height
+        self.log.value_pairs['ts_screenshot_finished'] = get_current_ms()
 
     def save_screenshot(self, img):
         self.log.value_pairs['ts_save_screenshot_start'] = get_current_ms()

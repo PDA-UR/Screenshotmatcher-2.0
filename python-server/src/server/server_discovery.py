@@ -15,7 +15,5 @@ def start():
     while not interrupt_discovery_flag:                         # interupt by setting flag
         bytesAddressPair = s.recvfrom(1024)
         client_address = bytesAddressPair[1]
-        print('Server IP requested by Client: {}'.format(client_address))
-
         s.sendto(payload, client_address)
         

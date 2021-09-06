@@ -1,20 +1,23 @@
 import uuid
 import json
 import platform
+import queue
+import threading
+import time
+import logging
 from flask import Flask, request, Response
 import common.log
 from common.config import Config
 from matching.matcher import Matcher
-from common.utility import get_current_ms
+from common.utility import get_current_ms, RepeatTimer
 from common.permission import is_device_allowed, request_permission_for_device, create_single_match_token
+from server.matching_request import MatchingRequest
 
 class Server():
-    def __init__(self, queue):
-        self.queue = queue
-        self.last_logs = []
-        self.last_screenshots = []
-        self.MAX_LOGS = 3
-        self.MAX_SCREENSHOTS = 3
+    def __init__(self):
+        self.CLEANUP_INTERVAL = 30       # seconds
+        self.REQUEST_LIFETIME = 25000    # miliseconds
+        self.matching_requests = {}
         self.app = Flask(__name__)
 
         self.app.add_url_rule('/heartbeat', 'heartbeat', self.heartbeat_route)
@@ -27,6 +30,9 @@ class Server():
         self.app.add_url_rule('/permission', 'permission', self.permission_route, methods=['POST'])
 
     def start(self):
+        werkzeug_logger = logging.getLogger("werkzeug")
+        werkzeug_logger.setLevel(logging.ERROR)
+        self.start_cleanup_routine()
         self.app.run(host=Config.HOST, port=Config.PORT, threaded=True)
 
     def stop(self):
@@ -41,40 +47,64 @@ class Server():
 
     def log_route(self):
         phone_log = request.json
-        for log in self.last_logs:
-            if phone_log.get('match_id') == log.value_pairs.get('match_uid'):
-                for key,value in phone_log.items():
-                    log.value_pairs[key] = value
 
-                log.value_pairs.pop('match_uid', None)  # remove duplicate match_id entry
-                log.value_pairs["participant_id"] = Config.ID
-                log.value_pairs["operating_system"] = platform.platform()
-                log.send_log()
-                self.last_logs.remove(log)
-                return {'response': 'ok'}
-        return {'response' : 'log does not match any match_id'}
+        matching_request = self.matching_requests.get(phone_log.get("match_id"))
+        if not matching_request:
+            return {'response' : 'log does not match any match_id'}
+
+        # logging disabled. delete corresponding request object
+        if phone_log.get("logging_disabled"):
+            self.matching_requests.pop(phone_log.get("match_id"), None)
+            return {'response': 'ok'}
+
+        server_log = matching_request.log
+        if not server_log:
+            return {'response' : 'log does not match any match_id'}
+
+        for key,value in phone_log.items():
+            server_log.value_pairs[key] = value
+
+        server_log.value_pairs.pop('match_uid', None)  # remove duplicate match_id entry
+        server_log.value_pairs["participant_id"] = Config.PARTICIPANT_ID
+        server_log.value_pairs["operating_system"] = platform.platform()
+        server_log.send_log()
+        self.matching_requests.pop(phone_log.get("match_id"))
+        return {'response': 'ok'}
 
     # Dummy implementation
     def feedback_route(self):  
         return {'feedbackPosted' : 'true'}
 
     def match_route(self):
-        # Create a logger for this match
-        log = common.log.Logger()
-        self.last_logs.insert(0, log)
-        if len(self.last_logs) > self.MAX_LOGS:
-            self.last_logs.pop()
-        log.value_pairs['ts_request_received'] = get_current_ms()
+        t_request_received = get_current_ms()
 
         # Convert the json data
         r_json = request.json
-        
+
+        # Client is requesting a previous match, after outstanding permission has been granted
+        # TODO: might cause a race condition
+        prev_muid = r_json.get("match_id")
+        if prev_muid:
+            response = self.matching_requests.get(prev_muid).response
+            return response
+            
+        # new match
+        uid = uuid.uuid4().hex
+        # run all matching in a new thread
+        request_thread = threading.Thread(
+            target=self.new_matching_request,
+            args=[uid, r_json, t_request_received],
+            daemon=True)
+        request_thread.start()
+
         # Check if this device is permitted to request a match
         # Let the client send a request to /permission if unknown devices require individual prompts (tray setting)
-        device_id = r_json.get("device_id")
-        device_name = r_json.get("device_name")
-        permission_token = r_json.get("permission_token")
-        is_allowed = is_device_allowed(Config.UNKNOWN_DEVICE_HANDLING, device_id, device_name, permission_token)
+        is_allowed = is_device_allowed(
+            current_setting=Config.UNKNOWN_DEVICE_HANDLING, 
+            device_id=r_json.get("device_id"),
+            device_name=r_json.get("device_name"),
+            token=r_json.get("permission_token")
+        )
         if is_allowed == 1:
             pass
         elif is_allowed == -1:
@@ -83,50 +113,11 @@ class Server():
         elif is_allowed == 0:
             error = {"error" : "permission_required"}
             return Response(json.dumps(error), mimetype='application/json')
-
-        # Get the base64 string encoded photo
-        b64String = r_json.get('b64')
-        log.value_pairs['ts_photo_received'] = get_current_ms()
-        if b64String is None:
-            return {'error' : 'missing_image_error'}
-
-        # Create match uid
-        uid = uuid.uuid4().hex
-        log.value_pairs['match_uid'] = uid
-
-        # Create Matcher instance
-        matcher = Matcher(uid, b64String, log)
-
-        # Override default values if options are given
-        if r_json.get('algorithm') :
-            matcher.algorithm = r_json.get('algorithm')
-        if r_json.get('ORB_nfeatures'):
-            matcher.THRESHOLDS['ORB'] =  r_json.get('ORB_nfeatures')
-        if r_json.get('SURF_hessian_threshold'):
-            matcher.THRESHOLDS['SURF'] = r_json.get('SURF_hessian_threshold')
-
-        # Start matcher
-        match_result = matcher.match()
-
-        # Save screenshot temporarily.
-        if match_result.screenshot_encoded:
-            self.last_screenshots.append((uid, match_result.screenshot_encoded))
-            if len(self.last_screenshots) > self.MAX_SCREENSHOTS:
-                self.last_screenshots.pop(0)
     
-        # Generate response
-        response = {'uid': uid}
-        log.value_pairs['ts_response_sent'] = get_current_ms()
-        if not match_result.success:
-            log.value_pairs['match_success'] = False
-            response['hasResult'] = False
-            response['uid'] = uid
-            return Response(json.dumps(response), mimetype='application/json')
-        else:
-            log.value_pairs['match_success'] = True
-            response['hasResult'] = True
-            response['b64'] = match_result.img_encoded
-            return Response(json.dumps(response), mimetype='application/json')
+        # wait for the matching result
+        request_thread.join()
+        matcher = self.matching_requests.get(uid)
+        return matcher.response  
 
     # Return a screenshot with the sae match_id as in the http POST request
     def screenshot_route(self):
@@ -135,15 +126,15 @@ class Server():
             response["error"] = "disabled_by_host_error"
         else:
             match_id = request.json.get("match_id")
-            if not match_id:
-                response["error"] = 'No match-id given.'
+            if match_id:
+                try:
+                    response["result"] = self.matching_requests.get(match_id).match_result.screenshot_encoded
+                    # Delete the image to free up RAM
+                    del self.matching_requests.get(match_id).match_result.screenshot_encoded
+                except IndexError:
+                    response["error"] = "Screenshot for given match_id not found on server."
             else:
-                for entry in self.last_screenshots:
-                    if entry[0] == match_id:
-                        response["result"] = entry[1]
-                        break
-                if not response.get("result"):
-                    response["error"] = 'match-id not found among last matches.'
+                response["error"] = 'No match-id given.'
 
         return Response(json.dumps(response), mimetype='application/json')
 
@@ -156,9 +147,7 @@ class Server():
             error = {"error" : "data_error"}
             return Response(json.dumps(error), mimetype='application/json')
 
-        # ask the user for input via prompt
-        user_response = request_permission_for_device(device_name=device_name, device_id=device_id, queue=self.queue)
-
+        user_response = request_permission_for_device(device_id, device_name)
         response = {}
         if user_response == "allow once":
             permission_token = create_single_match_token()
@@ -170,3 +159,21 @@ class Server():
             response["response"] = "permission_denied"
 
         return Response(json.dumps(response), mimetype='application/json')
+
+    def new_matching_request(self, uid, data, time):
+        self.matching_requests[uid] = MatchingRequest(uid=uid, data=data, time=time)
+
+    def start_cleanup_routine(self):
+        cleanup_thread = RepeatTimer(self.CLEANUP_INTERVAL, self.clean_backlog)
+        cleanup_thread.start()
+        
+    # delete lingering request objects from memory
+    def clean_backlog(self):
+        to_remove = []
+        cur_time = get_current_ms()
+        for match_id, request in self.matching_requests.items():
+            if cur_time - request.time_created > self.REQUEST_LIFETIME:   
+                to_remove.append(match_id)
+
+        for mid in to_remove:
+            self.matching_requests.pop(mid, None)

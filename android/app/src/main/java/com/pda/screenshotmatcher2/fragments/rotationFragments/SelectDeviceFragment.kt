@@ -1,5 +1,8 @@
 package com.pda.screenshotmatcher2.fragments.rotationFragments
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.view.HapticFeedbackConstants
 import android.view.View
 import android.widget.*
 import androidx.fragment.app.FragmentTransaction
@@ -9,44 +12,45 @@ import kotlin.concurrent.thread
 
 class SelectDeviceFragment : RotationFragment() {
     private lateinit var mSelectDeviceButton: ImageButton
-    private lateinit var mBackButton: ImageButton
     private lateinit var mListView: ListView
     private lateinit var adapter: ArrayAdapter<String>
     private var mServerList: ArrayList<String> = ArrayList()
     private lateinit var lastSelectedItem: TextView
-
+    private lateinit var mHandler: Handler
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        mHandler = Handler(Looper.getMainLooper())
         initServerList()
         initViews()
     }
 
+    private val mServerUrlRunnable = Runnable { initServerList() }
+
     private fun initServerList() {
         val l = ca.serverConnection.getServerUrlList()
         if (l != null){
-            l.forEach { mServerList.add(it.second) }
-        } else {
-            thread {
-                Thread.sleep(100)
-                initServerList()
-                if (::adapter.isInitialized){
-                    requireActivity().runOnUiThread {  adapter.notifyDataSetChanged() }
+            mServerList = ArrayList()
+            l.forEach {
+                if(!mServerList.contains(it.second)) mServerList.add(it.second)
+            }
+            if (::adapter.isInitialized){
+                requireActivity().runOnUiThread {  adapter.notifyDataSetChanged()
                 }
-            }.start()
+            }
         }
+        mHandler.postDelayed(mServerUrlRunnable, 500)
     }
 
     private fun initViews() {
         mSelectDeviceButton = activity?.findViewById(R.id.select_device_button)!!
         mSelectDeviceButton.setOnClickListener { removeThisFragment() }
-        mBackButton = activity?.findViewById(R.id.capture_button)!!
-        mBackButton.setOnClickListener { removeThisFragment() }
         mListView = activity?.findViewById(R.id.select_device_fragment_list)!!
         adapter = ArrayAdapter(requireContext(),
             R.layout.select_device_list_item, mServerList)
         mListView.adapter = adapter
         mListView.onItemClickListener = AdapterView.OnItemClickListener { _, view, position, _ ->
+            requireActivity().window.decorView.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK)
             if (::lastSelectedItem.isInitialized){
                 lastSelectedItem.setTextColor(resources.getColor(R.color.white))
             }
@@ -58,7 +62,13 @@ class SelectDeviceFragment : RotationFragment() {
     }
 
     override fun removeThisFragment(removeBackground: Boolean) {
+        ca.window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
         ca.onCloseSelectDeviceFragment()
         super.removeThisFragment(removeBackground)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        mHandler.removeCallbacksAndMessages(null)
     }
 }
