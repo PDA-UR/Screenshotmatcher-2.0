@@ -1,6 +1,7 @@
 package com.pda.screenshotmatcher2.activities
 
 import android.app.Activity
+import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -18,12 +19,16 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
 import com.pda.screenshotmatcher2.*
 import com.pda.screenshotmatcher2.helpers.*
 import com.pda.screenshotmatcher2.logger.StudyLogger
 import com.pda.screenshotmatcher2.network.ServerConnection
 import com.pda.screenshotmatcher2.network.sendBitmap
+import com.pda.screenshotmatcher2.viewModels.galleryViewModel.GalleryViewModel
+import com.pda.screenshotmatcher2.viewModels.galleryViewModel.GalleryViewModelFactory
 import com.pda.screenshotmatcher2.views.CameraInstance
 import java.io.File
 import kotlin.collections.ArrayList
@@ -97,7 +102,19 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         if (!this::imageArray.isInitialized) {
             thread { fillUpImageList() }
         }
+
+        initViewModels()
     }
+
+    private fun initViewModels() {
+        val vmf = GalleryViewModelFactory(application)
+        val vm = ViewModelProvider(this, vmf).get(GalleryViewModel::class.java)
+        vm.getImages().observe(this, Observer {
+            images ->
+            Log.d("CA", "images updated, new size: ${images.size}")
+        })
+    }
+
     private fun checkForFirstRun(context: Context) {
         val FIRST_RUN_KEY = getString(R.string.FIRST_RUN_KEY)
         // debug: val FIRST_RUN_KEY = "d"
