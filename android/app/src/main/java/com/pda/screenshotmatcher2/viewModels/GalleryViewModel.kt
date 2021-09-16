@@ -1,12 +1,10 @@
-package com.pda.screenshotmatcher2.viewModels.galleryViewModel
+package com.pda.screenshotmatcher2.viewModels
 
 import android.app.Application
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.*
 import java.io.File
 
 class GalleryViewModel(application: Application) : AndroidViewModel(application) {
@@ -59,5 +57,18 @@ class GalleryViewModel(application: Application) : AndroidViewModel(application)
         }
 
         return filename == itemName
+    }
+
+    internal class Factory (private val application: Application) : ViewModelProvider.Factory {
+
+        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(GalleryViewModel::class.java)) {
+                return GalleryViewModel(
+                    application
+                ) as T
+            }
+
+            throw IllegalArgumentException("Unknown ViewModel class")
+        }
     }
 }

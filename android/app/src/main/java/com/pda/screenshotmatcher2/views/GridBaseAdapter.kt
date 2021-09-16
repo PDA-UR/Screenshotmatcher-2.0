@@ -1,25 +1,35 @@
 package com.pda.screenshotmatcher2.views
 
+import android.app.Activity
+import android.app.Application
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.ImageView
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.*
 import com.bumptech.glide.Glide
 import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.activities.CameraActivity
+import com.pda.screenshotmatcher2.fragments.rotationFragments.GalleryFragment
+import com.pda.screenshotmatcher2.viewModels.GalleryViewModel
 import java.io.File
 
 
-class GridBaseAdapter(context: Context): BaseAdapter () {
+class GridBaseAdapter(private val context: GalleryFragment): BaseAdapter () {
 
-    private val context = context
-    private val activity = context as CameraActivity
-    private var imageArray = activity.imageArray
-
-    override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View? {
-        val mInflator: LayoutInflater = LayoutInflater.from(context)
+    private var imageArray : ArrayList<ArrayList<File>> = ArrayList()
+    private val gfvm = ViewModelProvider(context, GalleryViewModel.Factory(context.requireActivity().application)).get(
+        GalleryViewModel::class.java).apply {
+        getImages().observe(context.viewLifecycleOwner, Observer { images ->
+           imageArray = images
+        })
+    }
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View? {
+        val mInflator: LayoutInflater = LayoutInflater.from(context.activity)
         var view: View = mInflator.inflate(R.layout.grid_view_item, parent, false)
         var vh = ListRowHolder(view)
         view.tag = vh
@@ -27,11 +37,11 @@ class GridBaseAdapter(context: Context): BaseAdapter () {
         view.setOnClickListener {
             val firstImageFile = vh.firstImageFile
             val secondImageFile = vh.secondImageFile
-            val ca: CameraActivity = context as CameraActivity
+            val ca: CameraActivity = context.activity as CameraActivity
             ca.cameraActivityFragmentHandler.openGalleryPreviewFragment(firstImageFile, secondImageFile)
         }
 
-        Glide.with(context)
+        Glide.with(context.requireActivity())
             .load(imageArray[position][0])
             .placeholder(R.drawable.fragment_normal_button_small)
             .centerCrop()
@@ -39,7 +49,7 @@ class GridBaseAdapter(context: Context): BaseAdapter () {
         vh.firstImage.visibility = View.VISIBLE
         vh.firstImageFile = imageArray[position][0]
         if (imageArray[position].size > 1){
-            Glide.with(context)
+            Glide.with(context.requireActivity())
                 .load(imageArray[position][1])
                 .placeholder(R.drawable.fragment_normal_button_small)
                 .centerCrop()

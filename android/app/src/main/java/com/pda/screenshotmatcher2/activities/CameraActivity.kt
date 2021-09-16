@@ -1,7 +1,6 @@
 package com.pda.screenshotmatcher2.activities
 
 import android.app.Activity
-import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -27,8 +26,7 @@ import com.pda.screenshotmatcher2.helpers.*
 import com.pda.screenshotmatcher2.logger.StudyLogger
 import com.pda.screenshotmatcher2.network.ServerConnection
 import com.pda.screenshotmatcher2.network.sendBitmap
-import com.pda.screenshotmatcher2.viewModels.galleryViewModel.GalleryViewModel
-import com.pda.screenshotmatcher2.viewModels.galleryViewModel.GalleryViewModelFactory
+import com.pda.screenshotmatcher2.viewModels.GalleryViewModel
 import com.pda.screenshotmatcher2.views.CameraInstance
 import java.io.File
 import kotlin.collections.ArrayList
@@ -107,12 +105,14 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun initViewModels() {
-        val vmf = GalleryViewModelFactory(application)
-        val vm = ViewModelProvider(this, vmf).get(GalleryViewModel::class.java)
-        vm.getImages().observe(this, Observer {
-            images ->
-            Log.d("CA", "images updated, new size: ${images.size}")
-        })
+        val context = this
+        ViewModelProvider(this, GalleryViewModel.Factory(application)).get(GalleryViewModel::class.java).apply {
+            getImages().observe(context, Observer {
+                    images ->
+                Log.d("CA", "images updated, new size: ${images.size}")
+            })
+        }
+
     }
 
     private fun checkForFirstRun(context: Context) {
