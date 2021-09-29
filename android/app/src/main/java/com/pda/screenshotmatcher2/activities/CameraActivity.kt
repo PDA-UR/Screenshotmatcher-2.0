@@ -58,10 +58,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var sp: SharedPreferences
     private lateinit var MATCHING_MODE_PREF_KEY: String
 
-    //Old images gallery
-    private lateinit var imageDirectory: File
-    lateinit var files: Array<File>
-    lateinit var imageArray: ArrayList<ArrayList<File>>
+    private lateinit var galleryViewModel: GalleryViewModel
 
     //custom helper classes for server connection, fragment management and camera preview
     var serverConnection = ServerConnection(this)
@@ -96,17 +93,13 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
         savedInstanceState?.let { restoreFromSavedInstance(it) }
 
-        //pre-load image files to avoid lag when opening up the gallery fragment
-        if (!this::imageArray.isInitialized) {
-            thread { fillUpImageList() }
-        }
 
         initViewModels()
     }
 
     private fun initViewModels() {
         val context = this
-        ViewModelProvider(this, GalleryViewModel.Factory(application)).get(GalleryViewModel::class.java).apply {
+        galleryViewModel = ViewModelProvider(this, GalleryViewModel.Factory(application)).get(GalleryViewModel::class.java).apply {
             getImages().observe(context, Observer {
                     images ->
                 Log.d("CA", "images updated, new size: ${images.size}")
@@ -128,7 +121,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun restoreFromSavedInstance(savedInstanceState: Bundle) {
-        imageArray = savedInstanceState.getSerializable(getString(R.string.ca_saved_instance_image_list_key)) as ArrayList<ArrayList<File>>
         serverConnection.mServerURL = savedInstanceState.getString(getString(R.string.ca_saved_instance_url_key)).toString()
         var urlList = savedInstanceState.getStringArrayList(getString(R.string.ca_saved_instance_url_list_key))
         var hostList = savedInstanceState.getStringArrayList(getString(R.string.ca_saved_instance_host_list_key))
@@ -152,7 +144,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             putStringArrayList(getString(R.string.ca_saved_instance_url_list_key), serverUrlList)
             putStringArrayList(getString(R.string.ca_saved_instance_host_list_key), serverHostList)
             putString(getString(R.string.ca_saved_instance_url_key), serverConnection?.mServerURL)
-            putSerializable(getString(R.string.ca_saved_instance_image_list_key), imageArray)
         }
     }
 
@@ -453,10 +444,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             RESULT_ACTIVITY_REQUEST_CODE -> {
                 when (resultCode) {
                     Activity.RESULT_OK -> {
-                        val resultData: ArrayList<File> = data?.getSerializableExtra(
-                            RESULT_ACTIVITY_RESULT_CODE
-                        ) as ArrayList<File>
-                        imageArray.add(0, resultData)
+                        galleryViewModel.reloadImages()
                     }
                 }
             }
@@ -489,50 +477,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         return matchingMode
     }
 
-    // Filling up the file list for the gallery fragment
-    private fun fillUpImageList() {
-        imageDirectory = this.getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
-        files = imageDirectory.listFiles()
-        files.sortByDescending { it.name }
-        imageArray = ArrayList()
 
-
-        files.forEach outer@{ file ->
-            if (imageArray.isNotEmpty()) {
-                imageArray.forEach inner@{ item ->
-                    if (fileBelongsToImageArrayItem(file, item)) {
-                        if (file.name.split("_").last() == "Cropped.png") {
-                            item.add(file)
-                        } else {
-                            item.add(0, file)
-                        }
-                        return@outer
-                    }
-                }
-            }
-            var fileCouple: ArrayList<File> = ArrayList()
-            fileCouple.add(file)
-            imageArray.add(fileCouple)
-        }
-    }
-
-    fun deleteImagesFromInternalGallery(images: ArrayList<File>) {
-        for (imagePair in imageArray) {
-            var didRemove = false
-            for (image in images) {
-                if (image in imagePair) {
-                    imagePair.forEach { imageFile ->
-                        if(imageFile.exists()) imageFile.delete()
-                    }
-                    imageArray.remove(imagePair)
-                    cameraActivityFragmentHandler.refreshGalleryFragment()
-                    didRemove = true
-                    break
-                }
-            }
-            if (didRemove) break
-        }
-    }
 
     private fun fileBelongsToImageArrayItem(file: File, item: ArrayList<File>): Boolean {
         //Item has already 2 entries

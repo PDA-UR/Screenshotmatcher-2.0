@@ -26,12 +26,16 @@ class GalleryFragment : RotationFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initViews()
-        ViewModelProvider(this, GalleryViewModel.Factory(requireActivity().application)).get(
-            GalleryViewModel::class.java).apply {
-            getImages().observe(viewLifecycleOwner, Observer {
-                if (::adapter.isInitialized) adapter.notifyDataSetInvalidated()
+        // Observe Live-Data changes to refresh adapter
+        ViewModelProvider(requireActivity(), GalleryViewModel.Factory(requireActivity().application))
+            .get(GalleryViewModel::class.java)
+            .apply {
+                getImages().observe(viewLifecycleOwner, Observer {
+                    Log.d("GF", "Refreshing")
+                    if (::adapter.isInitialized) adapter.notifyDataSetInvalidated()
             })
-        }  }
+        }
+    }
 
     private fun initViews() {
         mFragmentBackground = activity?.findViewById(R.id.ca_dark_background)!!
@@ -44,10 +48,6 @@ class GalleryFragment : RotationFragment() {
         mBackButton.setOnClickListener {
             removeThisFragment()
         }
-    }
-    //TODO: Remove
-    fun refreshAdapter() {
-        adapter.notifyDataSetChanged()
     }
 
     override fun removeThisFragmentForRotation(): ArrayList<File?>? {
