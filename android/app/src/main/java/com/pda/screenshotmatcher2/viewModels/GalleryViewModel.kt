@@ -4,14 +4,13 @@ import android.app.Application
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.lifecycle.*
 import java.io.File
 
 class GalleryViewModel(application: Application) : AndroidViewModel(application) {
     private val imageDirectory: File =
         application.getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
-
-    private var files: Array<File>? = imageDirectory.listFiles()
 
     private val images: MutableLiveData<ArrayList<ArrayList<File>>> by lazy {
         MutableLiveData<ArrayList<ArrayList<File>>>().also {
@@ -23,7 +22,13 @@ class GalleryViewModel(application: Application) : AndroidViewModel(application)
         return images
     }
 
+    fun reloadImages() {
+        Log.d("VM", "Loading images")
+        loadImages(images)
+    }
+
     private fun loadImages(images: MutableLiveData<ArrayList<ArrayList<File>>>) {
+        val files: Array<File> = imageDirectory.listFiles() ?: emptyArray()
         Handler(Looper.getMainLooper()).post {
             val imageArray: ArrayList<ArrayList<File>> = ArrayList()
             files?.forEachIndexed outer@{ index, file ->
@@ -46,7 +51,25 @@ class GalleryViewModel(application: Application) : AndroidViewModel(application)
             images.setValue(imageArray)
         }
     }
-
+    // Check if provided images are in live date, delete pair if so
+    fun deleteImagePair(imagesToDelete: ArrayList<File>) {
+        val newList: ArrayList<ArrayList<File>> = if(images.value != null) images.value!! else ArrayList()
+        for (imagePair in newList) {
+            var didRemove = false
+            for (image in imagesToDelete) {
+                if (image in imagePair) {
+                    imagePair.forEach { imageFile ->
+                        if(imageFile.exists()) imageFile.delete()
+                    }
+                    newList.remove(imagePair)
+                    didRemove = true
+                    break
+                }
+            }
+            if (didRemove) break
+        }
+        images.value = newList
+    }
     private fun fileBelongsToImageArrayItem(file: File, item: ArrayList<File>): Boolean {
         //Item has already 2 entries
         val filename: String = file.name.split("_".toRegex()).first()

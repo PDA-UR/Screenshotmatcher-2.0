@@ -412,7 +412,6 @@ class ResultsActivity : AppCompatActivity() {
 
     private fun goBackToCameraActivity() {
         val intent = Intent()
-        var resultData: ArrayList<File> = ArrayList()
         if (!hasSharedImage) {
             if (::mFullImageFile.isInitialized) {
                 mFullImageFile.delete()
@@ -422,13 +421,6 @@ class ResultsActivity : AppCompatActivity() {
             }
             setResult(Activity.RESULT_CANCELED, intent)
         } else {
-            if (::mCroppedImageFile.isInitialized) {
-                resultData.add(mCroppedImageFile)
-            }
-            if (::mFullImageFile.isInitialized) {
-                resultData.add(mFullImageFile)
-            }
-            intent.putExtra(RESULT_ACTIVITY_RESULT_CODE, resultData)
             setResult(Activity.RESULT_OK, intent)
         }
         finish()

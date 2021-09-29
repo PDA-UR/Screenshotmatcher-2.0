@@ -19,9 +19,11 @@ import androidx.appcompat.widget.AppCompatButton
 import androidx.appcompat.widget.AppCompatImageButton
 import androidx.core.app.ShareCompat
 import androidx.core.content.FileProvider
+import androidx.lifecycle.ViewModelProvider
 import com.pda.screenshotmatcher2.BuildConfig
 import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.activities.CameraActivity
+import com.pda.screenshotmatcher2.viewModels.GalleryViewModel
 import java.io.File
 
 const val FIRST_IMAGE_KEY: String = "FIRST_IMAGE"
@@ -50,7 +52,7 @@ class GalleryPreviewFragment : RotationFragment() {
     private var mCroppedImageFile: File? = null
     private var numberOfAvailableImages: Int = 0
     private lateinit var oldBundle: Bundle
-
+    private lateinit var galleryViewModel: GalleryViewModel
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -71,6 +73,9 @@ class GalleryPreviewFragment : RotationFragment() {
         super.onViewCreated(view, savedInstanceState)
         initViews()
         setViewListeners()
+        galleryViewModel = ViewModelProvider(requireActivity(), GalleryViewModel.Factory(requireActivity().application))
+        .get(GalleryViewModel::class.java)
+
     }
 
     private fun getFilesFromBundle(bundle: Bundle) {
@@ -191,7 +196,6 @@ class GalleryPreviewFragment : RotationFragment() {
     }
 
     private fun deleteBothImages() {
-        val cameraActivity: CameraActivity = requireActivity() as CameraActivity
         val images = ArrayList<File>()
         images.apply {
             mCroppedImageFile?.let {
@@ -203,7 +207,7 @@ class GalleryPreviewFragment : RotationFragment() {
                 this.add(it)
             }
         }
-        cameraActivity.deleteImagesFromInternalGallery(images)
+        galleryViewModel.deleteImagePair(images)
         removeThisFragment(true)
     }
 

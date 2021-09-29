@@ -22,7 +22,7 @@ import java.io.File
 class GridBaseAdapter(private val context: GalleryFragment): BaseAdapter () {
 
     private var imageArray : ArrayList<ArrayList<File>> = ArrayList()
-    private val gfvm = ViewModelProvider(context, GalleryViewModel.Factory(context.requireActivity().application)).get(
+    private val gfvm = ViewModelProvider(context.requireActivity(), GalleryViewModel.Factory(context.requireActivity().application)).get(
         GalleryViewModel::class.java).apply {
         getImages().observe(context.viewLifecycleOwner, Observer { images ->
            imageArray = images
