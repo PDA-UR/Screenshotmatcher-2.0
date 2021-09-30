@@ -130,20 +130,7 @@ fun sendBitmap(
 }
 
 fun sendHeartbeatRequest(serverURL: String, activity: Activity){
-    if (activity is CameraActivity && (serverURL == null || serverURL.isEmpty())) {
-        activity.runOnUiThread { activity.serverConnection.onHeartbeatFail() }
-    }
-    val request = StringRequest(Request.Method.GET, serverURL + HEARTBEAT_DEST,
-        { response ->
-        },
-        {
-            if (activity is CameraActivity) {
-                activity.runOnUiThread { activity.serverConnection.onHeartbeatFail() }
-            }
-        })
 
-    val queue = Volley.newRequestQueue(activity.applicationContext)
-    queue.add(request)
 }
 
 fun sendHeartbeatRequest(serverURL: String?, context: Context, onFail: () -> Unit){

@@ -2,12 +2,16 @@ package com.pda.screenshotmatcher2.fragments.rotationFragments
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.HapticFeedbackConstants
 import android.view.View
 import android.widget.*
 import androidx.fragment.app.FragmentTransaction
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.fragments.removeForRotation
+import com.pda.screenshotmatcher2.viewModels.ServerConnectionViewModel
 import kotlin.concurrent.thread
 
 class SelectDeviceFragment : RotationFragment() {
@@ -25,21 +29,28 @@ class SelectDeviceFragment : RotationFragment() {
         initViews()
     }
 
-    private val mServerUrlRunnable = Runnable { initServerList() }
+
+    private lateinit var serverConnectionViewModel: ServerConnectionViewModel
 
     private fun initServerList() {
-        val l = ca.serverConnection.getServerUrlList()
-        if (l != null){
-            mServerList = ArrayList()
-            l.forEach {
-                if(!mServerList.contains(it.second)) mServerList.add(it.second)
-            }
-            if (::adapter.isInitialized){
-                requireActivity().runOnUiThread {  adapter.notifyDataSetChanged()
+        serverConnectionViewModel = ViewModelProvider(requireActivity(), ServerConnectionViewModel.Factory(requireActivity().application)).get(ServerConnectionViewModel::class.java).apply {
+            getServerUrlLiveData().observe(viewLifecycleOwner, Observer {
+                url ->
+                run {
+                    Log.d("CA", "New URL: $url")
                 }
-            }
+            })
+            getServerUrlListLiveData().observe(viewLifecycleOwner, Observer {
+                urlList ->
+                run {
+                    mServerList.clear()
+                    urlList.forEach { pair: Pair<String, String> ->
+                        mServerList.add(pair.second)
+                    }
+                    adapter.notifyDataSetChanged()
+                }
+            })
         }
-        mHandler.postDelayed(mServerUrlRunnable, 500)
     }
 
     private fun initViews() {
@@ -57,7 +68,7 @@ class SelectDeviceFragment : RotationFragment() {
                 lastSelectedItem = view as TextView
                 val itemView: TextView = view
                 itemView.setTextColor(resources.getColor(R.color.connected_green))
-                ca.serverConnection.setServerUrl(mServerList[position])
+                serverConnectionViewModel.setServerUrl(mServerList[position])
         }
     }
 
