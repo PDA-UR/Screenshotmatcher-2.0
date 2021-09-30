@@ -146,6 +146,21 @@ fun sendHeartbeatRequest(serverURL: String, activity: Activity){
     queue.add(request)
 }
 
+fun sendHeartbeatRequest(serverURL: String?, context: Context, onFail: () -> Unit){
+    if ((serverURL == null || serverURL.isEmpty())) {
+        onFail()
+    }
+    val request = StringRequest(Request.Method.GET, serverURL + HEARTBEAT_DEST,
+        { _ ->
+        },
+        {
+            onFail()
+        })
+
+    val queue = Volley.newRequestQueue(context)
+    queue.add(request)
+}
+
 
 
 fun sendLog(serverURL: String, context: Context){
