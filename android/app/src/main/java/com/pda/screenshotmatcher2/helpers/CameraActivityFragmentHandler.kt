@@ -54,7 +54,8 @@ class CameraActivityFragmentHandler(a: Activity) {
         activity.onOpenErrorFragment()
         val bundle = Bundle().apply {
             putString(UID_KEY, uid)
-            putString(URL_KEY, activity.serverConnection.mServerURL)
+            //TODO: Add real URL
+            putString(URL_KEY, "233")
             putParcelable(activity.getString(R.string.EXTRACTED_IMAGE_KEY), extractedImage)
         }
 

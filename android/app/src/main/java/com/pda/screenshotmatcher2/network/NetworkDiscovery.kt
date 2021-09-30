@@ -45,8 +45,6 @@ fun discoverServersOnNetwork(context: Context, port: Int = 49050, message: Strin
     }
     s.close()
 
-    val activity: CameraActivity = context as CameraActivity
-    activity.runOnUiThread { activity.serverConnection.onServerURLsGet(serverList)}  // call function on main thread }
     return serverList
 }
 fun discoverServersOnNetwork(context: Context, port: Int = 49050, message: String = "screenshot matcher client LF server", onGet : (servers: List<Pair<String, String>>) -> Unit) : List<Pair<String, String>> {

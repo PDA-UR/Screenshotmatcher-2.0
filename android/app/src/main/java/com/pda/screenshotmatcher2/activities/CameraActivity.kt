@@ -24,9 +24,9 @@ import androidx.preference.PreferenceManager
 import com.pda.screenshotmatcher2.*
 import com.pda.screenshotmatcher2.helpers.*
 import com.pda.screenshotmatcher2.logger.StudyLogger
-import com.pda.screenshotmatcher2.network.ServerConnection
 import com.pda.screenshotmatcher2.network.sendBitmap
 import com.pda.screenshotmatcher2.viewModels.GalleryViewModel
+import com.pda.screenshotmatcher2.viewModels.ServerConnectionViewModel
 import com.pda.screenshotmatcher2.views.CameraInstance
 import java.io.File
 import kotlin.collections.ArrayList
@@ -59,14 +59,13 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var MATCHING_MODE_PREF_KEY: String
 
     private lateinit var galleryViewModel: GalleryViewModel
+    private lateinit var serverConnectionViewModel: ServerConnectionViewModel
 
     //custom helper classes for server connection, fragment management and camera preview
-    var serverConnection = ServerConnection(this)
     lateinit var cameraActivityFragmentHandler: CameraActivityFragmentHandler
     var cameraInstance: CameraInstance =
         CameraInstance(this)
 
-    var isFirstBoot: Boolean = true
 
     // Activity lifecycle
     @RequiresApi(Build.VERSION_CODES.N)
@@ -85,7 +84,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             CameraActivityFragmentHandler(
                 this
             )
-        serverConnection.start()
         cameraInstance.start()
 
         mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
@@ -105,6 +103,17 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
                 Log.d("CA", "images updated, new size: ${images.size}")
             })
         }
+        serverConnectionViewModel = ViewModelProvider(this, ServerConnectionViewModel.Factory(application)).get(ServerConnectionViewModel::class.java).apply {
+            getServerUrlLiveData().observe(context, Observer {
+                url ->
+                run {
+                    Log.d("CA", "New URL: $url")
+                }
+            })
+            isConnectedToServer.observe(context, Observer {
+                isConnected -> updateConnectionStatus(isConnected)
+            })
+        }
 
     }
 
@@ -121,14 +130,12 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun restoreFromSavedInstance(savedInstanceState: Bundle) {
-        serverConnection.mServerURL = savedInstanceState.getString(getString(R.string.ca_saved_instance_url_key)).toString()
         var urlList = savedInstanceState.getStringArrayList(getString(R.string.ca_saved_instance_url_list_key))
         var hostList = savedInstanceState.getStringArrayList(getString(R.string.ca_saved_instance_host_list_key))
         var l = mutableListOf<Pair<String, String>>()
         for (i in 0 until urlList?.size!!) {
             l.add(Pair(urlList[i], hostList?.get(i)) as Pair<String, String>)
         }
-        serverConnection.start()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -136,20 +143,15 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
         val serverUrlList: ArrayList<String> = ArrayList()
         val serverHostList: ArrayList<String> = ArrayList()
-        serverConnection?.mServerUrlList.forEach {
-            serverHostList.add(it.second)
-            serverUrlList.add(it.first)
-        }
+
         outState.apply {
             putStringArrayList(getString(R.string.ca_saved_instance_url_list_key), serverUrlList)
             putStringArrayList(getString(R.string.ca_saved_instance_host_list_key), serverHostList)
-            putString(getString(R.string.ca_saved_instance_url_key), serverConnection?.mServerURL)
         }
     }
 
     override fun onResume() {
         super.onResume()
-        serverConnection.start()
 
         // due to a bug in Android, the list of sensors returned by the SensorManager can be empty
         // it will stay that way until reboot.
@@ -166,18 +168,15 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onPause() {
         super.onPause()
-        serverConnection.stop()
         mSensorManager.unregisterListener(this)
     }
 
     override fun onStop() {
         super.onStop()
-        serverConnection.stop()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        serverConnection.stop()
     }
 
 
@@ -234,7 +233,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     private fun capturePhoto(){
         window.decorView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
         val mBitmap = cameraInstance.captureImageWithPreviewExtraction()
-        val mServerURL = serverConnection.mServerURL
+        val mServerURL = serverConnectionViewModel.getServerUrl()
         if (mBitmap != null) {
             if (mServerURL != ""){
                 StudyLogger.hashMap["tc_image_captured"] = System.currentTimeMillis()   // image is in memory
@@ -259,13 +258,13 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
-    fun updateConnectionStatus() {
-        when (serverConnection.isConnectedToServer){
+    fun updateConnectionStatus(isConnected: Boolean) {
+        when (isConnected){
             true -> {
                 mSelectDeviceButton.background =
                     resources.getDrawable(R.drawable.select_device_connected)
                 if (phoneOrientation == Surface.ROTATION_0) {
-                    mSelectDeviceButtonText.text = serverConnection.getConnectedServerName()
+                    mSelectDeviceButtonText.text = serverConnectionViewModel.getConnectedServerName()
                 }
             }
             false -> {
@@ -284,7 +283,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         val intent = Intent(this, ResultsActivity::class.java).apply {
             putExtra("matchID", matchID)
             putExtra("img", img)
-            putExtra("ServerURL", serverConnection.mServerURL)
+            putExtra("ServerURL", serverConnectionViewModel.getServerUrl())
         }
         startActivityForResult(intent,
             RESULT_ACTIVITY_REQUEST_CODE
@@ -297,7 +296,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
                 Surface.ROTATION_0 -> {
                     mSelectDeviceButton.setImageResource(android.R.color.transparent)
                     mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24))
-                    updateConnectionStatus()
+                    updateConnectionStatus(serverConnectionViewModel.getConnectionStatus())
                     mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24))
 
                 }
@@ -311,7 +310,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
                     //same as normal portrait
                     mSelectDeviceButton.setImageResource(android.R.color.transparent)
                     mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24))
-                    updateConnectionStatus()
+                    updateConnectionStatus(serverConnectionViewModel.getConnectionStatus())
                     mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24))
                 }
                 Surface.ROTATION_270 -> {
