@@ -18,7 +18,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.Exception
 
-private val PERMISSIONS = arrayOf<String>(
+private val PERMISSIONS = arrayOf(
     Manifest.permission.READ_EXTERNAL_STORAGE,
     Manifest.permission.WRITE_EXTERNAL_STORAGE,
     Manifest.permission.INTERNET,
@@ -52,8 +52,7 @@ fun verifyPermissions(activity: Activity?) {
 
 fun base64ToBitmap(b64String: String) : Bitmap{
     val byteArray = Base64.decode(b64String, Base64.DEFAULT)
-    val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
-    return bitmap
+    return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
 }
 
 fun saveBitmapToFile(filename: File, bitmap: Bitmap){

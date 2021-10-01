@@ -17,8 +17,8 @@ import com.pda.screenshotmatcher2.R
 
 class SettingsFragment : PreferenceFragmentCompat() {
 
-    lateinit var mFragmentBackground: FrameLayout
-    lateinit var containerView: CardView
+    private lateinit var mFragmentBackground: FrameLayout
+    private lateinit var containerView: CardView
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.root_preferences, rootKey)

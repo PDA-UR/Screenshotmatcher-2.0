@@ -25,19 +25,19 @@ const val URL_KEY: String = "URL"
 
 class ErrorFragment : Fragment() {
     //Views
-    lateinit var mBackButton: Button
-    lateinit var mFeedbackButton: Button
-    lateinit var mFullImageButton: Button
-    lateinit var containerView: FrameLayout
-    lateinit var mFragmentBackground: FrameLayout
-    lateinit var mErrorImageView: ImageView
+    private lateinit var mBackButton: Button
+    private lateinit var mFeedbackButton: Button
+    private lateinit var mFullImageButton: Button
+    private lateinit var containerView: FrameLayout
+    private lateinit var mFragmentBackground: FrameLayout
+    private lateinit var mErrorImageView: ImageView
 
     //Full screenshot info
-    lateinit var uid: String
-    lateinit var url: String
-    lateinit var bmp: Bitmap
+    private lateinit var uid: String
+    private lateinit var url: String
+    private lateinit var bmp: Bitmap
 
-    var resultsOpened = false
+    private var resultsOpened = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

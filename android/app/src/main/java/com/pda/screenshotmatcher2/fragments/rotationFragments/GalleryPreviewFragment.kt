@@ -42,7 +42,7 @@ class GalleryPreviewFragment : RotationFragment() {
     private lateinit var mShareButtonText: TextView
     private lateinit var mSaveOneButtonText: TextView
 
-    lateinit var mFragmentBackground: FrameLayout
+    private lateinit var mFragmentBackground: FrameLayout
 
     // -1 = cropped page, 1 = full page
     private var mPillNavigationState: Int = 1
@@ -57,7 +57,7 @@ class GalleryPreviewFragment : RotationFragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        var bundle: Bundle? = this.arguments
+        val bundle: Bundle? = this.arguments
 
         if (savedInstanceState != null) {
             getFilesFromBundle(savedInstanceState)
