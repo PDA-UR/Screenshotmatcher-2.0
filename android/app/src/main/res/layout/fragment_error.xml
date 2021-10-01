@@ -20,7 +20,7 @@
         android:textSize="50dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"></TextView>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
         android:layout_width="wrap_content"
@@ -32,7 +32,7 @@
         app:layout_constraintBottom_toTopOf="@+id/ef_send_feedback_button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/ef_no_match_text_view"></ImageView>
+        app:layout_constraintTop_toBottomOf="@+id/ef_no_match_text_view" />
 
     <Button
         android:id="@+id/ef_send_feedback_button"
@@ -45,7 +45,7 @@
         android:text="@string/send_feedback_button_en"
         app:layout_constraintBottom_toTopOf="@+id/ef_button_layout"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"></Button>
+        app:layout_constraintStart_toStartOf="parent" />
 
     <LinearLayout
         android:id="@+id/ef_button_layout"
@@ -64,7 +64,7 @@
             android:layout_marginRight="5dp"
             android:layout_weight="1"
             android:background="@drawable/fragment_normal_button_small"
-            android:text="@string/view_full_image_button_en"></Button>
+            android:text="@string/view_full_image_button_en" />
 
         <Button
             android:id="@+id/ef_back_button"
@@ -73,7 +73,7 @@
             android:layout_marginLeft="5dp"
             android:layout_weight="1"
             android:background="@drawable/fragment_normal_button_small"
-            android:text="@string/close_button_en"></Button>
+            android:text="@string/close_button_en" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

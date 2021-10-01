@@ -6,13 +6,10 @@ import android.util.Log
 import android.view.HapticFeedbackConstants
 import android.view.View
 import android.widget.*
-import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.pda.screenshotmatcher2.R
-import com.pda.screenshotmatcher2.fragments.removeForRotation
 import com.pda.screenshotmatcher2.viewModels.ServerConnectionViewModel
-import kotlin.concurrent.thread
 
 class SelectDeviceFragment : RotationFragment() {
     private lateinit var mSelectDeviceButton: ImageButton
@@ -41,7 +38,6 @@ class SelectDeviceFragment : RotationFragment() {
                     urlList.forEach { pair: Pair<String, String> ->
                         mServerList.add(pair.second)
                     }
-                    Log.d("SDF", "${urlList.toString()}")
                     adapter.notifyDataSetChanged()
                 }
             })

@@ -2,12 +2,9 @@ package com.pda.screenshotmatcher2.network
 
 import android.content.Context
 import android.net.wifi.WifiManager
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import com.pda.screenshotmatcher2.activities.CameraActivity
 import java.io.IOException
 import java.net.*
-import kotlin.jvm.Throws
 
 const val PROTOCOL = "http://"
 const val MAX_SERVERS = 5
