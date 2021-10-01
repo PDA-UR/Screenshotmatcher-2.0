@@ -258,7 +258,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
-    fun updateConnectionStatus(isConnected: Boolean) {
+    private fun updateConnectionStatus(isConnected: Boolean) {
         when (isConnected){
             true -> {
                 mSelectDeviceButton.background =

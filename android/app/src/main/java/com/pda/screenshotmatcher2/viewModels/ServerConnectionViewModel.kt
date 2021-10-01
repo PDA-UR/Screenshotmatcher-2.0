@@ -7,7 +7,10 @@ import android.os.HandlerThread
 import android.os.Looper
 import android.os.Message
 import android.util.Log
-import androidx.lifecycle.*
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import com.pda.screenshotmatcher2.network.discoverServersOnNetwork
 import com.pda.screenshotmatcher2.network.sendHeartbeatRequest
 
@@ -19,7 +22,7 @@ class ServerConnectionViewModel(application: Application) : AndroidViewModel(app
         }
     }
 
-    private val mServerUrlList: MutableLiveData<List<Pair<String, String>>>  =
+    private val mServerUrlList: MutableLiveData<List<Pair<String, String>>> =
         MutableLiveData(emptyList())
 
     val isConnectedToServer: MutableLiveData<Boolean> = MutableLiveData(false)
@@ -37,10 +40,10 @@ class ServerConnectionViewModel(application: Application) : AndroidViewModel(app
     private lateinit var mHandler: Handler
 
     private fun start() {
-        if (!isDiscovering.value!! && !isSendingHeartbeat.value!!){
+        if (!isDiscovering.value!! && !isSendingHeartbeat.value!!) {
             handlerThread = HandlerThread(this.javaClass.simpleName).apply { start() }
             looper = handlerThread.looper
-            mHandler  = object : Handler(looper) {
+            mHandler = object : Handler(looper) {
                 override fun handleMessage(msg: Message) {
                     when (msg.what) {
                         END_ALL_THREADS -> {
@@ -57,14 +60,14 @@ class ServerConnectionViewModel(application: Application) : AndroidViewModel(app
                     }
                 }
             }
-            when(isConnectedToServer.value){
+            when (isConnectedToServer.value) {
                 true -> startHeartbeatThread()
                 false -> startDiscoverThread()
             }
         }
     }
 
-    val discoverRunnable = object: Runnable {
+    val discoverRunnable = object : Runnable {
         override fun run() {
             Log.d("SCVM", "Discovering")
             requestServerURL(application.applicationContext)
@@ -72,10 +75,10 @@ class ServerConnectionViewModel(application: Application) : AndroidViewModel(app
         }
     }
 
-    val heartbeatRunnable = object: Runnable {
+    val heartbeatRunnable = object : Runnable {
         override fun run() {
             Log.d("SCVM", "Heartbeating")
-            if (isConnectedToServer.value!! && mServerURL.value != ""){
+            if (isConnectedToServer.value!! && mServerURL.value != "") {
                 sendHeartbeatRequest(
                     mServerURL.value!!,
                     application.applicationContext,
@@ -86,20 +89,19 @@ class ServerConnectionViewModel(application: Application) : AndroidViewModel(app
         }
     }
 
-    private fun startHeartbeatThread(){
-        if (handlerThread.isAlive){
+    private fun startHeartbeatThread() {
+        if (handlerThread.isAlive) {
             isSendingHeartbeat.postValue(true)
             mHandler.sendMessage(mHandler.obtainMessage(START_HEARTBEAT))
         }
     }
 
-    fun onHeartbeatFail(){
+    fun onHeartbeatFail() {
         onConnectionChanged(false)
         Log.d("SCVM", "Failed HB")
     }
 
-    private fun startDiscoverThread(){
-
+    private fun startDiscoverThread() {
         if (handlerThread.isAlive) {
             isDiscovering.postValue(true)
             mHandler.sendMessage(mHandler.obtainMessage(START_DISCOVER))
@@ -107,65 +109,57 @@ class ServerConnectionViewModel(application: Application) : AndroidViewModel(app
     }
 
     private fun requestServerURL(context: Context) {
-
         Thread {
-            mServerUrlList.postValue(discoverServersOnNetwork(
-                context,
-                49050,
-                "",
-                ::onServerURLsGet
-            ))
+            mServerUrlList.postValue(
+                discoverServersOnNetwork(
+                    context,
+                    49050,
+                    "",
+                    ::onServerURLsGet
+                )
+            )
         }.start()
     }
 
-    fun onServerURLsGet(servers: List<Pair<String, String>>) {
-        if (mServerURL.value == ""){
-            if (servers.isNotEmpty()){
-                mServerUrlList.postValue(servers)
-                setServerUrl(servers[0].second)
-            }
-        }
+    private fun onServerURLsGet(servers: List<Pair<String, String>>) {
         if (servers.isNotEmpty()) {
-            updateServerUrlList(servers)
-            if (isConnectedToServer.value!! && handlerThread.isAlive){
-                //TODO : UI REFRESH
+            updateServerUrlList(servers).also {
+                // Connect to first server if currently disconnected
+                if (mServerURL.value == "")
+                    setServerUrl(hostname = servers[0].second)
             }
         }
     }
 
     fun setServerUrl(hostname: String) {
-
         mServerUrlList.value?.forEach {
-            if (it.second == hostname){
+            if (it.second == hostname) {
                 mServerURL.postValue(it.first)
+                onConnectionChanged(true)
             }
         }
-        onConnectionChanged(true)
     }
 
     private fun updateServerUrlList(newServers: List<Pair<String, String>>) {
         mServerUrlList.postValue(newServers)
-        mServerUrlList.value!!.forEach {
-            if (it.first == mServerURL.value) onConnectionChanged(true)
-        }
     }
 
 
-    private fun onConnectionChanged(isConnected: Boolean){
+    private fun onConnectionChanged(isConnected: Boolean) {
         isDiscovering.postValue(!isConnected)
         isSendingHeartbeat.postValue(isConnected)
         isConnectedToServer.postValue(isConnected)
         if (isConnected) startHeartbeatThread()
         else {
-            startDiscoverThread()
             mServerURL.value = ""
+            startDiscoverThread()
         }
-        // TODO ca.updateConnectionStatus
     }
 
     fun getConnectedServerName(): String {
         mServerUrlList.value?.forEach {
-            if (it.first == mServerURL.value){
+            Log.d("SCVM","Comparing ${it.first}/${it.second} with url ${mServerURL.value}")
+            if (it.first == mServerURL.value) {
                 return it.second
             }
         }
@@ -178,7 +172,7 @@ class ServerConnectionViewModel(application: Application) : AndroidViewModel(app
         handlerThread.quitSafely()
     }
 
-    fun getServerUrl() : String {
+    fun getServerUrl(): String {
         return this.mServerURL.value ?: ""
     }
 
@@ -186,19 +180,19 @@ class ServerConnectionViewModel(application: Application) : AndroidViewModel(app
         return this.mServerURL
     }
 
-    fun getServerUrlList () : List<Pair<String, String>>{
+    fun getServerUrlList(): List<Pair<String, String>> {
         return mServerUrlList.value!!
     }
 
-    fun getServerUrlListLiveData (): MutableLiveData<List<Pair<String, String>>> {
+    fun getServerUrlListLiveData(): MutableLiveData<List<Pair<String, String>>> {
         return this.mServerUrlList
     }
 
-    fun getConnectionStatus () : Boolean {
+    fun getConnectionStatus(): Boolean {
         return isConnectedToServer.value ?: false
     }
 
-    internal class Factory (private val application: Application) : ViewModelProvider.Factory {
+    internal class Factory(private val application: Application) : ViewModelProvider.Factory {
 
         override fun <T : ViewModel?> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(ServerConnectionViewModel::class.java)) {
