@@ -31,7 +31,7 @@ class GalleryViewModel(application: Application) : AndroidViewModel(application)
         val files: Array<File> = imageDirectory.listFiles() ?: emptyArray()
         Handler(Looper.getMainLooper()).post {
             val imageArray: ArrayList<ArrayList<File>> = ArrayList()
-            files?.forEachIndexed outer@{ index, file ->
+            files.forEachIndexed outer@{ index, file ->
                 if (index != 0) {
                     imageArray.forEach inner@{ item ->
                         if (fileBelongsToImageArrayItem(file, item)) {

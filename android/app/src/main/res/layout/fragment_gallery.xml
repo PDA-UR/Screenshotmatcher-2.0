@@ -39,7 +39,7 @@
             android:textSize="50dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"></TextView>
+            app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <GridView
@@ -67,7 +67,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"></FrameLayout>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <FrameLayout
         android:id="@+id/gallery_fragment_body_layout"
@@ -78,7 +78,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHeight_max="400dp"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintWidth_max="400dp"></FrameLayout>
+        app:layout_constraintWidth_max="400dp" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
