@@ -234,8 +234,8 @@ class CameraInstance(cameraActivity: CameraActivity) {
         val notBigEnough: MutableList<Size> = ArrayList()
 
         for (option in choices) {
-            var ratioChecked = option.height / option.width
-            var ratioView = textureViewHeight / textureViewWidth
+            val ratioChecked = option.height / option.width
+            val ratioView = textureViewHeight / textureViewWidth
             if (option.width <= maxWidth &&
                 option.height <= maxHeight &&
                 option.height == option.width * h / w

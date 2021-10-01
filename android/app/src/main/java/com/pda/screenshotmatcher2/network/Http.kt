@@ -5,7 +5,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.util.Base64
 import android.util.Log
-import android.view.HapticFeedbackConstants
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
@@ -15,17 +14,15 @@ import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import com.pda.screenshotmatcher2.R
-import com.pda.screenshotmatcher2.logger.StudyLogger
 import com.pda.screenshotmatcher2.activities.CameraActivity
 import com.pda.screenshotmatcher2.fragments.FeedbackFragment
 import com.pda.screenshotmatcher2.helpers.CameraActivityFragmentHandler
 import com.pda.screenshotmatcher2.helpers.getDeviceID
 import com.pda.screenshotmatcher2.helpers.getDeviceName
+import com.pda.screenshotmatcher2.logger.StudyLogger
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.lang.reflect.InvocationTargetException
-import java.util.*
-import kotlin.collections.HashMap
 
 private const val LOG_DEST = "/logs"
 private const val MATCH_DEST = "/match"
@@ -129,16 +126,13 @@ fun sendBitmap(
 
 }
 
-fun sendHeartbeatRequest(serverURL: String, activity: Activity){
-
-}
 
 fun sendHeartbeatRequest(serverURL: String?, context: Context, onFail: () -> Unit){
     if ((serverURL == null || serverURL.isEmpty())) {
         onFail()
     }
     val request = StringRequest(Request.Method.GET, serverURL + HEARTBEAT_DEST,
-        { _ ->
+        {
         },
         {
             onFail()
@@ -170,7 +164,7 @@ fun sendLog(serverURL: String, context: Context){
     }
 
     val jsonObjectRequest = JsonObjectRequest(Request.Method.POST, serverURL + LOG_DEST, json,
-        { _ ->
+        {
         },
         { error ->
             Log.e("log", "Error sending Study Log, server offline")

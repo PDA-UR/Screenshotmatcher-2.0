@@ -9,7 +9,8 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.os.*
+import android.os.Build
+import android.os.Bundle
 import android.util.Log
 import android.view.*
 import android.widget.FrameLayout
@@ -21,24 +22,24 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
-import com.pda.screenshotmatcher2.*
-import com.pda.screenshotmatcher2.helpers.*
+import com.pda.screenshotmatcher2.R
+import com.pda.screenshotmatcher2.helpers.CameraActivityFragmentHandler
+import com.pda.screenshotmatcher2.helpers.createDeviceID
+import com.pda.screenshotmatcher2.helpers.rescale
+import com.pda.screenshotmatcher2.helpers.verifyPermissions
 import com.pda.screenshotmatcher2.logger.StudyLogger
 import com.pda.screenshotmatcher2.network.sendBitmap
 import com.pda.screenshotmatcher2.viewModels.GalleryViewModel
 import com.pda.screenshotmatcher2.viewModels.ServerConnectionViewModel
 import com.pda.screenshotmatcher2.views.CameraInstance
 import java.io.File
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
-import kotlin.concurrent.thread
 
 
 class CameraActivity : AppCompatActivity(), SensorEventListener {
    //Sensors
     private lateinit var mSensorManager : SensorManager
     private lateinit var mAccelerometer : Sensor
-    var phoneOrientation : Int = 0;
+    var phoneOrientation : Int = 0
 
     //Permission ID
     private var surfaceTextureHeight: Int = 0
@@ -130,9 +131,9 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun restoreFromSavedInstance(savedInstanceState: Bundle) {
-        var urlList = savedInstanceState.getStringArrayList(getString(R.string.ca_saved_instance_url_list_key))
-        var hostList = savedInstanceState.getStringArrayList(getString(R.string.ca_saved_instance_host_list_key))
-        var l = mutableListOf<Pair<String, String>>()
+        val urlList = savedInstanceState.getStringArrayList(getString(R.string.ca_saved_instance_url_list_key))
+        val hostList = savedInstanceState.getStringArrayList(getString(R.string.ca_saved_instance_host_list_key))
+        val l = mutableListOf<Pair<String, String>>()
         for (i in 0 until urlList?.size!!) {
             l.add(Pair(urlList[i], hostList?.get(i)) as Pair<String, String>)
         }
@@ -169,14 +170,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     override fun onPause() {
         super.onPause()
         mSensorManager.unregisterListener(this)
-    }
-
-    override fun onStop() {
-        super.onStop()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
     }
 
 
@@ -458,7 +451,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
-    fun getMatchingOptionsFromPref(): HashMap<Any?, Any?>? {
+    private fun getMatchingOptionsFromPref(): HashMap<Any?, Any?>? {
         val matchingMode: HashMap<Any?, Any?>? = HashMap()
         val fastMatchingMode: Boolean = sp.getBoolean(MATCHING_MODE_PREF_KEY, true)
 
@@ -477,16 +470,4 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     }
 
 
-
-    private fun fileBelongsToImageArrayItem(file: File, item: ArrayList<File>): Boolean {
-        //Item has already 2 entries
-        val filename: String = file.name.split("_".toRegex()).first()
-        val itemName: String = item[0].name.split("_".toRegex()).first()
-
-        if (item.size == 2) {
-            return false
-        }
-
-        return filename == itemName
-    }
 }

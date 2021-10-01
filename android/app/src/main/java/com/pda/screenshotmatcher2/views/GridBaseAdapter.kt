@@ -1,16 +1,12 @@
 package com.pda.screenshotmatcher2.views
 
-import android.app.Activity
-import android.app.Application
-import android.content.Context
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.ImageView
-import androidx.fragment.app.Fragment
-import androidx.lifecycle.*
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.activities.CameraActivity
@@ -30,8 +26,8 @@ class GridBaseAdapter(private val context: GalleryFragment): BaseAdapter () {
     }
         override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View? {
         val mInflator: LayoutInflater = LayoutInflater.from(context.activity)
-        var view: View = mInflator.inflate(R.layout.grid_view_item, parent, false)
-        var vh = ListRowHolder(view)
+        val view: View = mInflator.inflate(R.layout.grid_view_item, parent, false)
+        val vh = ListRowHolder(view)
         view.tag = vh
 
         view.setOnClickListener {
