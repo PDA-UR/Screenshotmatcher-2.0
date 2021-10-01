@@ -34,12 +34,6 @@ class SelectDeviceFragment : RotationFragment() {
 
     private fun initServerList() {
         serverConnectionViewModel = ViewModelProvider(requireActivity(), ServerConnectionViewModel.Factory(requireActivity().application)).get(ServerConnectionViewModel::class.java).apply {
-            getServerUrlLiveData().observe(viewLifecycleOwner, Observer {
-                url ->
-                run {
-                    Log.d("CA", "New URL: $url")
-                }
-            })
             getServerUrlListLiveData().observe(viewLifecycleOwner, Observer {
                 urlList ->
                 run {
@@ -47,6 +41,7 @@ class SelectDeviceFragment : RotationFragment() {
                     urlList.forEach { pair: Pair<String, String> ->
                         mServerList.add(pair.second)
                     }
+                    Log.d("SDF", "${urlList.toString()}")
                     adapter.notifyDataSetChanged()
                 }
             })
