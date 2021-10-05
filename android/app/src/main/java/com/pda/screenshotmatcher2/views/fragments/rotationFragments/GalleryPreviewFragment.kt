@@ -1,4 +1,4 @@
-package com.pda.screenshotmatcher2.fragments.rotationFragments
+package com.pda.screenshotmatcher2.views.fragments.rotationFragments
 
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -22,7 +22,7 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModelProvider
 import com.pda.screenshotmatcher2.BuildConfig
 import com.pda.screenshotmatcher2.R
-import com.pda.screenshotmatcher2.activities.CameraActivity
+import com.pda.screenshotmatcher2.views.activities.CameraActivity
 import com.pda.screenshotmatcher2.viewModels.GalleryViewModel
 import java.io.File
 

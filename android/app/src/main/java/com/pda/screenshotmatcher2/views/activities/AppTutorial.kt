@@ -1,4 +1,4 @@
-package com.pda.screenshotmatcher2.activities
+package com.pda.screenshotmatcher2.views.activities
 
 import android.Manifest
 import android.content.Intent
@@ -13,7 +13,7 @@ import com.github.appintro.AppIntro
 import com.github.appintro.AppIntroFragment
 import com.github.appintro.AppIntroPageTransformerType
 import com.pda.screenshotmatcher2.R
-import com.pda.screenshotmatcher2.fragments.AnimatedIntroFragment
+import com.pda.screenshotmatcher2.views.fragments.AnimatedIntroFragment
 
 class AppTutorial : AppIntro() {
     override fun onCreate(savedInstanceState: Bundle?) {

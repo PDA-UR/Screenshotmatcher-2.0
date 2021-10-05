@@ -1,4 +1,4 @@
-package com.pda.screenshotmatcher2.helpers
+package com.pda.screenshotmatcher2.viewHelpers
 
 import android.app.Activity
 import android.graphics.Bitmap
@@ -10,9 +10,9 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentTransaction
 import com.pda.screenshotmatcher2.R
-import com.pda.screenshotmatcher2.activities.CameraActivity
-import com.pda.screenshotmatcher2.fragments.*
-import com.pda.screenshotmatcher2.fragments.rotationFragments.*
+import com.pda.screenshotmatcher2.views.activities.CameraActivity
+import com.pda.screenshotmatcher2.views.fragments.*
+import com.pda.screenshotmatcher2.views.fragments.rotationFragments.*
 import java.io.File
 
 class CameraActivityFragmentHandler(a: Activity) {

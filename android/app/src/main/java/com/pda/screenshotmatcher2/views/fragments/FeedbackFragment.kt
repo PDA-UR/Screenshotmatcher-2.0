@@ -1,4 +1,4 @@
-package com.pda.screenshotmatcher2.fragments
+package com.pda.screenshotmatcher2.views.fragments
 
 import android.content.Context
 import android.os.Bundle

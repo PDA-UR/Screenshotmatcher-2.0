@@ -1,4 +1,4 @@
-package com.pda.screenshotmatcher2.fragments.rotationFragments
+package com.pda.screenshotmatcher2.views.fragments.rotationFragments
 
 import android.os.Bundle
 import android.util.Log
@@ -11,7 +11,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.viewModels.GalleryViewModel
-import com.pda.screenshotmatcher2.views.GridBaseAdapter
+import com.pda.screenshotmatcher2.viewHelpers.GridBaseAdapter
 import java.io.File
 
 class GalleryFragment : RotationFragment() {
