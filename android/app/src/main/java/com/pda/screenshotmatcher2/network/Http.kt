@@ -20,6 +20,7 @@ import com.pda.screenshotmatcher2.viewHelpers.CameraActivityFragmentHandler
 import com.pda.screenshotmatcher2.utils.getDeviceID
 import com.pda.screenshotmatcher2.utils.getDeviceName
 import com.pda.screenshotmatcher2.logger.StudyLogger
+import com.pda.screenshotmatcher2.utils.base64ToBitmap
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.lang.reflect.InvocationTargetException
@@ -124,6 +125,29 @@ fun sendBitmap(
     StudyLogger.hashMap["tc_http_request"] = System.currentTimeMillis()
     queue.add(jsonOR)
 
+}
+
+fun requestFullScreenshot(matchID: String, serverURL: String, context: Context, onDownload: (bitmap: Bitmap?) -> Unit) {
+    val queue = Volley.newRequestQueue(context)
+    val json = JSONObject()
+    json.put("match_id", matchID)
+    val jsonOR = JsonObjectRequest(
+        Request.Method.POST, serverURL + SCREENSHOT_DEST, json,
+        { response ->
+            if(response.has("error")) {
+                if(response.getString("error") == "disabled_by_host_error") {
+                    onDownload(null)
+                }
+            }
+            else {
+                val b64String: String = response.get("result").toString()
+                onDownload(base64ToBitmap(b64String))
+            }
+        },
+        { error ->
+            error.printStackTrace()
+        })
+    queue.add(jsonOR)
 }
 
 
