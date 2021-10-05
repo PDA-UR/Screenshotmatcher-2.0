@@ -1,7 +1,6 @@
 package com.pda.screenshotmatcher2.views.activities
 
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
@@ -20,21 +19,15 @@ import androidx.appcompat.widget.AppCompatButton
 import androidx.appcompat.widget.AppCompatImageButton
 import androidx.core.app.ShareCompat
 import androidx.core.content.FileProvider.getUriForFile
-import com.android.volley.Request
-import com.android.volley.toolbox.JsonObjectRequest
-import com.android.volley.toolbox.Volley
 import com.pda.screenshotmatcher2.*
-import com.pda.screenshotmatcher2.utils.base64ToBitmap
 import com.pda.screenshotmatcher2.utils.getDateString
 import com.pda.screenshotmatcher2.utils.saveBitmapToFile
 import com.pda.screenshotmatcher2.logger.StudyLogger
-import com.pda.screenshotmatcher2.network.SCREENSHOT_DEST
+import com.pda.screenshotmatcher2.network.requestFullScreenshot
 import com.pda.screenshotmatcher2.network.sendLog
-import org.json.JSONObject
 import java.io.File
 
 const val RESULT_ACTIVITY_REQUEST_CODE = 20
-const val RESULT_ACTIVITY_RESULT_CODE = "Result_Result"
 
 class ResultsActivity : AppCompatActivity() {
     //Views
@@ -91,6 +84,20 @@ class ResultsActivity : AppCompatActivity() {
         } else {
             displayFullScreenshotOnly = activateFullScreenshotOnlyMode()
         }
+    }
+
+    //full screenshot only mode = when the user clicks "full image" in the error fragment, no cropped screenshot available
+    private fun activateFullScreenshotOnlyMode(): Boolean {
+        downloadFullScreenshot()
+        mImagePreviewPreviousButton.visibility = View.INVISIBLE
+        mPillNavigationButton1.setBackgroundColor(getColor(R.color.invisible))
+        mPillNavigationButton2.background =
+            resources.getDrawable(R.drawable.pill_navigation_selected_item)
+        mImagePreviewNextButton.visibility = View.INVISIBLE
+        mShareButtonText.text = getString(R.string.result_activity_shareButtonText2_en)
+        mSaveOneButtonText.text = getString(R.string.result_activity_saveOneButtonText2_en)
+        mPillNavigationState *= -1
+        return true
     }
 
     private fun initViews() {
@@ -152,31 +159,31 @@ class ResultsActivity : AppCompatActivity() {
                     Toast.LENGTH_SHORT
                 ).show()
             }
-           else -> {
-               saveFullImageToAppDir()
-               //Save full screenshot to gallery
-               if (fullScreenshotDownloaded) {
-                   MediaStore.Images.Media.insertImage(
-                       contentResolver,
-                       mFullScreenshot,
-                       mFullImageFile.name,
-                       getString(R.string.screenshot_description_en)
-                   )
-                   StudyLogger.hashMap["save_full"] = true
-                   Toast.makeText(
-                       this,
-                       getText(R.string.result_activity_saved_full_en),
-                       Toast.LENGTH_SHORT
-                   ).show()
-               } else {
-                   Toast.makeText(
-                       this,
-                       getText(R.string.http_download_full_error_en),
-                       Toast.LENGTH_LONG
-                   ).show()
-                   downloadFullScreenshotInThread()
-               }
-           }
+            else -> {
+                saveFullImageToAppDir()
+                //Save full screenshot to gallery
+                if (fullScreenshotDownloaded) {
+                    MediaStore.Images.Media.insertImage(
+                        contentResolver,
+                        mFullScreenshot,
+                        mFullImageFile.name,
+                        getString(R.string.screenshot_description_en)
+                    )
+                    StudyLogger.hashMap["save_full"] = true
+                    Toast.makeText(
+                        this,
+                        getText(R.string.result_activity_saved_full_en),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    Toast.makeText(
+                        this,
+                        getText(R.string.http_download_full_error_en),
+                        Toast.LENGTH_LONG
+                    ).show()
+                    downloadFullScreenshot()
+                }
+            }
         }
     }
 
@@ -217,7 +224,7 @@ class ResultsActivity : AppCompatActivity() {
                 } else {
                     //Full screenshot needs to be downloaded, gets saved to gallery on download complete
                     waitingForFullScreenshot = true
-                    downloadFullScreenshotInThread()
+                    downloadFullScreenshot()
                 }
                 StudyLogger.hashMap["save_match"] = true
                 StudyLogger.hashMap["save_full"] = true
@@ -235,7 +242,11 @@ class ResultsActivity : AppCompatActivity() {
                 saveCurrentPreviewImage()
                 //Start sharing
                 val contentUri =
-                    getUriForFile(this, BuildConfig.APPLICATION_ID + ".fileprovider", mCroppedImageFile)
+                    getUriForFile(
+                        this,
+                        BuildConfig.APPLICATION_ID + ".fileprovider",
+                        mCroppedImageFile
+                    )
 
                 val shareIntent = ShareCompat.IntentBuilder.from(this)
                     .setType("image/png")
@@ -275,7 +286,7 @@ class ResultsActivity : AppCompatActivity() {
                         this.type = "image/png"
                         this.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                     }
-                    val shareIntent = Intent.createChooser(sendIntent,null)
+                    val shareIntent = Intent.createChooser(sendIntent, null)
                     startActivity(shareIntent)
                 } else {
                     Toast.makeText(
@@ -283,7 +294,7 @@ class ResultsActivity : AppCompatActivity() {
                         getText(R.string.http_download_full_error_en),
                         Toast.LENGTH_LONG
                     ).show()
-                    downloadFullScreenshotInThread()
+                    downloadFullScreenshot()
                 }
             }
         }
@@ -320,7 +331,7 @@ class ResultsActivity : AppCompatActivity() {
                     if (::mFullScreenshot.isInitialized) {
                         mScreenshotImageView.setImageBitmap(mFullScreenshot)
                     } else {
-                        downloadFullScreenshotInThread()
+                        downloadFullScreenshot()
                     }
                 }
             }
@@ -361,25 +372,35 @@ class ResultsActivity : AppCompatActivity() {
         }
     }
 
-    private fun downloadFullScreenshotInThread() {
+
+    private fun downloadFullScreenshot() {
         Thread {
-            downloadFullScreenshot(
-                matchID,
-                lastDateTime,
-                mServerURL,
-                applicationContext,
+            requestFullScreenshot(
+                matchID = matchID,
+                serverURL = mServerURL,
+                context = applicationContext,
+                onDownload = ::onFullScreenshotDownloaded
             )
         }.start()
     }
 
-    private fun onScreenshotDownloaded(bitmap: Bitmap){
+    private fun onFullScreenshotDownloaded(screenshot: Bitmap?) {
+        when (screenshot) {
+            null -> onFullScreenshotDenied()
+            else -> onFullScreenshotSuccess(screenshot)
+        }
+    }
+
+    private fun onFullScreenshotDenied() {
+        Toast.makeText(this, "Full screenshots not allowed by this PC.", Toast.LENGTH_LONG).show()
+    }
+
+    private fun onFullScreenshotSuccess(bitmap: Bitmap) {
         fullScreenshotDownloaded = true
         mFullScreenshot = bitmap
         if (displayFullScreenshotOnly || mPillNavigationState == 1) {
             mScreenshotImageView.setImageBitmap(mFullScreenshot)
-        }
-
-        else if(waitingForFullScreenshot){
+        } else if (waitingForFullScreenshot) {
             saveFullImageToAppDir()
             //Full screenshot has been requested by the user pressing "save both", save downloaded screenshot to gallery
             MediaStore.Images.Media.insertImage(
@@ -396,20 +417,6 @@ class ResultsActivity : AppCompatActivity() {
         }
     }
 
-    //full screenshot only mode = when the user clicks "full image" in the error fragment, no cropped screenshot available
-    private fun activateFullScreenshotOnlyMode(): Boolean {
-        downloadFullScreenshotInThread()
-        mImagePreviewPreviousButton.visibility = View.INVISIBLE
-        mPillNavigationButton1.setBackgroundColor(getColor(R.color.invisible))
-        mPillNavigationButton2.background =
-            resources.getDrawable(R.drawable.pill_navigation_selected_item)
-        mImagePreviewNextButton.visibility = View.INVISIBLE
-        mShareButtonText.text = getString(R.string.result_activity_shareButtonText2_en)
-        mSaveOneButtonText.text = getString(R.string.result_activity_saveOneButtonText2_en)
-        mPillNavigationState *= -1
-        return true
-    }
-
     private fun goBackToCameraActivity() {
         val intent = Intent()
         if (!hasSharedImage) {
@@ -424,39 +431,6 @@ class ResultsActivity : AppCompatActivity() {
             setResult(Activity.RESULT_OK, intent)
         }
         finish()
-    }
-
-    private fun downloadFullScreenshot(matchID: String, filename: String, serverURL: String, context: Context){
-        lateinit var screenshot : Bitmap
-        val queue = Volley.newRequestQueue(context)
-        val json = JSONObject()
-        json.put("match_id", matchID)
-        val jsonOR = JsonObjectRequest(
-            Request.Method.POST, serverURL + SCREENSHOT_DEST, json,
-            { response ->
-                if(response.has("error")) {
-                    if(response.getString("error") == "disabled_by_host_error") {
-                        onFullScreenshotDenied()
-                    }
-                }
-                else {
-                    val b64String: String = response.get("result").toString()
-                    screenshot =
-                        base64ToBitmap(
-                            b64String
-                        )
-                    onScreenshotDownloaded(screenshot)
-                }
-            },
-            { error ->
-                error.printStackTrace()
-            })
-
-        queue.add(jsonOR)
-    }
-
-    private fun onFullScreenshotDenied() {
-        Toast.makeText(this, "Full screenshots not allowed by this PC.", Toast.LENGTH_LONG).show()
     }
 
     override fun onStop() {
