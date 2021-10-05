@@ -5,6 +5,7 @@ import android.net.wifi.WifiManager
 import androidx.appcompat.app.AppCompatActivity
 import java.io.IOException
 import java.net.*
+import kotlin.jvm.Throws
 
 const val PROTOCOL = "http://"
 const val MAX_SERVERS = 5
