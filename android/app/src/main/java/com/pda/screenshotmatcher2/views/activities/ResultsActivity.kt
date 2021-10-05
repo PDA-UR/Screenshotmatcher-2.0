@@ -1,4 +1,4 @@
-package com.pda.screenshotmatcher2.activities
+package com.pda.screenshotmatcher2.views.activities
 
 import android.app.Activity
 import android.content.Context
@@ -24,9 +24,9 @@ import com.android.volley.Request
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
 import com.pda.screenshotmatcher2.*
-import com.pda.screenshotmatcher2.helpers.base64ToBitmap
-import com.pda.screenshotmatcher2.helpers.getDateString
-import com.pda.screenshotmatcher2.helpers.saveBitmapToFile
+import com.pda.screenshotmatcher2.utils.base64ToBitmap
+import com.pda.screenshotmatcher2.utils.getDateString
+import com.pda.screenshotmatcher2.utils.saveBitmapToFile
 import com.pda.screenshotmatcher2.logger.StudyLogger
 import com.pda.screenshotmatcher2.network.SCREENSHOT_DEST
 import com.pda.screenshotmatcher2.network.sendLog

@@ -1,4 +1,4 @@
-package com.pda.screenshotmatcher2.views
+package com.pda.screenshotmatcher2.viewHelpers
 
 import android.Manifest
 import android.content.Context
@@ -14,9 +14,9 @@ import android.view.Surface
 import android.view.TextureView
 import androidx.core.app.ActivityCompat
 import com.pda.screenshotmatcher2.R
-import com.pda.screenshotmatcher2.activities.CameraActivity
-import com.pda.screenshotmatcher2.helpers.CompareSizesByArea
-import com.pda.screenshotmatcher2.helpers.rotateBitmap
+import com.pda.screenshotmatcher2.views.activities.CameraActivity
+import com.pda.screenshotmatcher2.utils.CompareSizesByArea
+import com.pda.screenshotmatcher2.utils.rotateBitmap
 import com.pda.screenshotmatcher2.logger.StudyLogger
 import java.util.*
 import java.util.concurrent.Semaphore

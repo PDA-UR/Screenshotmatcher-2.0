@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/results_activity_background"
-    tools:context=".activities.ResultsActivity">
+    tools:context=".views.activities.ResultsActivity">
 
     <androidx.appcompat.widget.AppCompatImageButton
         android:id="@+id/ra_backButton"

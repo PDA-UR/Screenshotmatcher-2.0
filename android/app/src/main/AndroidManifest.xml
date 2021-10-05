@@ -22,13 +22,13 @@
         android:theme="@style/Theme.AppCompat.Light.NoActionBar"
         tools:targetApi="n">
 
-        <activity android:name=".activities.AppTutorial"
+        <activity android:name="com.pda.screenshotmatcher2.views.activities.AppTutorial"
             android:label="Tutorial" />
-        <activity android:name=".activities.ResultsActivity"
+        <activity android:name="com.pda.screenshotmatcher2.views.activities.ResultsActivity"
             android:configChanges="orientation"
             android:screenOrientation="portrait">
         </activity>
-        <activity android:name=".activities.CameraActivity"
+        <activity android:name="com.pda.screenshotmatcher2.views.activities.CameraActivity"
             android:screenOrientation="portrait"
             android:configChanges="orientation|keyboardHidden">
             <intent-filter>

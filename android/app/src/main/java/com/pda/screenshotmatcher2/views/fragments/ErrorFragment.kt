@@ -1,4 +1,4 @@
-package com.pda.screenshotmatcher2.fragments
+package com.pda.screenshotmatcher2.views.fragments
 
 import android.content.Intent
 import android.graphics.Bitmap
@@ -16,8 +16,8 @@ import androidx.fragment.app.FragmentTransaction
 import com.bumptech.glide.Glide
 import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.logger.StudyLogger
-import com.pda.screenshotmatcher2.activities.RESULT_ACTIVITY_REQUEST_CODE
-import com.pda.screenshotmatcher2.activities.ResultsActivity
+import com.pda.screenshotmatcher2.views.activities.RESULT_ACTIVITY_REQUEST_CODE
+import com.pda.screenshotmatcher2.views.activities.ResultsActivity
 import com.pda.screenshotmatcher2.network.sendLog
 
 const val UID_KEY: String = "UID"

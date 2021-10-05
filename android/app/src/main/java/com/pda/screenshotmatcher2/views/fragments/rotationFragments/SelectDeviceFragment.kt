@@ -1,8 +1,7 @@
-package com.pda.screenshotmatcher2.fragments.rotationFragments
+package com.pda.screenshotmatcher2.views.fragments.rotationFragments
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.HapticFeedbackConstants
 import android.view.View
 import android.widget.*

@@ -1,4 +1,4 @@
-package com.pda.screenshotmatcher2.fragments.rotationFragments
+package com.pda.screenshotmatcher2.views.fragments.rotationFragments
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -8,8 +8,8 @@ import android.widget.FrameLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import com.pda.screenshotmatcher2.R
-import com.pda.screenshotmatcher2.activities.CameraActivity
-import com.pda.screenshotmatcher2.fragments.removeForRotation
+import com.pda.screenshotmatcher2.views.activities.CameraActivity
+import com.pda.screenshotmatcher2.views.fragments.removeForRotation
 import java.io.File
 
 abstract class RotationFragment : Fragment() {

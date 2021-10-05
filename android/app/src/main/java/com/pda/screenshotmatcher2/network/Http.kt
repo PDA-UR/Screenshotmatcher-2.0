@@ -14,11 +14,11 @@ import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import com.pda.screenshotmatcher2.R
-import com.pda.screenshotmatcher2.activities.CameraActivity
-import com.pda.screenshotmatcher2.fragments.FeedbackFragment
-import com.pda.screenshotmatcher2.helpers.CameraActivityFragmentHandler
-import com.pda.screenshotmatcher2.helpers.getDeviceID
-import com.pda.screenshotmatcher2.helpers.getDeviceName
+import com.pda.screenshotmatcher2.views.activities.CameraActivity
+import com.pda.screenshotmatcher2.views.fragments.FeedbackFragment
+import com.pda.screenshotmatcher2.viewHelpers.CameraActivityFragmentHandler
+import com.pda.screenshotmatcher2.utils.getDeviceID
+import com.pda.screenshotmatcher2.utils.getDeviceName
 import com.pda.screenshotmatcher2.logger.StudyLogger
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
