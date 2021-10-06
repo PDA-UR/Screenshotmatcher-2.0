@@ -43,6 +43,7 @@ class CaptureViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun loadFullScreenshot() {
+        Log.d("CVM", "calling load")
         if (CaptureModel.getMatchID() != null && CaptureModel.getServerURL() != null) {
             Thread {
                 requestFullScreenshot(

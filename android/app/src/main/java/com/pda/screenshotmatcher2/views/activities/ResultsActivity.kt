@@ -19,6 +19,7 @@ import androidx.appcompat.widget.AppCompatButton
 import androidx.appcompat.widget.AppCompatImageButton
 import androidx.core.app.ShareCompat
 import androidx.core.content.FileProvider.getUriForFile
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.pda.screenshotmatcher2.*
 import com.pda.screenshotmatcher2.utils.getDateString
@@ -80,6 +81,12 @@ class ResultsActivity : AppCompatActivity() {
 
         captureViewModel = ViewModelProvider(this, CaptureViewModel.Factory(application)).get(
             CaptureViewModel::class.java)
+        captureViewModel.getLiveDataFullScreenshot().observe(this, Observer {
+            full ->
+            run {
+                if (full != null) Log.d("RA", "got full with width: ${full.width.toString()}")
+            }
+        })
         //if there is no cropped image, enter full screenshot only mode, not switching between images possible
         if (intent.hasExtra("img")) {
             val imgByteArray = intent.getByteArrayExtra("img")!!
@@ -388,6 +395,7 @@ class ResultsActivity : AppCompatActivity() {
                 onDownload = ::onFullScreenshotDownloaded
             )
         }.start()
+        captureViewModel.loadFullScreenshot()
     }
 
     private fun onFullScreenshotDownloaded(screenshot: Bitmap?) {
