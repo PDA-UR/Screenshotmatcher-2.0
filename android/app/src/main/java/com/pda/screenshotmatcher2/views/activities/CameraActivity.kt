@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -32,6 +33,7 @@ import com.pda.screenshotmatcher2.network.sendBitmap
 import com.pda.screenshotmatcher2.viewModels.GalleryViewModel
 import com.pda.screenshotmatcher2.viewModels.ServerConnectionViewModel
 import com.pda.screenshotmatcher2.viewHelpers.CameraInstance
+import com.pda.screenshotmatcher2.viewModels.CaptureViewModel
 
 
 class CameraActivity : AppCompatActivity(), SensorEventListener {
@@ -60,6 +62,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     private lateinit var galleryViewModel: GalleryViewModel
     private lateinit var serverConnectionViewModel: ServerConnectionViewModel
+    private lateinit var captureViewModel: CaptureViewModel
 
     //custom helper classes for server connection, fragment management and camera preview
     lateinit var cameraActivityFragmentHandler: CameraActivityFragmentHandler
@@ -114,7 +117,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
                 isConnected -> updateConnectionStatus(isConnected)
             })
         }
-
+        captureViewModel = ViewModelProvider(this, CaptureViewModel.Factory(application)).get(CaptureViewModel::class.java)
     }
 
     private fun checkForFirstRun(context: Context) {
@@ -226,6 +229,8 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         window.decorView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
         val mBitmap = cameraInstance.captureImageWithPreviewExtraction()
         val mServerURL = serverConnectionViewModel.getServerUrl()
+        Log.d("CA", "Setting model url: $mServerURL")
+        captureViewModel.setCaptureRequestData(mServerURL, mBitmap!!)
         if (mBitmap != null) {
             if (mServerURL != ""){
                 StudyLogger.hashMap["tc_image_captured"] = System.currentTimeMillis()   // image is in memory
@@ -351,6 +356,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     fun onMatchResult(matchID: String, img: ByteArray) {
         cameraInstance.isCapturing = false
         window.decorView.performHapticFeedback(HapticFeedbackConstants.REJECT)
+        captureViewModel.setCaptureResultData(matchID, BitmapFactory.decodeByteArray(img, 0, img.size))
         startResultsActivity(matchID, img)
     }
 

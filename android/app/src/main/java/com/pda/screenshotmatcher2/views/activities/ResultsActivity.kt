@@ -19,12 +19,14 @@ import androidx.appcompat.widget.AppCompatButton
 import androidx.appcompat.widget.AppCompatImageButton
 import androidx.core.app.ShareCompat
 import androidx.core.content.FileProvider.getUriForFile
+import androidx.lifecycle.ViewModelProvider
 import com.pda.screenshotmatcher2.*
 import com.pda.screenshotmatcher2.utils.getDateString
 import com.pda.screenshotmatcher2.utils.saveBitmapToFile
 import com.pda.screenshotmatcher2.logger.StudyLogger
 import com.pda.screenshotmatcher2.network.requestFullScreenshot
 import com.pda.screenshotmatcher2.network.sendLog
+import com.pda.screenshotmatcher2.viewModels.CaptureViewModel
 import java.io.File
 
 const val RESULT_ACTIVITY_REQUEST_CODE = 20
@@ -59,6 +61,8 @@ class ResultsActivity : AppCompatActivity() {
     private var croppedScreenshotDownloaded = false
     private var waitingForFullScreenshot = false
 
+    private lateinit var captureViewModel: CaptureViewModel
+
     // -1 = cropped page, 1 = full page
     private var mPillNavigationState: Int = -1
 
@@ -74,6 +78,8 @@ class ResultsActivity : AppCompatActivity() {
         StudyLogger.hashMap["tc_result_shown"] = System.currentTimeMillis()
         lastDateTime = getDateString()
 
+        captureViewModel = ViewModelProvider(this, CaptureViewModel.Factory(application)).get(
+            CaptureViewModel::class.java)
         //if there is no cropped image, enter full screenshot only mode, not switching between images possible
         if (intent.hasExtra("img")) {
             val imgByteArray = intent.getByteArrayExtra("img")!!
