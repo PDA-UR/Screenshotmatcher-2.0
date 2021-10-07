@@ -1,6 +1,7 @@
 package com.pda.screenshotmatcher2.views.activities
 
 import android.app.Activity
+import android.app.job.JobScheduler
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -20,20 +21,22 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
 import com.pda.screenshotmatcher2.R
-import com.pda.screenshotmatcher2.viewHelpers.CameraActivityFragmentHandler
+import com.pda.screenshotmatcher2.background.PhotosContentJob
+import com.pda.screenshotmatcher2.logger.StudyLogger
+import com.pda.screenshotmatcher2.network.sendBitmap
 import com.pda.screenshotmatcher2.utils.createDeviceID
 import com.pda.screenshotmatcher2.utils.rescale
 import com.pda.screenshotmatcher2.utils.verifyPermissions
-import com.pda.screenshotmatcher2.logger.StudyLogger
-import com.pda.screenshotmatcher2.network.sendBitmap
-import com.pda.screenshotmatcher2.viewModels.GalleryViewModel
-import com.pda.screenshotmatcher2.viewModels.ServerConnectionViewModel
+import com.pda.screenshotmatcher2.viewHelpers.CameraActivityFragmentHandler
 import com.pda.screenshotmatcher2.viewHelpers.CameraInstance
 import com.pda.screenshotmatcher2.viewModels.CaptureViewModel
+import com.pda.screenshotmatcher2.viewModels.GalleryViewModel
+import com.pda.screenshotmatcher2.viewModels.ServerConnectionViewModel
 
 
 class CameraActivity : AppCompatActivity(), SensorEventListener {
@@ -83,6 +86,10 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         initViews()
         setViewListeners()
 
+
+
+
+
         cameraActivityFragmentHandler =
             CameraActivityFragmentHandler(
                 this
@@ -96,6 +103,12 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
 
         initViewModels()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        if (!PhotosContentJob.isScheduled(applicationContext)) PhotosContentJob.scheduleJob(applicationContext)
+        else Log.d("CA", "job already running")
     }
 
     private fun initViewModels() {
