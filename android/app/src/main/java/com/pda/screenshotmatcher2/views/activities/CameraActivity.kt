@@ -391,7 +391,8 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         mSettingsButton.visibility = View.VISIBLE
     }
 
-    fun onOpenErrorFragment() {
+    fun onOpenErrorFragment(uid: String) {
+        captureViewModel.setCaptureResultData(uid, null)
         cameraInstance.isCapturing = false
     }
 

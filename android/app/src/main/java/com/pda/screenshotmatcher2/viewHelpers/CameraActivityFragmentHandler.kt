@@ -51,7 +51,7 @@ class CameraActivityFragmentHandler(a: Activity) {
     }
 
     fun openErrorFragment(uid: String, extractedImage: Bitmap) {
-        activity.onOpenErrorFragment()
+        activity.onOpenErrorFragment(uid)
         val bundle = Bundle().apply {
             putString(UID_KEY, uid)
             //TODO: Add real URL

@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
@@ -25,7 +24,6 @@ import com.pda.screenshotmatcher2.*
 import com.pda.screenshotmatcher2.utils.getDateString
 import com.pda.screenshotmatcher2.utils.saveBitmapToFile
 import com.pda.screenshotmatcher2.logger.StudyLogger
-import com.pda.screenshotmatcher2.network.requestFullScreenshot
 import com.pda.screenshotmatcher2.network.sendLog
 import com.pda.screenshotmatcher2.viewModels.CaptureViewModel
 import java.io.File
@@ -51,8 +49,6 @@ class ResultsActivity : AppCompatActivity() {
     private lateinit var mCroppedImageFile: File
     private lateinit var mServerURL: String
     private lateinit var lastDateTime: String
-    private lateinit var mCroppedScreenshot: Bitmap
-    private lateinit var mFullScreenshot: Bitmap
     private lateinit var matchID: String
 
     private var displayFullScreenshotOnly: Boolean = false
@@ -60,9 +56,10 @@ class ResultsActivity : AppCompatActivity() {
 
     private var fullScreenshotDownloaded = false
     private var croppedScreenshotDownloaded = false
-    private var waitingForFullScreenshot = false
+    private var isWaitingForShare = false
 
     private lateinit var captureViewModel: CaptureViewModel
+    private var didRegisterObservers = false
 
     // -1 = cropped page, 1 = full page
     private var mPillNavigationState: Int = -1
@@ -80,23 +77,27 @@ class ResultsActivity : AppCompatActivity() {
         lastDateTime = getDateString()
 
         captureViewModel = ViewModelProvider(this, CaptureViewModel.Factory(application)).get(
-            CaptureViewModel::class.java)
-        captureViewModel.getLiveDataFullScreenshot().observe(this, Observer {
-            full ->
-            run {
-                if (full != null) Log.d("RA", "got full with width: ${full.width.toString()}")
-            }
-        })
-        //if there is no cropped image, enter full screenshot only mode, not switching between images possible
-        if (intent.hasExtra("img")) {
-            val imgByteArray = intent.getByteArrayExtra("img")!!
-            mCroppedScreenshot = BitmapFactory.decodeByteArray(imgByteArray, 0, imgByteArray.size)
-            mScreenshotImageView.setImageBitmap(mCroppedScreenshot)
+            CaptureViewModel::class.java
+        )
+
+        // only full screenshot available
+        if (captureViewModel.getCroppedScreenshot() == null) {
+            Log.d("RA", "cropped = null")
+            displayFullScreenshotOnly = true
+            activateFullScreenshotOnlyMode()
+        } else {
+            mScreenshotImageView.setImageBitmap(captureViewModel.getCroppedScreenshot())
             saveCroppedImageToAppDir()
             croppedScreenshotDownloaded = true
-        } else {
-            displayFullScreenshotOnly = activateFullScreenshotOnlyMode()
         }
+            captureViewModel.getLiveDataFullScreenshot().observe(this, Observer { fullScreenshot ->
+                run {
+                    // prevent calling the event when registering the observer
+                    if (didRegisterObservers)
+                        onFullScreenshotDownloaded(fullScreenshot)
+                    else didRegisterObservers = true
+                }
+            })
     }
 
     //full screenshot only mode = when the user clicks "full image" in the error fragment, no cropped screenshot available
@@ -161,7 +162,7 @@ class ResultsActivity : AppCompatActivity() {
                 //Save cropped screenshot to gallery
                 MediaStore.Images.Media.insertImage(
                     contentResolver,
-                    mCroppedScreenshot,
+                    captureViewModel.getCroppedScreenshot(),
                     mCroppedImageFile.name,
                     getString(R.string.screenshot_description_en)
                 )
@@ -178,7 +179,7 @@ class ResultsActivity : AppCompatActivity() {
                 if (fullScreenshotDownloaded) {
                     MediaStore.Images.Media.insertImage(
                         contentResolver,
-                        mFullScreenshot,
+                        captureViewModel.getFullScreenshot(),
                         mFullImageFile.name,
                         getString(R.string.screenshot_description_en)
                     )
@@ -216,7 +217,7 @@ class ResultsActivity : AppCompatActivity() {
                 saveCroppedImageToAppDir()
                 MediaStore.Images.Media.insertImage(
                     contentResolver,
-                    mCroppedScreenshot,
+                    captureViewModel.getCroppedScreenshot(),
                     mCroppedImageFile.name,
                     getString(R.string.screenshot_description_en)
                 )
@@ -225,7 +226,7 @@ class ResultsActivity : AppCompatActivity() {
                     //Save full screenshot if it has been downloaded already
                     MediaStore.Images.Media.insertImage(
                         contentResolver,
-                        mFullScreenshot,
+                        captureViewModel.getFullScreenshot(),
                         mFullImageFile.name,
                         getString(R.string.screenshot_description_en)
                     )
@@ -236,7 +237,7 @@ class ResultsActivity : AppCompatActivity() {
                     ).show()
                 } else {
                     //Full screenshot needs to be downloaded, gets saved to gallery on download complete
-                    waitingForFullScreenshot = true
+                    isWaitingForShare = true
                     downloadFullScreenshot()
                 }
                 StudyLogger.hashMap["save_match"] = true
@@ -328,7 +329,7 @@ class ResultsActivity : AppCompatActivity() {
                     mShareButtonText.text = getString(R.string.result_activity_shareButtonText1_en)
                     mSaveOneButtonText.text =
                         getString(R.string.result_activity_saveOneButtonText1_en)
-                    mScreenshotImageView.setImageBitmap(mCroppedScreenshot)
+                    mScreenshotImageView.setImageBitmap(captureViewModel.getCroppedScreenshot())
 
                 }
                 1 -> {
@@ -341,8 +342,8 @@ class ResultsActivity : AppCompatActivity() {
                     mShareButtonText.text = getString(R.string.result_activity_shareButtonText2_en)
                     mSaveOneButtonText.text =
                         getString(R.string.result_activity_saveOneButtonText2_en)
-                    if (::mFullScreenshot.isInitialized) {
-                        mScreenshotImageView.setImageBitmap(mFullScreenshot)
+                    if (captureViewModel.getFullScreenshot() != null) {
+                        mScreenshotImageView.setImageBitmap(captureViewModel.getFullScreenshot())
                     } else {
                         downloadFullScreenshot()
                     }
@@ -365,10 +366,12 @@ class ResultsActivity : AppCompatActivity() {
                 getExternalFilesDir(Environment.DIRECTORY_PICTURES),
                 lastDateTime + "_Cropped.png"
             )
-            saveBitmapToFile(
-                mCroppedImageFile,
-                mCroppedScreenshot
-            )
+            captureViewModel.getCroppedScreenshot()?.let {
+                saveBitmapToFile(
+                    mCroppedImageFile,
+                    it
+                )
+            }
         }
     }
 
@@ -378,48 +381,43 @@ class ResultsActivity : AppCompatActivity() {
                 getExternalFilesDir(Environment.DIRECTORY_PICTURES),
                 lastDateTime + "_Full.png"
             )
-            saveBitmapToFile(
-                mFullImageFile,
-                mFullScreenshot
-            )
+            captureViewModel.getFullScreenshot()?.let {
+                saveBitmapToFile(
+                    mFullImageFile,
+                    it
+                )
+            }
         }
     }
 
 
     private fun downloadFullScreenshot() {
-        Thread {
-            requestFullScreenshot(
-                matchID = matchID,
-                serverURL = mServerURL,
-                context = applicationContext,
-                onDownload = ::onFullScreenshotDownloaded
-            )
-        }.start()
         captureViewModel.loadFullScreenshot()
     }
 
     private fun onFullScreenshotDownloaded(screenshot: Bitmap?) {
-        when (screenshot) {
-            null -> onFullScreenshotDenied()
-            else -> onFullScreenshotSuccess(screenshot)
+            when (screenshot) {
+                null -> onFullScreenshotDenied()
+                else -> onFullScreenshotSuccess(screenshot)
         }
+
     }
 
     private fun onFullScreenshotDenied() {
+        isWaitingForShare = false
         Toast.makeText(this, "Full screenshots not allowed by this PC.", Toast.LENGTH_LONG).show()
     }
 
     private fun onFullScreenshotSuccess(bitmap: Bitmap) {
         fullScreenshotDownloaded = true
-        mFullScreenshot = bitmap
         if (displayFullScreenshotOnly || mPillNavigationState == 1) {
-            mScreenshotImageView.setImageBitmap(mFullScreenshot)
-        } else if (waitingForFullScreenshot) {
+            mScreenshotImageView.setImageBitmap(captureViewModel.getFullScreenshot())
+        } else if (isWaitingForShare) {
             saveFullImageToAppDir()
             //Full screenshot has been requested by the user pressing "save both", save downloaded screenshot to gallery
             MediaStore.Images.Media.insertImage(
                 contentResolver,
-                mFullScreenshot,
+                captureViewModel.getFullScreenshot(),
                 getString(R.string.full_screenshot_title_en),
                 getString(R.string.screenshot_description_en)
             )
@@ -428,6 +426,7 @@ class ResultsActivity : AppCompatActivity() {
                 getText(R.string.result_activity_saved_both_en),
                 Toast.LENGTH_SHORT
             ).show()
+            isWaitingForShare = false
         }
     }
 
