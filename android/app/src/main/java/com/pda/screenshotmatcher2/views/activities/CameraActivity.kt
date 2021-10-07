@@ -11,8 +11,10 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.media.MediaParser.SeekPoint.START
 import android.os.Build
 import android.os.Bundle
+import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import android.view.*
 import android.widget.FrameLayout
@@ -26,6 +28,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
 import com.pda.screenshotmatcher2.R
+import com.pda.screenshotmatcher2.background.NewPhotoService
 import com.pda.screenshotmatcher2.background.PhotosContentJob
 import com.pda.screenshotmatcher2.logger.StudyLogger
 import com.pda.screenshotmatcher2.network.sendBitmap
@@ -107,8 +110,17 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onStart() {
         super.onStart()
-        if (!PhotosContentJob.isScheduled(applicationContext)) PhotosContentJob.scheduleJob(applicationContext)
-        else Log.d("CA", "job already running")
+        Intent(this, NewPhotoService::class.java).also {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                Log.d("CA","Starting the service in >=26 Mode")
+                startForegroundService(it)
+                return
+            }
+            Log.d("CA","Starting the service in < 26 Mode")
+            startService(it)
+        }
+        //if (!PhotosContentJob.isScheduled(applicationContext)) PhotosContentJob.scheduleJob(applicationContext)
+        //else Log.d("CA", "job already running")
     }
 
     private fun initViewModels() {
