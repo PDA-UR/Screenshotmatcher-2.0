@@ -30,7 +30,7 @@ class ServerConnectionViewModel(application: Application) : AndroidViewModel(app
     private val isSendingHeartbeat: MutableLiveData<Boolean> = ServerConnectionModel.isHeartbeating
 
     private fun start() {
-        ServerConnectionModel.start(getApplication())
+        ServerConnectionModel.start(getApplication(), true)
     }
 
     fun getConnectedServerName(): String {

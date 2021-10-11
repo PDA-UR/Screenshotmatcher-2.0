@@ -126,7 +126,103 @@ fun sendBitmap(
     queue.add(jsonOR)
 
 }
+fun sendBitmap2(
+    bitmap: Bitmap,
+    serverURL: String,
+    context: Context,
+    matchingOptions: HashMap<Any?, Any?>? = null,
+    permissionToken: String? = "",
+    matchID: String? = "",
+    cb: (String?, ByteArray?, Bitmap) -> Unit
+){
+    val baos = ByteArrayOutputStream()
+    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
+    val b64Image = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT)
 
+    val queue = Volley.newRequestQueue(context)
+    val json = JSONObject()
+    matchingOptions?.forEach{ (key, value) ->
+        json.put(key.toString(), value.toString())
+    }
+    // keys: "algorithm", "ORB_nfeatures", "SURF_hessian_threshold"
+
+    // add the device name
+    json.put("device_name", getDeviceName())
+
+    // add device ID for verification
+    val id =
+        getDeviceID(context)
+    json.put("device_id", id)
+
+    if (permissionToken != null) {
+        if(permissionToken.isNotEmpty()) {
+            json.put("permission_token", permissionToken)
+        }
+    }
+    if (matchID != null) {
+        if(matchID.isNotEmpty()) {
+            json.put("match_id", matchID)
+        }
+    }
+
+    // add the image
+    json.put("b64", b64Image)
+
+    val jsonOR = JsonObjectRequest(
+        Request.Method.POST, serverURL + MATCH_DEST, json,
+        { response ->
+            StudyLogger.hashMap["tc_http_response"] = System.currentTimeMillis()
+            Log.d("HTTP", response.toString())
+            try{
+                StudyLogger.hashMap["match_id"] = response.get("uid").toString()
+            } catch (e: Exception) {
+                Log.d("HTTP", e.toString())
+                Log.d("HTTP", response.toString())
+            }
+            if (response.has("error")){
+                if(response.getString("error") == "permission_error") {
+                    cb(null, null, bitmap)
+                }
+                else if(response.getString("error") == "permission_required") {
+                    /* TODO: Request
+                    requestPermission(
+                        bitmap,
+                        serverURL,
+                        activity,
+                        matchingOptions,
+                        response.get("uid").toString()
+                    )
+
+                     */
+                    Log.d("HTTP", "TODO: IMPLEMENT")
+                }
+            }
+            else if (response.get("hasResult").toString() != "false") {
+                Log.d("HTTP", "Has result: ${response.get("hasResult").toString()}")
+                try {
+                    val b64ImageString = response.get("b64").toString()
+                    if (b64ImageString.isNotEmpty()) {
+                        val byteArray = Base64.decode(b64ImageString, Base64.DEFAULT)
+                        //downloadFullScreenshot(response.get("uid").toString(), "screenshot.png", serverURL, context)
+                        cb(response.get("uid").toString(), byteArray, bitmap)
+
+                    }
+                } catch (e: InvocationTargetException) {
+                    Log.e("HTTP", "b64 string error")
+                }
+            }
+            cb(response.get("uid").toString(), null, bitmap)
+
+        },
+        { error ->
+                cb(null, null, bitmap)
+
+        })
+
+    StudyLogger.hashMap["tc_http_request"] = System.currentTimeMillis()
+    queue.add(jsonOR)
+
+}
 fun requestFullScreenshot(matchID: String, serverURL: String, context: Context, onDownload: (bitmap: Bitmap?) -> Unit) {
     val queue = Volley.newRequestQueue(context)
     val json = JSONObject()

@@ -3,6 +3,7 @@ package com.pda.screenshotmatcher2.background
 import android.app.*
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.database.ContentObserver
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -14,11 +15,13 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.preference.PreferenceManager
 import com.pda.screenshotmatcher2.R
+import com.pda.screenshotmatcher2.models.ServerConnectionModel
+import com.pda.screenshotmatcher2.network.sendBitmap2
+import com.pda.screenshotmatcher2.utils.rescale
 import com.pda.screenshotmatcher2.views.activities.CameraActivity
-import java.io.BufferedInputStream
 import java.io.File
-import java.io.InputStream
 
 
 class NewPhotoService : Service() {
@@ -28,11 +31,14 @@ class NewPhotoService : Service() {
         private lateinit var observer: FileObserver
         private lateinit var contentObserver: ContentObserver
         private var lastPath: String = ""
+    private lateinit var sp: SharedPreferences
+    private lateinit var MATCHING_MODE_PREF_KEY: String
 
         private fun startService() {
             Log.d("NPS", "started fg")
             if (isServiceStarted) return
             isServiceStarted = true
+            ServerConnectionModel.start(application, false)
             // Prevent Doze mode
             //acquireDozeLock()
             val pathToWatch = File(Environment.getExternalStorageDirectory().toString() + "/" + Environment.DIRECTORY_DCIM + "/")
@@ -120,21 +126,22 @@ class NewPhotoService : Service() {
                         Log.d("NPS", path)
                         val file = File(path)
                         val image = BitmapFactory.decodeFile(file.path)
-
-
-                        //val image = MediaStore.Images.Media.getBitmap(contentResolver, uri)
-                        val notification = NotificationCompat.Builder(this@NewPhotoService, "ENDLESS SERVICE CHANNEL")
-                            .setSmallIcon(R.drawable.ic_baseline_close_48)
-                            .setContentTitle("NEW PHOTO")
-                            .setContentText("New photo content")
-                            .setStyle(
-                                NotificationCompat.BigPictureStyle()
-                                .bigPicture(image))
-
-                        with(NotificationManagerCompat.from(this@NewPhotoService)) {
-                            // notificationId is a unique int for each notification that you must define
-                            notify(1, notification.build())
+                        val greyImg = rescale(
+                            image,
+                            512
+                        )
+                        val serverUrl = ServerConnectionModel.serverUrl.value
+                        if (serverUrl != null && serverUrl != "") {
+                            Log.d("NPS", serverUrl)
+                            val matchingOptions: java.util.HashMap<Any?, Any?>? = getMatchingOptionsFromPref()
+                            Log.d("NPS", "sending bitmap")
+                            sendBitmap2(greyImg, serverUrl, this@NewPhotoService, matchingOptions, null, null, ::onMatch)
+                        } else {
+                            Log.d("NPS", "invalid serverURL")
                         }
+
+
+
                     } else {
                         path?.let { Log.d("NPS", "Not printed: $path") }
                     }
@@ -148,7 +155,50 @@ class NewPhotoService : Service() {
         )
     }
 
+    private fun onMatch(matchId: String?, ba: ByteArray?, original: Bitmap?) {
+        Log.d("NPS", "GOT RESPONSE")
+        if(ba != null) {
+            val image = BitmapFactory.decodeByteArray(ba, 0, ba.size)
+            //val image = MediaStore.Images.Media.getBitmap(contentResolver, uri)
+            val notification = NotificationCompat.Builder(this@NewPhotoService, "ENDLESS SERVICE CHANNEL")
+                .setSmallIcon(R.drawable.ic_baseline_close_48)
+                .setContentTitle("NEW PHOTO")
+                .setContentText("New photo content")
+                .setStyle(
+                    NotificationCompat.BigPictureStyle()
+                        .bigPicture(image))
 
+            with(NotificationManagerCompat.from(this@NewPhotoService)) {
+                // notificationId is a unique int for each notification that you must define
+                notify(1, notification.build())
+            }
+        } else {
+            Log.d("NPS", "result = Null")
+        }
+
+    }
+
+    private fun getMatchingOptionsFromPref(): HashMap<Any?, Any?>? {
+        if (!::sp.isInitialized) {
+            sp = PreferenceManager.getDefaultSharedPreferences(this)
+            MATCHING_MODE_PREF_KEY = getString(R.string.settings_algorithm_key)
+        }
+        val matchingMode: HashMap<Any?, Any?>? = HashMap()
+        val fastMatchingMode: Boolean = sp.getBoolean(MATCHING_MODE_PREF_KEY, true)
+
+        if (fastMatchingMode) {
+            matchingMode?.set(
+                getString(R.string.algorithm_key_server),
+                getString(R.string.algorithm_fast_mode_name_server)
+            )
+        } else {
+            matchingMode?.set(
+                getString(R.string.algorithm_key_server),
+                getString(R.string.algorithm_accurate_mode_name_server)
+            )
+        }
+        return matchingMode
+    }
 
     fun getPathFromObserverUri(uri: Uri): String? {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {

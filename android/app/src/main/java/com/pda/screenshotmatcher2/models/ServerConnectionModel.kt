@@ -55,7 +55,7 @@ object ServerConnectionModel {
     }
 
 
-    fun start(application: Application) {
+    fun start(application: Application, isForeground: Boolean) {
         this.application = application
         if (!isDiscovering.value!! && !isHeartbeating.value!!) {
             handlerThread = HandlerThread(this.javaClass.simpleName).apply { start() }
