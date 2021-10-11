@@ -11,23 +11,24 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.pda.screenshotmatcher2.models.ServerConnectionModel
 import com.pda.screenshotmatcher2.network.discoverServersOnNetwork
 import com.pda.screenshotmatcher2.network.sendHeartbeatRequest
 
 class ServerConnectionViewModel(application: Application) : AndroidViewModel(application) {
 
     private val mServerURL: MutableLiveData<String> by lazy {
-        MutableLiveData("").also {
+        MutableLiveData(ServerConnectionModel.getServerUrl()).also {
             start()
         }
     }
 
     private val mServerUrlList: MutableLiveData<List<Pair<String, String>>> =
-        MutableLiveData(emptyList())
+        MutableLiveData(ServerConnectionModel.getServerUrlList())
 
-    val isConnectedToServer: MutableLiveData<Boolean> = MutableLiveData(false)
-    private val isDiscovering: MutableLiveData<Boolean> = MutableLiveData(false)
-    private val isSendingHeartbeat: MutableLiveData<Boolean> = MutableLiveData(false)
+    val isConnectedToServer: MutableLiveData<Boolean> = MutableLiveData(ServerConnectionModel.getConnected())
+    private val isDiscovering: MutableLiveData<Boolean> = MutableLiveData(ServerConnectionModel.getDiscovering())
+    private val isSendingHeartbeat: MutableLiveData<Boolean> = MutableLiveData(ServerConnectionModel.getHeartbeating())
 
     private val END_ALL_THREADS: Int = 0
     private val START_DISCOVER: Int = 1
@@ -91,7 +92,7 @@ class ServerConnectionViewModel(application: Application) : AndroidViewModel(app
 
     private fun startHeartbeatThread() {
         if (handlerThread.isAlive) {
-            isSendingHeartbeat.postValue(true)
+            isSendingHeartbeat.postValue(ServerConnectionModel.setHeartbeating(true))
             mHandler.sendMessage(mHandler.obtainMessage(START_HEARTBEAT))
         }
     }
@@ -103,7 +104,7 @@ class ServerConnectionViewModel(application: Application) : AndroidViewModel(app
 
     private fun startDiscoverThread() {
         if (handlerThread.isAlive) {
-            isDiscovering.postValue(true)
+            isDiscovering.postValue(ServerConnectionModel.setDiscovering(true))
             mHandler.sendMessage(mHandler.obtainMessage(START_DISCOVER))
         }
     }
@@ -111,12 +112,13 @@ class ServerConnectionViewModel(application: Application) : AndroidViewModel(app
     private fun requestServerURL(context: Context) {
         Thread {
             mServerUrlList.postValue(
-                discoverServersOnNetwork(
+                ServerConnectionModel.setServerUrlList(discoverServersOnNetwork(
                     context,
                     49050,
                     "",
                     ::onServerURLsGet
-                )
+                ))
+
             )
         }.start()
     }
@@ -134,24 +136,24 @@ class ServerConnectionViewModel(application: Application) : AndroidViewModel(app
     fun setServerUrl(hostname: String) {
         mServerUrlList.value?.forEach {
             if (it.second == hostname) {
-                mServerURL.postValue(it.first)
+                mServerURL.postValue(ServerConnectionModel.setServerUrl(it.first))
                 onConnectionChanged(true)
             }
         }
     }
 
     private fun updateServerUrlList(newServers: List<Pair<String, String>>) {
-        mServerUrlList.postValue(newServers)
+        mServerUrlList.postValue( ServerConnectionModel.setServerUrlList(newServers))
     }
 
 
     private fun onConnectionChanged(isConnected: Boolean) {
-        isDiscovering.postValue(!isConnected)
-        isSendingHeartbeat.postValue(isConnected)
-        isConnectedToServer.postValue(isConnected)
+        isDiscovering.postValue(ServerConnectionModel.setDiscovering(!isConnected))
+        isSendingHeartbeat.postValue(ServerConnectionModel.setHeartbeating(isConnected))
+        isConnectedToServer.postValue(ServerConnectionModel.setConnected(isConnected))
         if (isConnected) startHeartbeatThread()
         else {
-            mServerURL.value = ""
+            mServerURL.value = ServerConnectionModel.setServerUrl("")
             startDiscoverThread()
         }
     }
@@ -167,8 +169,8 @@ class ServerConnectionViewModel(application: Application) : AndroidViewModel(app
     }
 
     fun stop() {
-        isDiscovering.postValue(false)
-        isSendingHeartbeat.postValue(false)
+        isDiscovering.postValue(ServerConnectionModel.setDiscovering(false))
+        isSendingHeartbeat.postValue(ServerConnectionModel.setHeartbeating(false))
         handlerThread.quitSafely()
     }
 
