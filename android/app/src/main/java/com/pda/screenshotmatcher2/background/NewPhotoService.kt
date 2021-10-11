@@ -4,15 +4,21 @@ import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.database.ContentObserver
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.net.Uri
 import android.os.*
 import android.provider.MediaStore
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.views.activities.CameraActivity
+import java.io.BufferedInputStream
 import java.io.File
+import java.io.InputStream
 
 
 class NewPhotoService : Service() {
@@ -21,6 +27,7 @@ class NewPhotoService : Service() {
         private var isServiceStarted = false
         private lateinit var observer: FileObserver
         private lateinit var contentObserver: ContentObserver
+        private var lastPath: String = ""
 
         private fun startService() {
             Log.d("NPS", "started fg")
@@ -102,12 +109,35 @@ class NewPhotoService : Service() {
     }
 
 
-    fun startContentObserver() {
+    private fun startContentObserver() {
         contentObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
             override fun onChange(selfChange: Boolean, uri: Uri?) {
                 super.onChange(selfChange, uri)
                 if (uri != null) {
-                    getPathFromObserverUri(uri)?.let { Log.d("NPS", it) }
+                    val path = getPathFromObserverUri(uri)
+                    if (path != null && lastPath != path && !path.contains(Regex("/_"))) {
+                        lastPath = path
+                        Log.d("NPS", path)
+                        val file = File(path)
+                        val image = BitmapFactory.decodeFile(file.path)
+
+
+                        //val image = MediaStore.Images.Media.getBitmap(contentResolver, uri)
+                        val notification = NotificationCompat.Builder(this@NewPhotoService, "ENDLESS SERVICE CHANNEL")
+                            .setSmallIcon(R.drawable.ic_baseline_close_48)
+                            .setContentTitle("NEW PHOTO")
+                            .setContentText("New photo content")
+                            .setStyle(
+                                NotificationCompat.BigPictureStyle()
+                                .bigPicture(image))
+
+                        with(NotificationManagerCompat.from(this@NewPhotoService)) {
+                            // notificationId is a unique int for each notification that you must define
+                            notify(1, notification.build())
+                        }
+                    } else {
+                        path?.let { Log.d("NPS", "Not printed: $path") }
+                    }
                 }
             }
         }
@@ -117,6 +147,8 @@ class NewPhotoService : Service() {
             contentObserver
         )
     }
+
+
 
     fun getPathFromObserverUri(uri: Uri): String? {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -130,6 +162,7 @@ class NewPhotoService : Service() {
     @RequiresApi(Build.VERSION_CODES.Q)
     fun queryRelativeDataColumn(uri: Uri): String? {
         var relativePath: String? = null
+        var name: String? = null
         val projection = arrayOf(
             MediaStore.Images.Media.DISPLAY_NAME,
             MediaStore.Images.Media.RELATIVE_PATH
@@ -146,8 +179,9 @@ class NewPhotoService : Service() {
             val displayNameColumn =
                 cursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME)
             while (cursor.moveToNext()) {
-                val name = cursor.getString(displayNameColumn)
-                relativePath = cursor.getString(relativePathColumn) + "/" + name
+                name = cursor.getString(displayNameColumn)
+                // TODO : Remove?
+                relativePath = "${Environment.getExternalStorageDirectory()}/${cursor.getString(relativePathColumn)}$name"
             }
         }
         return relativePath
