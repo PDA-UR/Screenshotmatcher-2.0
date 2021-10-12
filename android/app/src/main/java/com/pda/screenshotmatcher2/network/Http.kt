@@ -203,6 +203,7 @@ fun sendBitmap2(
                     val b64ImageString = response.get("b64").toString()
                     if (b64ImageString.isNotEmpty()) {
                         val byteArray = Base64.decode(b64ImageString, Base64.DEFAULT)
+
                         //downloadFullScreenshot(response.get("uid").toString(), "screenshot.png", serverURL, context)
                         cb(response.get("uid").toString(), byteArray, bitmap)
 
@@ -210,8 +211,9 @@ fun sendBitmap2(
                 } catch (e: InvocationTargetException) {
                     Log.e("HTTP", "b64 string error")
                 }
+            } else {
+                cb(response.get("uid").toString(), null, bitmap)
             }
-            cb(response.get("uid").toString(), null, bitmap)
 
         },
         { error ->

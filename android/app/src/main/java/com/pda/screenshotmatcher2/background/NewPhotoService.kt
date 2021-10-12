@@ -8,6 +8,7 @@ import android.database.ContentObserver
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.media.ThumbnailUtils
 import android.net.Uri
 import android.os.*
 import android.provider.MediaStore
@@ -22,40 +23,56 @@ import com.pda.screenshotmatcher2.network.sendBitmap2
 import com.pda.screenshotmatcher2.utils.rescale
 import com.pda.screenshotmatcher2.views.activities.CameraActivity
 import java.io.File
+import java.util.*
+import kotlin.collections.HashMap
 
 
 class NewPhotoService : Service() {
 
-        private var wakeLock: PowerManager.WakeLock? = null
-        private var isServiceStarted = false
-        private lateinit var observer: FileObserver
-        private lateinit var contentObserver: ContentObserver
-        private var lastPath: String = ""
+    private var wakeLock: PowerManager.WakeLock? = null
+    private var isServiceStarted = false
+    private lateinit var observer: FileObserver
+    private lateinit var contentObserver: ContentObserver
+    private var lastPath: String = ""
     private lateinit var sp: SharedPreferences
     private lateinit var MATCHING_MODE_PREF_KEY: String
-
-        private fun startService() {
-            Log.d("NPS", "started fg")
-            if (isServiceStarted) return
-            isServiceStarted = true
-            ServerConnectionModel.start(application, false)
-            // Prevent Doze mode
-            //acquireDozeLock()
-            val pathToWatch = File(Environment.getExternalStorageDirectory().toString() + "/" + Environment.DIRECTORY_DCIM + "/")
-            startContentObserver()
-        }
-        fun stopService(context: Context) {
-            try {
-                // release doze mode lock
-                //releaseDozeLock()
-                contentResolver.unregisterContentObserver(contentObserver)
-                stopForeground(true)
-                stopSelf()
-            } catch (e: Exception) {
-                Log.d("NPS", "Service stopped without being started: ${e.message}")
+    private var timestamp : Long = 0
+    companion object {
+        var lastPaths: LinkedList<String> = object : LinkedList<String>() {
+            override fun push(e: String?) {
+                if (size > 10) removeAt(10)
+                super.push(e)
             }
-            isServiceStarted = false
         }
+    }
+
+
+    private fun startService() {
+        Log.d("NPS", "started fg")
+        if (isServiceStarted) return
+        isServiceStarted = true
+        ServerConnectionModel.start(application, false)
+        // Prevent Doze mode
+        //acquireDozeLock()
+        val pathToWatch = File(
+            Environment.getExternalStorageDirectory()
+                .toString() + "/" + Environment.DIRECTORY_DCIM + "/"
+        )
+        startContentObserver()
+    }
+
+    fun stopService(context: Context) {
+        try {
+            // release doze mode lock
+            //releaseDozeLock()
+            contentResolver.unregisterContentObserver(contentObserver)
+            stopForeground(true)
+            stopSelf()
+        } catch (e: Exception) {
+            Log.d("NPS", "Service stopped without being started: ${e.message}")
+        }
+        isServiceStarted = false
+    }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         startService()
@@ -79,7 +96,8 @@ class NewPhotoService : Service() {
         // depending on the Android API that we're dealing with we will have
         // to use a specific method to create the notification
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager;
+            val notificationManager =
+                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             val channel = NotificationChannel(
                 notificationChannelId,
                 "Endless Service notifications channel",
@@ -95,18 +113,20 @@ class NewPhotoService : Service() {
             notificationManager.createNotificationChannel(channel)
         }
 
-        val pendingIntent: PendingIntent = Intent(this, CameraActivity::class.java).let { notificationIntent ->
-            PendingIntent.getActivity(this, 0, notificationIntent, 0)
-        }
+        val pendingIntent: PendingIntent =
+            Intent(this, CameraActivity::class.java).let { notificationIntent ->
+                PendingIntent.getActivity(this, 0, notificationIntent, 0)
+            }
 
-        val builder: Notification.Builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) Notification.Builder(
-            this,
-            notificationChannelId
-        ) else Notification.Builder(this)
+        val builder: Notification.Builder =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) Notification.Builder(
+                this,
+                notificationChannelId
+            ) else Notification.Builder(this)
 
         return builder
-            .setContentTitle("Endless Service")
-            .setContentText("This is your favorite endless service working")
+            .setContentTitle("ScreenshotMatcher")
+            .setContentText("ScreenshotMatcher is active in the background")
             .setContentIntent(pendingIntent)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setTicker("Ticker text")
@@ -121,25 +141,55 @@ class NewPhotoService : Service() {
                 super.onChange(selfChange, uri)
                 if (uri != null) {
                     val path = getPathFromObserverUri(uri)
-                    if (path != null && lastPath != path && !path.contains(Regex("/_"))) {
-                        lastPath = path
+                    if (path != null && !lastPaths.contains(path) && !path.contains(Regex("/_"))) {
+                        lastPaths.push(path)
+                        Log.d("NPS", "call path: $path, paths: ${lastPaths}}")
+                        timestamp = System.currentTimeMillis()
                         Log.d("NPS", path)
                         val file = File(path)
-                        val image = BitmapFactory.decodeFile(file.path)
+                        Log.d("NPS_TS", "loaded file" + (System.currentTimeMillis() - timestamp).toString())
+                        timestamp = System.currentTimeMillis()
+                        //val ogBitmap = BitmapFactory.decodeFile(file.absolutePath)
+                        val image = decodeSampledBitmapFromResource(file, 512, 512)
+                        //val mImage = MediaStore.Images.Media.getBitmap(contentResolver,uri)
+                        //Log.d("NPS", image.width.toString())
+                        Log.d("NPS_TS", "loaded og bitmap " + (System.currentTimeMillis() - timestamp).toString())
+                        timestamp = System.currentTimeMillis()
+                        //val image = BitmapFactory.decodeFile(file.path)
+                        val THUMBSIZE = 512
+
+                       /*val image = ThumbnailUtils.extractThumbnail(
+                            ogBitmap,
+                            THUMBSIZE,
+                            THUMBSIZE
+                        )*/
+                        Log.d("NPS_TS", "decoded bitmap from file after:" + (System.currentTimeMillis() - timestamp).toString())
+                        timestamp = System.currentTimeMillis()
                         val greyImg = rescale(
                             image,
                             512
                         )
+                        Log.d("NPS_TS", "Converted grey after: " + (System.currentTimeMillis() - timestamp).toString())
+                        timestamp = System.currentTimeMillis()
                         val serverUrl = ServerConnectionModel.serverUrl.value
                         if (serverUrl != null && serverUrl != "") {
                             Log.d("NPS", serverUrl)
-                            val matchingOptions: java.util.HashMap<Any?, Any?>? = getMatchingOptionsFromPref()
-                            Log.d("NPS", "sending bitmap")
-                            sendBitmap2(greyImg, serverUrl, this@NewPhotoService, matchingOptions, null, null, ::onMatch)
+                            val matchingOptions: java.util.HashMap<Any?, Any?>? =
+                                getMatchingOptionsFromPref()
+                            Log.d("NPS_TS", "Sending bitmap after: " + (System.currentTimeMillis() - timestamp).toString())
+                            timestamp = System.currentTimeMillis()
+                            sendBitmap2(
+                                greyImg,
+                                serverUrl,
+                                this@NewPhotoService,
+                                matchingOptions,
+                                null,
+                                null,
+                                ::onMatch
+                            )
                         } else {
                             Log.d("NPS", "invalid serverURL")
                         }
-
 
 
                     } else {
@@ -155,25 +205,87 @@ class NewPhotoService : Service() {
         )
     }
 
+    fun decodeSampledBitmapFromResource(
+        file: File,
+        reqWidth: Int,
+        reqHeight: Int
+    ): Bitmap {
+        // First decode with inJustDecodeBounds=true to check dimensions
+        return BitmapFactory.Options().run {
+            inJustDecodeBounds = true
+            BitmapFactory.decodeFile(file.path, this)
+
+            // Calculate inSampleSize
+            inSampleSize = calculateInSampleSize(this, reqWidth, reqHeight)
+
+            // Decode bitmap with inSampleSize set
+            inJustDecodeBounds = false
+
+            BitmapFactory.decodeFile(file.path, this)
+        }
+    }
+
+    fun calculateInSampleSize(options: BitmapFactory.Options, reqWidth: Int, reqHeight: Int): Int {
+        // Raw height and width of image
+        val (height: Int, width: Int) = options.run { outHeight to outWidth }
+        var inSampleSize = 4
+
+        if (height > reqHeight || width > reqWidth) {
+
+            val halfHeight: Int = height / 2
+            val halfWidth: Int = width / 2
+
+            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+            // height and width larger than the requested height and width.
+            while (halfHeight / inSampleSize >= reqHeight && halfWidth / inSampleSize >= reqWidth) {
+                inSampleSize *= 2
+            }
+        }
+
+        return inSampleSize
+    }
+
+
+
     private fun onMatch(matchId: String?, ba: ByteArray?, original: Bitmap?) {
-        Log.d("NPS", "GOT RESPONSE")
-        if(ba != null) {
+        Log.d("NPS_TS", "got response after:" + (System.currentTimeMillis() - timestamp).toString())
+        Log.d("NPS", "matchid: $matchId, url: ${ServerConnectionModel.serverUrl.value}")
+        Log.d("NPS", "Byte array: ${ba}")
+        timestamp = System.currentTimeMillis()
+        if (ba != null) {
             val image = BitmapFactory.decodeByteArray(ba, 0, ba.size)
             //val image = MediaStore.Images.Media.getBitmap(contentResolver, uri)
-            val notification = NotificationCompat.Builder(this@NewPhotoService, "ENDLESS SERVICE CHANNEL")
-                .setSmallIcon(R.drawable.ic_baseline_close_48)
-                .setContentTitle("NEW PHOTO")
-                .setContentText("New photo content")
-                .setStyle(
-                    NotificationCompat.BigPictureStyle()
-                        .bigPicture(image))
+            val notification =
+                NotificationCompat.Builder(this@NewPhotoService, "ENDLESS SERVICE CHANNEL")
+                    .setSmallIcon(R.drawable.ic_baseline_close_48)
+                    .setContentTitle("ScreenshotMatcher")
+                    .setContentText("Looks like you took a screenshot!")
+                    .setStyle(
+                        NotificationCompat.BigPictureStyle()
+                            .bigPicture(image)
+                    )
 
             with(NotificationManagerCompat.from(this@NewPhotoService)) {
                 // notificationId is a unique int for each notification that you must define
                 notify(1, notification.build())
             }
+            Log.d("NPS_TS", "sent notification after: " + (System.currentTimeMillis() - timestamp).toString())
+            timestamp = System.currentTimeMillis()
         } else {
-            Log.d("NPS", "result = Null")
+            val notification =
+                NotificationCompat.Builder(this@NewPhotoService, "ENDLESS SERVICE CHANNEL")
+                    .setSmallIcon(R.drawable.ic_baseline_close_48)
+                    .setContentTitle("ScreenshotMatcher")
+                    .setContentText("NO SCREENSHOT")
+                    .setStyle(
+                        NotificationCompat.BigPictureStyle()
+                            .bigPicture(original)
+                    )
+
+            with(NotificationManagerCompat.from(this@NewPhotoService)) {
+                // notificationId is a unique int for each notification that you must define
+                notify(1, notification.build())
+            }
         }
 
     }
@@ -231,7 +343,9 @@ class NewPhotoService : Service() {
             while (cursor.moveToNext()) {
                 name = cursor.getString(displayNameColumn)
                 // TODO : Remove?
-                relativePath = "${Environment.getExternalStorageDirectory()}/${cursor.getString(relativePathColumn)}$name"
+                relativePath = "${Environment.getExternalStorageDirectory()}/${cursor.getString(
+                    relativePathColumn
+                )}$name"
             }
         }
         return relativePath
@@ -253,7 +367,7 @@ class NewPhotoService : Service() {
             val dataColumn = cursor.getColumnIndex(MediaStore.Images.Media.DATA)
             while (cursor.moveToNext()) {
                 val path = cursor.getString(dataColumn)
-                    // do something
+                // do something
                 returnPath = path
             }
         }
@@ -271,7 +385,10 @@ class NewPhotoService : Service() {
                 when {
                     // bitwise AND operation needed to check
                     CREATE and event != 0 -> {
-                        Log.d("NPS", "File created [" + pathToWatch.toString() + fileName.toString() + "]")
+                        Log.d(
+                            "NPS",
+                            "File created [" + pathToWatch.toString() + fileName.toString() + "]"
+                        )
                     }
                     MODIFY and event != 0 -> {
                         Log.d("NPS", "modified")
@@ -296,10 +413,11 @@ class NewPhotoService : Service() {
         wakeLock =
             (getSystemService(Context.POWER_SERVICE) as PowerManager).run {
                 newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "NewPhotoService::lock").apply {
-                    acquire(10*60*1000L /*10 minutes*/)
+                    acquire(10 * 60 * 1000L /*10 minutes*/)
                 }
             }
     }
+
     fun releaseDozeLock() {
         wakeLock?.let {
             if (it.isHeld) {

@@ -108,8 +108,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         initViewModels()
     }
 
-    override fun onStart() {
-        super.onStart()
+    private fun startBackgroundService() {
         Intent(this, NewPhotoService::class.java).also {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 Log.d("CA","Starting the service in >=26 Mode")
@@ -121,6 +120,13 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         }
         //if (!PhotosContentJob.isScheduled(applicationContext)) PhotosContentJob.scheduleJob(applicationContext)
         //else Log.d("CA", "job already running")
+    }
+
+    private fun stopBackgroundService() {
+        Intent(this, NewPhotoService::class.java).also {
+            Log.d("CA","Stopping service")
+            stopService(it)
+        }
     }
 
     private fun initViewModels() {
@@ -180,7 +186,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onResume() {
         super.onResume()
-
+        stopBackgroundService()
         // due to a bug in Android, the list of sensors returned by the SensorManager can be empty
         // it will stay that way until reboot.
         // make sure we tell the user about it.
@@ -196,6 +202,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onPause() {
         super.onPause()
+        startBackgroundService()
         mSensorManager.unregisterListener(this)
     }
 
