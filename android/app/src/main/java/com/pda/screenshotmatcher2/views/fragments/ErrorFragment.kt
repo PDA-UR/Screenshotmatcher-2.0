@@ -1,8 +1,6 @@
 package com.pda.screenshotmatcher2.views.fragments
 
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
@@ -13,15 +11,15 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
+import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.logger.StudyLogger
 import com.pda.screenshotmatcher2.views.activities.RESULT_ACTIVITY_REQUEST_CODE
 import com.pda.screenshotmatcher2.views.activities.ResultsActivity
 import com.pda.screenshotmatcher2.network.sendLog
+import com.pda.screenshotmatcher2.viewModels.CaptureViewModel
 
-const val UID_KEY: String = "UID"
-const val URL_KEY: String = "URL"
 
 class ErrorFragment : Fragment() {
     //Views
@@ -32,27 +30,13 @@ class ErrorFragment : Fragment() {
     private lateinit var mFragmentBackground: FrameLayout
     private lateinit var mErrorImageView: ImageView
 
-    //Full screenshot info
-    private lateinit var uid: String
-    private lateinit var url: String
-    private lateinit var bmp: Bitmap
+    private lateinit var captureViewModel: CaptureViewModel
 
     private var resultsOpened = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val bundle = this.arguments
-        if (bundle != null) {
-            uid = bundle.getString(UID_KEY, "undefined")
-            url = bundle.getString(URL_KEY, "undefined")
-            bmp = if (bundle.getParcelable<Bitmap>("bmp") == null){
-                BitmapFactory.decodeResource(context?.resources,
-                    R.drawable.ic_comic_characters_sad
-                )
-            } else {
-                bundle.getParcelable("bmp")!!
-            }
-        }
+        captureViewModel = ViewModelProvider(requireActivity(), CaptureViewModel.Factory(requireActivity().application)).get(CaptureViewModel::class.java)
     }
 
     override fun onCreateView(
@@ -81,15 +65,13 @@ class ErrorFragment : Fragment() {
         mFragmentBackground.visibility = View.VISIBLE
         mErrorImageView = requireView().findViewById(R.id.errorFragmentImage)
         Glide.with(requireActivity())
-            .load(bmp)
+            .load(captureViewModel.getCameraImage())
             .centerCrop()
             .into(mErrorImageView)
     }
 
     private fun openResultsActivity() {
         val intent = Intent(activity, ResultsActivity::class.java)
-        intent.putExtra("matchID", uid)
-        intent.putExtra("ServerURL", url)
         resultsOpened = true
         activity?.startActivityForResult(intent,
             RESULT_ACTIVITY_REQUEST_CODE
@@ -100,8 +82,6 @@ class ErrorFragment : Fragment() {
     private fun openFeedbackFragment() {
         val feedbackFragment = FeedbackFragment()
         feedbackFragment.arguments = Bundle().apply {
-            putString(UID_KEY, uid)
-            putString(URL_KEY, url)
         }
 
         activity?.supportFragmentManager
@@ -124,7 +104,7 @@ class ErrorFragment : Fragment() {
     override fun onStop() {
         super.onStop()
         if (!resultsOpened) {
-            sendLog(url, requireContext())
+            captureViewModel.getServerURL()?.let { sendLog(it, requireContext()) }
             StudyLogger.hashMap.clear()
         }
     }
