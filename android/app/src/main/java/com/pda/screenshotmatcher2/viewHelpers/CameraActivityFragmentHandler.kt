@@ -1,7 +1,6 @@
 package com.pda.screenshotmatcher2.viewHelpers
 
 import android.app.Activity
-import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
 import android.view.HapticFeedbackConstants
@@ -12,7 +11,8 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentTransaction
 import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.views.activities.CameraActivity
-import com.pda.screenshotmatcher2.views.fragments.*
+import com.pda.screenshotmatcher2.views.fragments.ErrorFragment
+import com.pda.screenshotmatcher2.views.fragments.SettingsFragment
 import com.pda.screenshotmatcher2.views.fragments.rotationFragments.*
 import java.io.File
 
