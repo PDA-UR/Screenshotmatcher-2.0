@@ -112,7 +112,7 @@ fun sendBitmap(
             }
             else if (activity is CameraActivity) {
                 val fm: CameraActivityFragmentHandler = activity.cameraActivityFragmentHandler
-                fm.openErrorFragment(response.get("uid").toString(), bitmap)
+                fm.openErrorFragment(response.get("uid").toString())
             }
         },
         { error ->

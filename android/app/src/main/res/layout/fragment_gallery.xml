@@ -36,7 +36,7 @@
             android:layout_height="0dp"
             android:layout_gravity="center"
             android:text="@string/gallery_en"
-            android:textSize="50dp"
+            android:textSize="50sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />

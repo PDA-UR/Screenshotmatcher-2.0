@@ -2,6 +2,7 @@ package com.pda.screenshotmatcher2.viewHelpers
 
 import android.app.Activity
 import android.graphics.Bitmap
+import android.os.Build
 import android.os.Bundle
 import android.view.HapticFeedbackConstants
 import android.view.View
@@ -23,7 +24,9 @@ class CameraActivityFragmentHandler(a: Activity) {
     private var fm: FragmentManager = activity.supportFragmentManager
 
     private fun openFragment(fragment: Fragment, containerID: Int, transition: Int? = null){
-        activity.window.decorView.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            activity.window.decorView.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+        }
         fm
             .beginTransaction()
             .add(containerID, fragment, fragment::class.simpleName)
@@ -50,16 +53,9 @@ class CameraActivityFragmentHandler(a: Activity) {
         }
     }
 
-    fun openErrorFragment(uid: String, extractedImage: Bitmap) {
+    fun openErrorFragment(uid: String) {
         activity.onOpenErrorFragment(uid)
-        val bundle = Bundle().apply {
-            putString(UID_KEY, uid)
-            //TODO: Add real URL
-            putString(URL_KEY, "233")
-            putParcelable(activity.getString(R.string.EXTRACTED_IMAGE_KEY), extractedImage)
-        }
-
-        openFragment(ErrorFragment().apply { arguments = bundle }, R.id.fragment_container_view, FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+        openFragment(ErrorFragment(), R.id.fragment_container_view, FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
 
     }
 

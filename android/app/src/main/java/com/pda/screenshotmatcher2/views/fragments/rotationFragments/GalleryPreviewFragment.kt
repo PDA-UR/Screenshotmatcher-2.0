@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.graphics.BitmapFactory
+import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
@@ -15,6 +16,7 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.AppCompatButton
 import androidx.appcompat.widget.AppCompatImageButton
 import androidx.core.app.ShareCompat
@@ -120,7 +122,7 @@ class GalleryPreviewFragment : RotationFragment() {
                     R.color.invisible
                 ))
                 mPillNavigationButton1.background =
-                    resources.getDrawable(R.drawable.pill_navigation_selected_item)
+                    AppCompatResources.getDrawable(requireContext(), R.drawable.pill_navigation_selected_item)
                 if (numberOfAvailableImages == 2) {
                     mImagePreviewNextButton.visibility = View.VISIBLE
                     mImagePreviewPreviousButton.visibility = View.INVISIBLE
@@ -136,7 +138,7 @@ class GalleryPreviewFragment : RotationFragment() {
                     R.color.invisible
                 ))
                 mPillNavigationButton2.background =
-                    resources.getDrawable(R.drawable.pill_navigation_selected_item)
+                    AppCompatResources.getDrawable(requireContext(), R.drawable.pill_navigation_selected_item)
                 if (numberOfAvailableImages == 2) {
                     mImagePreviewPreviousButton.visibility = View.VISIBLE
                     mImagePreviewNextButton.visibility = View.INVISIBLE
@@ -303,7 +305,9 @@ class GalleryPreviewFragment : RotationFragment() {
 
     override fun removeThisFragment(removeBackground: Boolean) {
         super.removeThisFragment(removeBackground)
-        requireActivity().window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            requireActivity().window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
+        }
         if (removeBackground) mFragmentBackground.visibility = View.INVISIBLE
     }
     override fun removeThisFragmentForRotation(): ArrayList<File?> {

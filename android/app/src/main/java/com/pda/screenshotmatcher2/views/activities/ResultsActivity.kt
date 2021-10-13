@@ -14,6 +14,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.AppCompatButton
 import androidx.appcompat.widget.AppCompatImageButton
 import androidx.core.app.ShareCompat
@@ -47,9 +48,7 @@ class ResultsActivity : AppCompatActivity() {
 
     private lateinit var mFullImageFile: File
     private lateinit var mCroppedImageFile: File
-    private lateinit var mServerURL: String
     private lateinit var lastDateTime: String
-    private lateinit var matchID: String
 
     private var displayFullScreenshotOnly: Boolean = false
     private var hasSharedImage: Boolean = false
@@ -69,9 +68,6 @@ class ResultsActivity : AppCompatActivity() {
         setContentView(R.layout.activity_results)
         initViews()
         setViewListeners()
-
-        mServerURL = intent.getStringExtra("ServerURL")!!
-        matchID = intent.getStringExtra("matchID")!!
 
         StudyLogger.hashMap["tc_result_shown"] = System.currentTimeMillis()
         lastDateTime = getDateString()
@@ -106,7 +102,7 @@ class ResultsActivity : AppCompatActivity() {
         mImagePreviewPreviousButton.visibility = View.INVISIBLE
         mPillNavigationButton1.setBackgroundColor(getColor(R.color.invisible))
         mPillNavigationButton2.background =
-            resources.getDrawable(R.drawable.pill_navigation_selected_item)
+            AppCompatResources.getDrawable(this, R.drawable.pill_navigation_selected_item)
         mImagePreviewNextButton.visibility = View.INVISIBLE
         mShareButtonText.text = getString(R.string.result_activity_shareButtonText2_en)
         mSaveOneButtonText.text = getString(R.string.result_activity_saveOneButtonText2_en)
@@ -323,7 +319,7 @@ class ResultsActivity : AppCompatActivity() {
                     //Switch to cropped screenshot
                     mPillNavigationButton2.setBackgroundColor(getColor(R.color.invisible))
                     mPillNavigationButton1.background =
-                        resources.getDrawable(R.drawable.pill_navigation_selected_item)
+                        AppCompatResources.getDrawable(this, R.drawable.pill_navigation_selected_item)
                     mImagePreviewPreviousButton.visibility = View.INVISIBLE
                     mImagePreviewNextButton.visibility = View.VISIBLE
                     mShareButtonText.text = getString(R.string.result_activity_shareButtonText1_en)
@@ -336,7 +332,7 @@ class ResultsActivity : AppCompatActivity() {
                     //Switch to full screenshot
                     mPillNavigationButton1.setBackgroundColor(getColor(R.color.invisible))
                     mPillNavigationButton2.background =
-                        resources.getDrawable(R.drawable.pill_navigation_selected_item)
+                        AppCompatResources.getDrawable(this, R.drawable.pill_navigation_selected_item)
                     mImagePreviewPreviousButton.visibility = View.VISIBLE
                     mImagePreviewNextButton.visibility = View.INVISIBLE
                     mShareButtonText.text = getString(R.string.result_activity_shareButtonText2_en)
@@ -449,7 +445,7 @@ class ResultsActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
 
-        sendLog(mServerURL, this)
+        captureViewModel.getServerURL()?.let { sendLog(it, this) }
         StudyLogger.hashMap.clear()
     }
 }

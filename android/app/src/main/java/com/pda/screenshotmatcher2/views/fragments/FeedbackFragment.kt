@@ -1,6 +1,7 @@
 package com.pda.screenshotmatcher2.views.fragments
 
 import android.content.Context
+import android.os.Build
 import android.os.Bundle
 import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
@@ -10,10 +11,11 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
+import androidx.lifecycle.ViewModelProvider
 import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.logger.StudyLogger
 import com.pda.screenshotmatcher2.network.sendFeedbackToServer
-
+import com.pda.screenshotmatcher2.viewModels.CaptureViewModel
 
 //Views
 private lateinit var layout: LinearLayout
@@ -22,21 +24,19 @@ private lateinit var mFragmentBackground: FrameLayout
 private lateinit var mSendFeedbackButton: Button
 private lateinit var mTextInputField: EditText
 
-//Server info
-private lateinit var uid: String
-private lateinit var url: String
-
 var removeForRotation: Boolean = false
+
+private lateinit var captureViewModel: CaptureViewModel
 
 class FeedbackFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val bundle = this.arguments
-        if (bundle != null) {
-            uid = bundle.getString(UID_KEY, "undefined")
-            url = bundle.getString(URL_KEY, "undefined")
-        }
+        // load viewmodel to access get matchid and server url when posting feedback
+        captureViewModel = ViewModelProvider(
+            requireActivity(),
+            CaptureViewModel.Factory(requireActivity().application)
+        ).get(CaptureViewModel::class.java)
     }
 
     override fun onCreateView(
@@ -54,7 +54,7 @@ class FeedbackFragment : Fragment() {
         initViews()
     }
 
-    fun onFeedbackPosted(){
+    fun onFeedbackPosted() {
         removeThisFragment()
         StudyLogger.hashMap["feedback_sent"] = true
         Toast.makeText(context, getText(R.string.ff_submit_success_en), Toast.LENGTH_LONG).show()
@@ -71,12 +71,12 @@ class FeedbackFragment : Fragment() {
         return mTextInputField.hasFocus()
     }
 
-    private fun initViews(){
+    private fun initViews() {
         layout = activity?.findViewById(
             R.id.ff_linearLayout
         )!!
         layout.setOnClickListener {
-            if (isKeyboardActive()){
+            if (isKeyboardActive()) {
                 dismissKeyboard()
             }
         }
@@ -86,9 +86,9 @@ class FeedbackFragment : Fragment() {
         )!!
         mFragmentBackground.apply {
             setOnClickListener {
-                if (isKeyboardActive()){
+                if (isKeyboardActive()) {
                     dismissKeyboard()
-                } else{
+                } else {
                     removeThisFragment()
                 }
             }
@@ -101,15 +101,16 @@ class FeedbackFragment : Fragment() {
             R.id.ff_send_feedback_button
         )!!
         mSendFeedbackButton.setOnClickListener {
-            sendFeedbackToServer(
-                this,
-                requireActivity().applicationContext,
-                url,
-                uid,
-                hasResult = false,
-                hasScreenshot = false,
-                comment = getInputTextFieldText()
-            )
+            if (captureViewModel.getServerURL() != null && captureViewModel.getMatchID() != null)
+                sendFeedbackToServer(
+                    this,
+                    requireActivity().applicationContext,
+                    captureViewModel.getServerURL()!!,
+                    captureViewModel.getMatchID()!!,
+                    hasResult = false,
+                    hasScreenshot = false,
+                    comment = getInputTextFieldText()
+                )
             removeThisFragment()
         }
     }
@@ -119,7 +120,9 @@ class FeedbackFragment : Fragment() {
     }
 
     private fun removeThisFragment() {
-        requireActivity().window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            requireActivity().window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
+        }
         containerView.visibility = View.INVISIBLE
         mFragmentBackground.visibility = View.INVISIBLE
         activity?.supportFragmentManager
