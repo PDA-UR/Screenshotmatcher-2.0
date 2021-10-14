@@ -97,17 +97,12 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     private fun initViewModels() {
         val context = this
-        galleryViewModel = ViewModelProvider(this, GalleryViewModel.Factory(application)).get(GalleryViewModel::class.java).apply {
-            getImages().observe(context, Observer {
-                    images ->
-                Log.d("CA", "images updated, new size: ${images.size}")
-            })
-        }
+        galleryViewModel = ViewModelProvider(this, GalleryViewModel.Factory(application)).get(GalleryViewModel::class.java)
         serverConnectionViewModel = ViewModelProvider(this, ServerConnectionViewModel.Factory(application)).get(ServerConnectionViewModel::class.java).apply {
             getServerUrlLiveData().observe(context, Observer {
                 url ->
                 run {
-                    Log.d("CA", "New URL: $url")
+                    // Log.d("CA", "New URL: $url")
                 }
             })
             isConnectedToServer.observe(context, Observer {

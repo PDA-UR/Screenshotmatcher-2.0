@@ -69,7 +69,7 @@ class ServerConnectionViewModel(application: Application) : AndroidViewModel(app
 
     val discoverRunnable = object : Runnable {
         override fun run() {
-            Log.d("SCVM", "Discovering")
+            // Log.d("SCVM", "Discovering")
             requestServerURL(application.applicationContext)
             mHandler.postDelayed(this, 1000)
         }
@@ -77,7 +77,7 @@ class ServerConnectionViewModel(application: Application) : AndroidViewModel(app
 
     val heartbeatRunnable = object : Runnable {
         override fun run() {
-            Log.d("SCVM", "Heartbeating")
+            // Log.d("SCVM", "Heartbeating")
             if (isConnectedToServer.value!! && mServerURL.value != "") {
                 sendHeartbeatRequest(
                     mServerURL.value!!,
@@ -98,7 +98,7 @@ class ServerConnectionViewModel(application: Application) : AndroidViewModel(app
 
     fun onHeartbeatFail() {
         onConnectionChanged(false)
-        Log.d("SCVM", "Failed HB")
+        // Log.d("SCVM", "Failed HB")
     }
 
     private fun startDiscoverThread() {
@@ -158,7 +158,7 @@ class ServerConnectionViewModel(application: Application) : AndroidViewModel(app
 
     fun getConnectedServerName(): String {
         mServerUrlList.value?.forEach {
-            Log.d("SCVM","Comparing ${it.first}/${it.second} with url ${mServerURL.value}")
+            // Log.d("SCVM","Comparing ${it.first}/${it.second} with url ${mServerURL.value}")
             if (it.first == mServerURL.value) {
                 return it.second
             }

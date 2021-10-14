@@ -127,9 +127,6 @@ class GalleryPreviewFragment : RotationFragment() {
                     mImagePreviewNextButton.visibility = View.VISIBLE
                     mImagePreviewPreviousButton.visibility = View.INVISIBLE
                 }
-                mShareButtonText.text = getString(R.string.result_activity_shareButtonText1_en)
-                mSaveOneButtonText.text =
-                    getString(R.string.result_activity_saveOneButtonText1_en)
                 setImage()
             }
             1 -> {
@@ -144,8 +141,6 @@ class GalleryPreviewFragment : RotationFragment() {
                     mImagePreviewNextButton.visibility = View.INVISIBLE
                 }
 
-                mShareButtonText.text = getString(R.string.result_activity_shareButtonText2_en)
-                mSaveOneButtonText.text = getString(R.string.result_activity_saveOneButtonText2_en)
                 setImage()
             }
         }
@@ -201,11 +196,11 @@ class GalleryPreviewFragment : RotationFragment() {
         val images = ArrayList<File>()
         images.apply {
             mCroppedImageFile?.let {
-                Log.d("GF", "del cropped")
+                // Log.d("GF", "del cropped")
                 this.add(it)
             }
             mFullImageFile?.let {
-                Log.d("GF", "del full")
+                // Log.d("GF", "del full")
                 this.add(it)
             }
         }
@@ -279,9 +274,9 @@ class GalleryPreviewFragment : RotationFragment() {
         mSaveBothButton = activity?.findViewById(R.id.pf_deleteImages)!!
         mSaveOneButton = activity?.findViewById(R.id.pf_saveOneButton)!!
         mShareButtonText = activity?.findViewById(R.id.pf_shareButtonText)!!
-        mShareButtonText.text = getString(R.string.result_activity_shareButtonText1_en)
         mSaveOneButtonText = activity?.findViewById(R.id.pf_saveOneButtonText)!!
-        mSaveOneButtonText.text = getString(R.string.result_activity_saveOneButtonText1_en)
+        mShareButtonText.text = getString(R.string.shareButtonText)
+        mSaveOneButtonText.text = getString(R.string.saveOneButtonText)
         setupPillNavigationState()
     }
 

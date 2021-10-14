@@ -76,8 +76,8 @@ fun sendBitmap(
             try{
                 StudyLogger.hashMap["match_id"] = response.get("uid").toString()
             } catch (e: Exception) {
-                Log.d("HTTP", e.toString())
-                Log.d("HTTP", response.toString())
+                // Log.d("HTTP", e.toString())
+                // Log.d("HTTP", response.toString())
             }
             if (response.has("error")){
                 if(activity is CameraActivity && response.getString("error") == "permission_error") {

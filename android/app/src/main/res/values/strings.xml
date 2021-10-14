@@ -60,4 +60,6 @@
     <string name="settings_about_description">Version 1.2 \nLicensed under the MIT License \nCopyright © 2021 Physical-Digital Affordances \n\n🔗 Click to find out more</string>
     <string name="app_intro_header_5">How-To: Capture 📸</string>
     <string name="app_intro_description_5">Now take a photo of any area on your computer screen, \nScreenshotMatcher will return a screenshot of it \n\nMagic 🪄!</string>
+    <string name="shareButtonText">share</string>
+    <string name="saveOneButtonText">save</string>
 </resources>
