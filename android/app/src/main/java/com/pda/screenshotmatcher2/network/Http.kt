@@ -14,12 +14,13 @@ import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import com.pda.screenshotmatcher2.R
-import com.pda.screenshotmatcher2.activities.CameraActivity
-import com.pda.screenshotmatcher2.fragments.FeedbackFragment
-import com.pda.screenshotmatcher2.helpers.CameraActivityFragmentHandler
-import com.pda.screenshotmatcher2.helpers.getDeviceID
-import com.pda.screenshotmatcher2.helpers.getDeviceName
+import com.pda.screenshotmatcher2.views.activities.CameraActivity
+import com.pda.screenshotmatcher2.views.fragments.FeedbackFragment
+import com.pda.screenshotmatcher2.viewHelpers.CameraActivityFragmentHandler
+import com.pda.screenshotmatcher2.utils.getDeviceID
+import com.pda.screenshotmatcher2.utils.getDeviceName
 import com.pda.screenshotmatcher2.logger.StudyLogger
+import com.pda.screenshotmatcher2.utils.base64ToBitmap
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.lang.reflect.InvocationTargetException
@@ -75,8 +76,8 @@ fun sendBitmap(
             try{
                 StudyLogger.hashMap["match_id"] = response.get("uid").toString()
             } catch (e: Exception) {
-                Log.d("HTTP", e.toString())
-                Log.d("HTTP", response.toString())
+                // Log.d("HTTP", e.toString())
+                // Log.d("HTTP", response.toString())
             }
             if (response.has("error")){
                 if(activity is CameraActivity && response.getString("error") == "permission_error") {
@@ -111,7 +112,7 @@ fun sendBitmap(
             }
             else if (activity is CameraActivity) {
                 val fm: CameraActivityFragmentHandler = activity.cameraActivityFragmentHandler
-                fm.openErrorFragment(response.get("uid").toString(), bitmap)
+                fm.openErrorFragment(response.get("uid").toString())
             }
         },
         { error ->
@@ -124,6 +125,29 @@ fun sendBitmap(
     StudyLogger.hashMap["tc_http_request"] = System.currentTimeMillis()
     queue.add(jsonOR)
 
+}
+
+fun requestFullScreenshot(matchID: String, serverURL: String, context: Context, onDownload: (bitmap: Bitmap?) -> Unit) {
+    val queue = Volley.newRequestQueue(context)
+    val json = JSONObject()
+    json.put("match_id", matchID)
+    val jsonOR = JsonObjectRequest(
+        Request.Method.POST, serverURL + SCREENSHOT_DEST, json,
+        { response ->
+            if(response.has("error")) {
+                if(response.getString("error") == "disabled_by_host_error") {
+                    onDownload(null)
+                }
+            }
+            else {
+                val b64String: String = response.get("result").toString()
+                onDownload(base64ToBitmap(b64String))
+            }
+        },
+        { error ->
+            error.printStackTrace()
+        })
+    queue.add(jsonOR)
 }
 
 

@@ -8,7 +8,7 @@
     android:orientation="vertical"
     android:padding="10dp"
     android:tag="errorFragment"
-    tools:context=".fragments.ErrorFragment">
+    tools:context=".views.fragments.ErrorFragment">
 
     <TextView
         android:id="@+id/ef_no_match_text_view"
@@ -17,7 +17,7 @@
         app:layout_constraintVertical_weight="4"
         android:layout_gravity="center"
         android:text="@string/no_match_en"
-        android:textSize="50dp"
+        android:textSize="50sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

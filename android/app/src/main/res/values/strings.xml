@@ -35,14 +35,10 @@
     <string name="algorithm_accurate_mode_name_server" translatable="false">SURF</string>
     <string name="gallery_en">Gallery</string>
     <string name="preview_fragment_only_one_available_en">Only one image is available</string>
-    <string name="ca_saved_instance_url_key" translatable="false">ca_url_key</string>
-    <string name="ca_saved_instance_image_list_key" translatable="false">ca_image_list_key</string>
     <string name="ca_saved_instance_url_list_key" translatable="false">ca_server_url_list_key</string>
     <string name="ca_saved_instance_host_list_key" translatable="false">ca_host_list_key</string>
     <string name="permission_request_en">Please grant the permissions, otherwise the app won\'t work</string>
-    <string name="heartbeat_fail_en">Disconnected from server</string>
     <string name="match_request_error_en">Failed to make request to server</string>
-    <string name="EXTRACTED_IMAGE_KEY" translatable="false">bmp</string>
     <string name="settings_logging_header_en" translatable="false">Logging</string>
     <string name="settings_logging_toggle_en">Enable logging</string>
     <string name="settings_logging_summary">If this option is enabled the app will send logging data to a remote server, which helps improving the app</string>
@@ -61,7 +57,9 @@
     <string name="result_activity_deleteImages_en">Delete image(s)</string>
     <string name="settings_about_header">About this app</string>
     <string name="settings_about_button" translatable="false">s_about_button</string>
-    <string name="settings_about_description">Version 1.2 \nLicensed under the MIT License \nCopyright (c) 2021 Physical-Digital Affordances \n\n🔗 Click to find out more</string>
+    <string name="settings_about_description">Version 1.2 \nLicensed under the MIT License \nCopyright © 2021 Physical-Digital Affordances \n\n🔗 Click to find out more</string>
     <string name="app_intro_header_5">How-To: Capture 📸</string>
     <string name="app_intro_description_5">Now take a photo of any area on your computer screen, \nScreenshotMatcher will return a screenshot of it \n\nMagic 🪄!</string>
+    <string name="shareButtonText">share</string>
+    <string name="saveOneButtonText">save</string>
 </resources>
