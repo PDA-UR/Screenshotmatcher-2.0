@@ -1,4 +1,4 @@
-package com.pda.screenshotmatcher2.views
+package com.pda.screenshotmatcher2.viewHelpers
 
 import android.view.LayoutInflater
 import android.view.View
@@ -9,8 +9,8 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.pda.screenshotmatcher2.R
-import com.pda.screenshotmatcher2.activities.CameraActivity
-import com.pda.screenshotmatcher2.fragments.rotationFragments.GalleryFragment
+import com.pda.screenshotmatcher2.views.activities.CameraActivity
+import com.pda.screenshotmatcher2.views.fragments.rotationFragments.GalleryFragment
 import com.pda.screenshotmatcher2.viewModels.GalleryViewModel
 import java.io.File
 

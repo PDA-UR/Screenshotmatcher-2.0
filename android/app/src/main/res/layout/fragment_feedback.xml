@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragments.FeedbackFragment"
+    tools:context=".views.fragments.FeedbackFragment"
     android:background="@drawable/fragment_background"
     android:orientation="vertical"
     android:tag="feedbackFragment"
@@ -28,7 +28,7 @@
             android:layout_weight="3"
             android:layout_gravity="center"
             android:text="@string/feedback_en"
-            android:textSize="50dp"
+            android:textSize="50sp"
             android:layout_marginBottom="20dp" />
 
         <TextView
@@ -36,7 +36,7 @@
             android:layout_height="0dp"
             android:layout_weight="2"
             android:text="@string/ff_comment_en"
-            android:textSize="20dp"
+            android:textSize="20sp"
             android:clickable="true"
             android:focusable="false"
             android:focusableInTouchMode="false" />
@@ -46,7 +46,9 @@
             android:layout_width="match_parent"
             android:background="@drawable/ff_text_input_background"
             android:layout_height="0dp"
-            android:layout_weight="6" />
+            android:layout_weight="6"
+            android:inputType="text"
+            android:importantForAutofill="no" />
 
     </LinearLayout>
 
@@ -59,7 +61,7 @@
         android:layout_marginTop="10dp"
         android:background="@drawable/fragment_feedback_button_background"
         android:text="@string/ff_submit_feedback_en"
-        android:textSize="30dp"
+        android:textSize="30sp"
         app:layout_constraintBottom_toBottomOf="parent"
         android:focusableInTouchMode="false" />
 

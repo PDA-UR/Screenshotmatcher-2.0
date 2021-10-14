@@ -1,8 +1,8 @@
-package com.pda.screenshotmatcher2.fragments.rotationFragments
+package com.pda.screenshotmatcher2.views.fragments.rotationFragments
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.HapticFeedbackConstants
 import android.view.View
 import android.widget.*
@@ -64,7 +64,9 @@ class SelectDeviceFragment : RotationFragment() {
     }
 
     override fun removeThisFragment(removeBackground: Boolean) {
-        ca.window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            ca.window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
+        }
         ca.onCloseSelectDeviceFragment()
         super.removeThisFragment(removeBackground)
     }

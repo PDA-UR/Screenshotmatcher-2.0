@@ -1,9 +1,10 @@
-package com.pda.screenshotmatcher2.activities
+package com.pda.screenshotmatcher2.views.activities
 
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.view.HapticFeedbackConstants
 import android.widget.Toast
@@ -13,7 +14,7 @@ import com.github.appintro.AppIntro
 import com.github.appintro.AppIntroFragment
 import com.github.appintro.AppIntroPageTransformerType
 import com.pda.screenshotmatcher2.R
-import com.pda.screenshotmatcher2.fragments.AnimatedIntroFragment
+import com.pda.screenshotmatcher2.views.fragments.AnimatedIntroFragment
 
 class AppTutorial : AppIntro() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -93,16 +94,20 @@ class AppTutorial : AppIntro() {
     }
     override fun onUserDisabledPermission(permissionName: String) {
         // User pressed "Deny" + "Don't ask again" on the permission dialog
-        Toast.makeText(this, getString(R.string.app_intro_disabled_permission), Toast.LENGTH_SHORT)
+        Toast.makeText(this, getString(R.string.app_intro_disabled_permission), Toast.LENGTH_SHORT).show()
     }
     override fun onSlideChanged(oldFragment: Fragment?, newFragment: Fragment?) {
         super.onSlideChanged(oldFragment, newFragment)
-        window.decorView.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.decorView.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+        }
     }
     private fun savePerfAndStartCamera() {
         // debug: val FIRST_RUN_KEY = "r"
         val FIRST_RUN_KEY = getString(R.string.FIRST_RUN_KEY)
-        window.decorView.performHapticFeedback(HapticFeedbackConstants.GESTURE_END)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.decorView.performHapticFeedback(HapticFeedbackConstants.GESTURE_END)
+        }
         val sp = PreferenceManager.getDefaultSharedPreferences(this)
         sp.edit().putBoolean(FIRST_RUN_KEY, false).apply()
         val intent = Intent(this, CameraActivity::class.java)

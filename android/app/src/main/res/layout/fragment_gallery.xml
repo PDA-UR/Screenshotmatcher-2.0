@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/fragment_background"
     android:maxHeight="600dp"
-    tools:context=".fragments.rotationFragments.GalleryFragment">
+    tools:context=".views.fragments.rotationFragments.GalleryFragment">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/gallery_fragment_header_layout"
@@ -36,7 +36,7 @@
             android:layout_height="0dp"
             android:layout_gravity="center"
             android:text="@string/gallery_en"
-            android:textSize="50dp"
+            android:textSize="50sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />

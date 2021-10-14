@@ -1,9 +1,10 @@
-package com.pda.screenshotmatcher2.fragments.rotationFragments
+package com.pda.screenshotmatcher2.views.fragments.rotationFragments
 
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.graphics.BitmapFactory
+import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
@@ -15,6 +16,7 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.AppCompatButton
 import androidx.appcompat.widget.AppCompatImageButton
 import androidx.core.app.ShareCompat
@@ -22,7 +24,7 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModelProvider
 import com.pda.screenshotmatcher2.BuildConfig
 import com.pda.screenshotmatcher2.R
-import com.pda.screenshotmatcher2.activities.CameraActivity
+import com.pda.screenshotmatcher2.views.activities.CameraActivity
 import com.pda.screenshotmatcher2.viewModels.GalleryViewModel
 import java.io.File
 
@@ -120,14 +122,11 @@ class GalleryPreviewFragment : RotationFragment() {
                     R.color.invisible
                 ))
                 mPillNavigationButton1.background =
-                    resources.getDrawable(R.drawable.pill_navigation_selected_item)
+                    AppCompatResources.getDrawable(requireContext(), R.drawable.pill_navigation_selected_item)
                 if (numberOfAvailableImages == 2) {
                     mImagePreviewNextButton.visibility = View.VISIBLE
                     mImagePreviewPreviousButton.visibility = View.INVISIBLE
                 }
-                mShareButtonText.text = getString(R.string.result_activity_shareButtonText1_en)
-                mSaveOneButtonText.text =
-                    getString(R.string.result_activity_saveOneButtonText1_en)
                 setImage()
             }
             1 -> {
@@ -136,14 +135,12 @@ class GalleryPreviewFragment : RotationFragment() {
                     R.color.invisible
                 ))
                 mPillNavigationButton2.background =
-                    resources.getDrawable(R.drawable.pill_navigation_selected_item)
+                    AppCompatResources.getDrawable(requireContext(), R.drawable.pill_navigation_selected_item)
                 if (numberOfAvailableImages == 2) {
                     mImagePreviewPreviousButton.visibility = View.VISIBLE
                     mImagePreviewNextButton.visibility = View.INVISIBLE
                 }
 
-                mShareButtonText.text = getString(R.string.result_activity_shareButtonText2_en)
-                mSaveOneButtonText.text = getString(R.string.result_activity_saveOneButtonText2_en)
                 setImage()
             }
         }
@@ -199,11 +196,11 @@ class GalleryPreviewFragment : RotationFragment() {
         val images = ArrayList<File>()
         images.apply {
             mCroppedImageFile?.let {
-                Log.d("GF", "del cropped")
+                // Log.d("GF", "del cropped")
                 this.add(it)
             }
             mFullImageFile?.let {
-                Log.d("GF", "del full")
+                // Log.d("GF", "del full")
                 this.add(it)
             }
         }
@@ -277,9 +274,9 @@ class GalleryPreviewFragment : RotationFragment() {
         mSaveBothButton = activity?.findViewById(R.id.pf_deleteImages)!!
         mSaveOneButton = activity?.findViewById(R.id.pf_saveOneButton)!!
         mShareButtonText = activity?.findViewById(R.id.pf_shareButtonText)!!
-        mShareButtonText.text = getString(R.string.result_activity_shareButtonText1_en)
         mSaveOneButtonText = activity?.findViewById(R.id.pf_saveOneButtonText)!!
-        mSaveOneButtonText.text = getString(R.string.result_activity_saveOneButtonText1_en)
+        mShareButtonText.text = getString(R.string.shareButtonText)
+        mSaveOneButtonText.text = getString(R.string.saveOneButtonText)
         setupPillNavigationState()
     }
 
@@ -303,7 +300,9 @@ class GalleryPreviewFragment : RotationFragment() {
 
     override fun removeThisFragment(removeBackground: Boolean) {
         super.removeThisFragment(removeBackground)
-        requireActivity().window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            requireActivity().window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
+        }
         if (removeBackground) mFragmentBackground.visibility = View.INVISIBLE
     }
     override fun removeThisFragmentForRotation(): ArrayList<File?> {

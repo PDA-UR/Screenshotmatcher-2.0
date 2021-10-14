@@ -23,7 +23,7 @@ class GalleryViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun reloadImages() {
-        Log.d("VM", "Loading images")
+        // Log.d("VM", "Loading images")
         loadImages(images)
     }
 

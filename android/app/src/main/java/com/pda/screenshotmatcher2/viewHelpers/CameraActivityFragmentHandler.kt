@@ -1,7 +1,7 @@
-package com.pda.screenshotmatcher2.helpers
+package com.pda.screenshotmatcher2.viewHelpers
 
 import android.app.Activity
-import android.graphics.Bitmap
+import android.os.Build
 import android.os.Bundle
 import android.view.HapticFeedbackConstants
 import android.view.View
@@ -10,9 +10,10 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentTransaction
 import com.pda.screenshotmatcher2.R
-import com.pda.screenshotmatcher2.activities.CameraActivity
-import com.pda.screenshotmatcher2.fragments.*
-import com.pda.screenshotmatcher2.fragments.rotationFragments.*
+import com.pda.screenshotmatcher2.views.activities.CameraActivity
+import com.pda.screenshotmatcher2.views.fragments.ErrorFragment
+import com.pda.screenshotmatcher2.views.fragments.SettingsFragment
+import com.pda.screenshotmatcher2.views.fragments.rotationFragments.*
 import java.io.File
 
 class CameraActivityFragmentHandler(a: Activity) {
@@ -23,7 +24,9 @@ class CameraActivityFragmentHandler(a: Activity) {
     private var fm: FragmentManager = activity.supportFragmentManager
 
     private fun openFragment(fragment: Fragment, containerID: Int, transition: Int? = null){
-        activity.window.decorView.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            activity.window.decorView.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+        }
         fm
             .beginTransaction()
             .add(containerID, fragment, fragment::class.simpleName)
@@ -50,16 +53,9 @@ class CameraActivityFragmentHandler(a: Activity) {
         }
     }
 
-    fun openErrorFragment(uid: String, extractedImage: Bitmap) {
-        activity.onOpenErrorFragment()
-        val bundle = Bundle().apply {
-            putString(UID_KEY, uid)
-            //TODO: Add real URL
-            putString(URL_KEY, "233")
-            putParcelable(activity.getString(R.string.EXTRACTED_IMAGE_KEY), extractedImage)
-        }
-
-        openFragment(ErrorFragment().apply { arguments = bundle }, R.id.fragment_container_view, FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+    fun openErrorFragment(uid: String) {
+        activity.onOpenErrorFragment(uid)
+        openFragment(ErrorFragment(), R.id.fragment_container_view, FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
 
     }
 

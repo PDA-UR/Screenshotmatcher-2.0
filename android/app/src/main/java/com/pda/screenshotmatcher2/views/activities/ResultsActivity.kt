@@ -1,12 +1,10 @@
-package com.pda.screenshotmatcher2.activities
+package com.pda.screenshotmatcher2.views.activities
 
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
@@ -16,25 +14,22 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.AppCompatButton
 import androidx.appcompat.widget.AppCompatImageButton
 import androidx.core.app.ShareCompat
 import androidx.core.content.FileProvider.getUriForFile
-import com.android.volley.Request
-import com.android.volley.toolbox.JsonObjectRequest
-import com.android.volley.toolbox.Volley
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import com.pda.screenshotmatcher2.*
-import com.pda.screenshotmatcher2.helpers.base64ToBitmap
-import com.pda.screenshotmatcher2.helpers.getDateString
-import com.pda.screenshotmatcher2.helpers.saveBitmapToFile
+import com.pda.screenshotmatcher2.utils.getDateString
+import com.pda.screenshotmatcher2.utils.saveBitmapToFile
 import com.pda.screenshotmatcher2.logger.StudyLogger
-import com.pda.screenshotmatcher2.network.SCREENSHOT_DEST
 import com.pda.screenshotmatcher2.network.sendLog
-import org.json.JSONObject
+import com.pda.screenshotmatcher2.viewModels.CaptureViewModel
 import java.io.File
 
 const val RESULT_ACTIVITY_REQUEST_CODE = 20
-const val RESULT_ACTIVITY_RESULT_CODE = "Result_Result"
 
 class ResultsActivity : AppCompatActivity() {
     //Views
@@ -53,18 +48,17 @@ class ResultsActivity : AppCompatActivity() {
 
     private lateinit var mFullImageFile: File
     private lateinit var mCroppedImageFile: File
-    private lateinit var mServerURL: String
     private lateinit var lastDateTime: String
-    private lateinit var mCroppedScreenshot: Bitmap
-    private lateinit var mFullScreenshot: Bitmap
-    private lateinit var matchID: String
 
     private var displayFullScreenshotOnly: Boolean = false
     private var hasSharedImage: Boolean = false
 
     private var fullScreenshotDownloaded = false
     private var croppedScreenshotDownloaded = false
-    private var waitingForFullScreenshot = false
+    private var isWaitingForShare = false
+
+    private lateinit var captureViewModel: CaptureViewModel
+    private var didRegisterObservers = false
 
     // -1 = cropped page, 1 = full page
     private var mPillNavigationState: Int = -1
@@ -75,22 +69,43 @@ class ResultsActivity : AppCompatActivity() {
         initViews()
         setViewListeners()
 
-        mServerURL = intent.getStringExtra("ServerURL")!!
-        matchID = intent.getStringExtra("matchID")!!
-
         StudyLogger.hashMap["tc_result_shown"] = System.currentTimeMillis()
         lastDateTime = getDateString()
 
-        //if there is no cropped image, enter full screenshot only mode, not switching between images possible
-        if (intent.hasExtra("img")) {
-            val imgByteArray = intent.getByteArrayExtra("img")!!
-            mCroppedScreenshot = BitmapFactory.decodeByteArray(imgByteArray, 0, imgByteArray.size)
-            mScreenshotImageView.setImageBitmap(mCroppedScreenshot)
+        captureViewModel = ViewModelProvider(this, CaptureViewModel.Factory(application)).get(
+            CaptureViewModel::class.java
+        )
+
+        // only full screenshot available
+        if (captureViewModel.getCroppedScreenshot() == null) {
+            // Log.d("RA", "cropped = null")
+            displayFullScreenshotOnly = true
+            activateFullScreenshotOnlyMode()
+        } else {
+            mScreenshotImageView.setImageBitmap(captureViewModel.getCroppedScreenshot())
             saveCroppedImageToAppDir()
             croppedScreenshotDownloaded = true
-        } else {
-            displayFullScreenshotOnly = activateFullScreenshotOnlyMode()
         }
+            captureViewModel.getLiveDataFullScreenshot().observe(this, Observer { fullScreenshot ->
+                run {
+                    // prevent calling the event when registering the observer
+                    if (didRegisterObservers)
+                        onFullScreenshotDownloaded(fullScreenshot)
+                    else didRegisterObservers = true
+                }
+            })
+    }
+
+    //full screenshot only mode = when the user clicks "full image" in the error fragment, no cropped screenshot available
+    private fun activateFullScreenshotOnlyMode(): Boolean {
+        downloadFullScreenshot()
+        mImagePreviewPreviousButton.visibility = View.INVISIBLE
+        mPillNavigationButton1.setBackgroundColor(getColor(R.color.invisible))
+        mPillNavigationButton2.background =
+            AppCompatResources.getDrawable(this, R.drawable.pill_navigation_selected_item)
+        mImagePreviewNextButton.visibility = View.INVISIBLE
+        mPillNavigationState *= -1
+        return true
     }
 
     private fun initViews() {
@@ -107,10 +122,10 @@ class ResultsActivity : AppCompatActivity() {
         mSaveBothButton = findViewById(R.id.ra_saveBothButton)
         mSaveOneButton = findViewById(R.id.ra_saveOneButton)
         mShareButtonText = findViewById(R.id.ra_shareButtonText)
-        mShareButtonText.text = getString(R.string.result_activity_shareButtonText1_en)
         mSaveOneButtonText = findViewById(R.id.ra_saveOneButtonText)
-        mSaveOneButtonText.text = getString(R.string.result_activity_saveOneButtonText1_en)
         mRetakeImageButton = findViewById(R.id.ra_retakeImageButton)
+        mShareButtonText.text = getString(R.string.shareButtonText)
+        mSaveOneButtonText.text = getString(R.string.saveOneButtonText)
     }
 
     private fun setViewListeners() {
@@ -135,13 +150,13 @@ class ResultsActivity : AppCompatActivity() {
         //Check if cropped image is available as bitmap, if so save it as a file to app directory. This is necessary so the user can see the the screenshot when browsing older screenshots
         if (!displayFullScreenshotOnly) saveCroppedImageToAppDir()
 
-        Log.d("RA", mPillNavigationState.toString())
+        // Log.d("RA", mPillNavigationState.toString())
         when (mPillNavigationState) {
             -1 -> {
                 //Save cropped screenshot to gallery
                 MediaStore.Images.Media.insertImage(
                     contentResolver,
-                    mCroppedScreenshot,
+                    captureViewModel.getCroppedScreenshot(),
                     mCroppedImageFile.name,
                     getString(R.string.screenshot_description_en)
                 )
@@ -152,31 +167,31 @@ class ResultsActivity : AppCompatActivity() {
                     Toast.LENGTH_SHORT
                 ).show()
             }
-           else -> {
-               saveFullImageToAppDir()
-               //Save full screenshot to gallery
-               if (fullScreenshotDownloaded) {
-                   MediaStore.Images.Media.insertImage(
-                       contentResolver,
-                       mFullScreenshot,
-                       mFullImageFile.name,
-                       getString(R.string.screenshot_description_en)
-                   )
-                   StudyLogger.hashMap["save_full"] = true
-                   Toast.makeText(
-                       this,
-                       getText(R.string.result_activity_saved_full_en),
-                       Toast.LENGTH_SHORT
-                   ).show()
-               } else {
-                   Toast.makeText(
-                       this,
-                       getText(R.string.http_download_full_error_en),
-                       Toast.LENGTH_LONG
-                   ).show()
-                   downloadFullScreenshotInThread()
-               }
-           }
+            else -> {
+                saveFullImageToAppDir()
+                //Save full screenshot to gallery
+                if (fullScreenshotDownloaded) {
+                    MediaStore.Images.Media.insertImage(
+                        contentResolver,
+                        captureViewModel.getFullScreenshot(),
+                        mFullImageFile.name,
+                        getString(R.string.screenshot_description_en)
+                    )
+                    StudyLogger.hashMap["save_full"] = true
+                    Toast.makeText(
+                        this,
+                        getText(R.string.result_activity_saved_full_en),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    Toast.makeText(
+                        this,
+                        getText(R.string.http_download_full_error_en),
+                        Toast.LENGTH_LONG
+                    ).show()
+                    downloadFullScreenshot()
+                }
+            }
         }
     }
 
@@ -196,7 +211,7 @@ class ResultsActivity : AppCompatActivity() {
                 saveCroppedImageToAppDir()
                 MediaStore.Images.Media.insertImage(
                     contentResolver,
-                    mCroppedScreenshot,
+                    captureViewModel.getCroppedScreenshot(),
                     mCroppedImageFile.name,
                     getString(R.string.screenshot_description_en)
                 )
@@ -205,7 +220,7 @@ class ResultsActivity : AppCompatActivity() {
                     //Save full screenshot if it has been downloaded already
                     MediaStore.Images.Media.insertImage(
                         contentResolver,
-                        mFullScreenshot,
+                        captureViewModel.getFullScreenshot(),
                         mFullImageFile.name,
                         getString(R.string.screenshot_description_en)
                     )
@@ -216,8 +231,8 @@ class ResultsActivity : AppCompatActivity() {
                     ).show()
                 } else {
                     //Full screenshot needs to be downloaded, gets saved to gallery on download complete
-                    waitingForFullScreenshot = true
-                    downloadFullScreenshotInThread()
+                    isWaitingForShare = true
+                    downloadFullScreenshot()
                 }
                 StudyLogger.hashMap["save_match"] = true
                 StudyLogger.hashMap["save_full"] = true
@@ -235,7 +250,11 @@ class ResultsActivity : AppCompatActivity() {
                 saveCurrentPreviewImage()
                 //Start sharing
                 val contentUri =
-                    getUriForFile(this, BuildConfig.APPLICATION_ID + ".fileprovider", mCroppedImageFile)
+                    getUriForFile(
+                        this,
+                        BuildConfig.APPLICATION_ID + ".fileprovider",
+                        mCroppedImageFile
+                    )
 
                 val shareIntent = ShareCompat.IntentBuilder.from(this)
                     .setType("image/png")
@@ -275,7 +294,7 @@ class ResultsActivity : AppCompatActivity() {
                         this.type = "image/png"
                         this.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                     }
-                    val shareIntent = Intent.createChooser(sendIntent,null)
+                    val shareIntent = Intent.createChooser(sendIntent, null)
                     startActivity(shareIntent)
                 } else {
                     Toast.makeText(
@@ -283,7 +302,7 @@ class ResultsActivity : AppCompatActivity() {
                         getText(R.string.http_download_full_error_en),
                         Toast.LENGTH_LONG
                     ).show()
-                    downloadFullScreenshotInThread()
+                    downloadFullScreenshot()
                 }
             }
         }
@@ -298,29 +317,23 @@ class ResultsActivity : AppCompatActivity() {
                     //Switch to cropped screenshot
                     mPillNavigationButton2.setBackgroundColor(getColor(R.color.invisible))
                     mPillNavigationButton1.background =
-                        resources.getDrawable(R.drawable.pill_navigation_selected_item)
+                        AppCompatResources.getDrawable(this, R.drawable.pill_navigation_selected_item)
                     mImagePreviewPreviousButton.visibility = View.INVISIBLE
                     mImagePreviewNextButton.visibility = View.VISIBLE
-                    mShareButtonText.text = getString(R.string.result_activity_shareButtonText1_en)
-                    mSaveOneButtonText.text =
-                        getString(R.string.result_activity_saveOneButtonText1_en)
-                    mScreenshotImageView.setImageBitmap(mCroppedScreenshot)
+                    mScreenshotImageView.setImageBitmap(captureViewModel.getCroppedScreenshot())
 
                 }
                 1 -> {
                     //Switch to full screenshot
                     mPillNavigationButton1.setBackgroundColor(getColor(R.color.invisible))
                     mPillNavigationButton2.background =
-                        resources.getDrawable(R.drawable.pill_navigation_selected_item)
+                        AppCompatResources.getDrawable(this, R.drawable.pill_navigation_selected_item)
                     mImagePreviewPreviousButton.visibility = View.VISIBLE
                     mImagePreviewNextButton.visibility = View.INVISIBLE
-                    mShareButtonText.text = getString(R.string.result_activity_shareButtonText2_en)
-                    mSaveOneButtonText.text =
-                        getString(R.string.result_activity_saveOneButtonText2_en)
-                    if (::mFullScreenshot.isInitialized) {
-                        mScreenshotImageView.setImageBitmap(mFullScreenshot)
+                    if (captureViewModel.getFullScreenshot() != null) {
+                        mScreenshotImageView.setImageBitmap(captureViewModel.getFullScreenshot())
                     } else {
-                        downloadFullScreenshotInThread()
+                        downloadFullScreenshot()
                     }
                 }
             }
@@ -341,10 +354,12 @@ class ResultsActivity : AppCompatActivity() {
                 getExternalFilesDir(Environment.DIRECTORY_PICTURES),
                 lastDateTime + "_Cropped.png"
             )
-            saveBitmapToFile(
-                mCroppedImageFile,
-                mCroppedScreenshot
-            )
+            captureViewModel.getCroppedScreenshot()?.let {
+                saveBitmapToFile(
+                    mCroppedImageFile,
+                    it
+                )
+            }
         }
     }
 
@@ -354,37 +369,43 @@ class ResultsActivity : AppCompatActivity() {
                 getExternalFilesDir(Environment.DIRECTORY_PICTURES),
                 lastDateTime + "_Full.png"
             )
-            saveBitmapToFile(
-                mFullImageFile,
-                mFullScreenshot
-            )
+            captureViewModel.getFullScreenshot()?.let {
+                saveBitmapToFile(
+                    mFullImageFile,
+                    it
+                )
+            }
         }
     }
 
-    private fun downloadFullScreenshotInThread() {
-        Thread {
-            downloadFullScreenshot(
-                matchID,
-                lastDateTime,
-                mServerURL,
-                applicationContext,
-            )
-        }.start()
+
+    private fun downloadFullScreenshot() {
+        captureViewModel.loadFullScreenshot()
     }
 
-    private fun onScreenshotDownloaded(bitmap: Bitmap){
+    private fun onFullScreenshotDownloaded(screenshot: Bitmap?) {
+            when (screenshot) {
+                null -> onFullScreenshotDenied()
+                else -> onFullScreenshotSuccess(screenshot)
+        }
+
+    }
+
+    private fun onFullScreenshotDenied() {
+        isWaitingForShare = false
+        Toast.makeText(this, "Full screenshots not allowed by this PC.", Toast.LENGTH_LONG).show()
+    }
+
+    private fun onFullScreenshotSuccess(bitmap: Bitmap) {
         fullScreenshotDownloaded = true
-        mFullScreenshot = bitmap
         if (displayFullScreenshotOnly || mPillNavigationState == 1) {
-            mScreenshotImageView.setImageBitmap(mFullScreenshot)
-        }
-
-        else if(waitingForFullScreenshot){
+            mScreenshotImageView.setImageBitmap(captureViewModel.getFullScreenshot())
+        } else if (isWaitingForShare) {
             saveFullImageToAppDir()
             //Full screenshot has been requested by the user pressing "save both", save downloaded screenshot to gallery
             MediaStore.Images.Media.insertImage(
                 contentResolver,
-                mFullScreenshot,
+                captureViewModel.getFullScreenshot(),
                 getString(R.string.full_screenshot_title_en),
                 getString(R.string.screenshot_description_en)
             )
@@ -393,21 +414,8 @@ class ResultsActivity : AppCompatActivity() {
                 getText(R.string.result_activity_saved_both_en),
                 Toast.LENGTH_SHORT
             ).show()
+            isWaitingForShare = false
         }
-    }
-
-    //full screenshot only mode = when the user clicks "full image" in the error fragment, no cropped screenshot available
-    private fun activateFullScreenshotOnlyMode(): Boolean {
-        downloadFullScreenshotInThread()
-        mImagePreviewPreviousButton.visibility = View.INVISIBLE
-        mPillNavigationButton1.setBackgroundColor(getColor(R.color.invisible))
-        mPillNavigationButton2.background =
-            resources.getDrawable(R.drawable.pill_navigation_selected_item)
-        mImagePreviewNextButton.visibility = View.INVISIBLE
-        mShareButtonText.text = getString(R.string.result_activity_shareButtonText2_en)
-        mSaveOneButtonText.text = getString(R.string.result_activity_saveOneButtonText2_en)
-        mPillNavigationState *= -1
-        return true
     }
 
     private fun goBackToCameraActivity() {
@@ -426,43 +434,10 @@ class ResultsActivity : AppCompatActivity() {
         finish()
     }
 
-    private fun downloadFullScreenshot(matchID: String, filename: String, serverURL: String, context: Context){
-        lateinit var screenshot : Bitmap
-        val queue = Volley.newRequestQueue(context)
-        val json = JSONObject()
-        json.put("match_id", matchID)
-        val jsonOR = JsonObjectRequest(
-            Request.Method.POST, serverURL + SCREENSHOT_DEST, json,
-            { response ->
-                if(response.has("error")) {
-                    if(response.getString("error") == "disabled_by_host_error") {
-                        onFullScreenshotDenied()
-                    }
-                }
-                else {
-                    val b64String: String = response.get("result").toString()
-                    screenshot =
-                        base64ToBitmap(
-                            b64String
-                        )
-                    onScreenshotDownloaded(screenshot)
-                }
-            },
-            { error ->
-                error.printStackTrace()
-            })
-
-        queue.add(jsonOR)
-    }
-
-    private fun onFullScreenshotDenied() {
-        Toast.makeText(this, "Full screenshots not allowed by this PC.", Toast.LENGTH_LONG).show()
-    }
-
     override fun onStop() {
         super.onStop()
 
-        sendLog(mServerURL, this)
+        captureViewModel.getServerURL()?.let { sendLog(it, this) }
         StudyLogger.hashMap.clear()
     }
 }
