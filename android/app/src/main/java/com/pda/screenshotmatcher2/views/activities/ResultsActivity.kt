@@ -78,7 +78,7 @@ class ResultsActivity : AppCompatActivity() {
 
         // only full screenshot available
         if (captureViewModel.getCroppedScreenshot() == null) {
-            Log.d("RA", "cropped = null")
+            // Log.d("RA", "cropped = null")
             displayFullScreenshotOnly = true
             activateFullScreenshotOnlyMode()
         } else {
@@ -104,8 +104,6 @@ class ResultsActivity : AppCompatActivity() {
         mPillNavigationButton2.background =
             AppCompatResources.getDrawable(this, R.drawable.pill_navigation_selected_item)
         mImagePreviewNextButton.visibility = View.INVISIBLE
-        mShareButtonText.text = getString(R.string.result_activity_shareButtonText2_en)
-        mSaveOneButtonText.text = getString(R.string.result_activity_saveOneButtonText2_en)
         mPillNavigationState *= -1
         return true
     }
@@ -124,10 +122,10 @@ class ResultsActivity : AppCompatActivity() {
         mSaveBothButton = findViewById(R.id.ra_saveBothButton)
         mSaveOneButton = findViewById(R.id.ra_saveOneButton)
         mShareButtonText = findViewById(R.id.ra_shareButtonText)
-        mShareButtonText.text = getString(R.string.result_activity_shareButtonText1_en)
         mSaveOneButtonText = findViewById(R.id.ra_saveOneButtonText)
-        mSaveOneButtonText.text = getString(R.string.result_activity_saveOneButtonText1_en)
         mRetakeImageButton = findViewById(R.id.ra_retakeImageButton)
+        mShareButtonText.text = getString(R.string.shareButtonText)
+        mSaveOneButtonText.text = getString(R.string.saveOneButtonText)
     }
 
     private fun setViewListeners() {
@@ -152,7 +150,7 @@ class ResultsActivity : AppCompatActivity() {
         //Check if cropped image is available as bitmap, if so save it as a file to app directory. This is necessary so the user can see the the screenshot when browsing older screenshots
         if (!displayFullScreenshotOnly) saveCroppedImageToAppDir()
 
-        Log.d("RA", mPillNavigationState.toString())
+        // Log.d("RA", mPillNavigationState.toString())
         when (mPillNavigationState) {
             -1 -> {
                 //Save cropped screenshot to gallery
@@ -322,9 +320,6 @@ class ResultsActivity : AppCompatActivity() {
                         AppCompatResources.getDrawable(this, R.drawable.pill_navigation_selected_item)
                     mImagePreviewPreviousButton.visibility = View.INVISIBLE
                     mImagePreviewNextButton.visibility = View.VISIBLE
-                    mShareButtonText.text = getString(R.string.result_activity_shareButtonText1_en)
-                    mSaveOneButtonText.text =
-                        getString(R.string.result_activity_saveOneButtonText1_en)
                     mScreenshotImageView.setImageBitmap(captureViewModel.getCroppedScreenshot())
 
                 }
@@ -335,9 +330,6 @@ class ResultsActivity : AppCompatActivity() {
                         AppCompatResources.getDrawable(this, R.drawable.pill_navigation_selected_item)
                     mImagePreviewPreviousButton.visibility = View.VISIBLE
                     mImagePreviewNextButton.visibility = View.INVISIBLE
-                    mShareButtonText.text = getString(R.string.result_activity_shareButtonText2_en)
-                    mSaveOneButtonText.text =
-                        getString(R.string.result_activity_saveOneButtonText2_en)
                     if (captureViewModel.getFullScreenshot() != null) {
                         mScreenshotImageView.setImageBitmap(captureViewModel.getFullScreenshot())
                     } else {
