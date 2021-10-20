@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@color/black"
+    android:orientation="vertical">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/frameLayout2"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            app:layout_constraintHeight_min="75dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHeight_max="75dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_weight="1"
+            >
+
+            <FrameLayout
+                android:id="@id/select_device_button_frame"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <ImageButton
+                    android:id="@+id/select_device_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/select_device_disconnected" />
+
+                <TextView
+                    android:id="@+id/camera_activity_select_device_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginRight="5dp"
+                    android:gravity="center_vertical"
+                    android:textSize="15sp"></TextView>
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/frameLayout"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintDimensionRatio="1:1"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <ImageButton
+                    android:id="@+id/camera_activity_settings_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/round_button"
+                    android:src="@drawable/ic_baseline_settings_24"
+                    android:contentDescription="Settings button" />
+            </FrameLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <FrameLayout
+            android:id="@+id/capture_button_frame"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:maxHeight="150dp"
+            android:minHeight="100dp"
+            app:layout_constraintHeight_min="150dp"
+
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintVertical_weight="2">
+
+
+            <ImageButton
+                android:id="@+id/capture_button"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/round_button"
+                android:src="@drawable/ic_baseline_photo_camera_24" />
+        </FrameLayout>
+
+
+        <FrameLayout
+            android:id="@+id/camera_activity_frameLayout"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintVertical_weight="8"
+            app:layout_constraintDimensionRatio="3:4"
+            app:layout_constraintBottom_toTopOf="@id/capture_button_frame"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/frameLayout2">
+
+            <TextureView
+                android:id="@+id/preview_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <ImageButton
+                android:id="@+id/camera_activity_gallery_button"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="bottom"
+                android:layout_margin="10dp"
+                android:background="@drawable/round_button"
+                android:src="@drawable/ic_baseline_image_24"></ImageButton>
+
+
+        </FrameLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <FrameLayout
+        android:id="@+id/ca_dark_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/fragmentBackground"
+        android:visibility="invisible" />
+
+    <FrameLayout
+        android:id="@+id/fragment_container_view"
+        android:layout_width="match_parent"
+        android:layout_height="550dp"
+        android:layout_gravity="center_vertical"
+        android:layout_margin="10dp"
+        android:clickable="true"
+        android:elevation="15dp"
+        android:outlineProvider="bounds"
+        android:outlineSpotShadowColor="@color/black"
+        android:scaleType="fitXY"
+        android:visibility="invisible" />
+
+
+    <FrameLayout
+        android:id="@+id/feedback_fragment_container_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_margin="10dp"
+        android:clickable="true"
+        android:elevation="10dp"
+        android:outlineProvider="bounds"
+        android:outlineSpotShadowColor="@color/black"
+        android:scaleType="fitXY"
+        android:visibility="invisible" />
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/settings_fragment_container_view"
+        android:layout_width="match_parent"
+        app:cardCornerRadius="15dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_margin="10dp"
+        android:clickable="true"
+        android:elevation="10dp"
+        android:outlineProvider="bounds"
+        android:outlineSpotShadowColor="@color/black"
+        android:scaleType="fitXY"
+        android:visibility="invisible" />
+</FrameLayout>

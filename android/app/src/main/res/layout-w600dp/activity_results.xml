@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/results_activity_background"
+    tools:context=".views.activities.ResultsActivity">
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/ra_backButton"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_margin="10dp"
+        android:background="@drawable/back_button_round_background"
+        android:src="@drawable/ic_baseline_keyboard_arrow_left_48"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/ra_cardView"
+        android:layout_width="match_parent"
+        android:layout_height="550dp"
+        android:layout_margin="10dp"
+        android:padding="5dp"
+        app:cardCornerRadius="15dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/ra_backButton">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#DCDCDC"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_marginTop="10dp"
+                android:layout_weight="1"
+                android:background="@drawable/pill_navigation_background"
+                android:orientation="horizontal">
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/ra_pillNavigation_button1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/pill_navigation_selected_item"
+                    android:text="@string/result_activity_pill_navigation_cropped_en"/>
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/ra_pillNavigation_button2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:background="@color/invisible"
+                    android:text="@string/result_activity_pill_navigation_full_en"/>
+            </LinearLayout>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_margin="10dp"
+                android:layout_weight="14"
+                android:clipToPadding="false">
+
+                <androidx.appcompat.widget.AppCompatImageButton
+                    android:id="@+id/ra_imagePreview_previousButton"
+                    android:layout_width="50dp"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="start|center"
+                    android:background="#00000000"
+                    android:src="@drawable/ic_baseline_arrow_back_ios_new_48"
+                    android:elevation="16dp"/>
+
+                <androidx.appcompat.widget.AppCompatImageButton
+                    android:id="@+id/ra_imagePreview_nextButton"
+                    android:layout_width="50dp"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="end|center"
+                    android:background="#00000000"
+                    android:src="@drawable/ic_baseline_arrow_forward_ios_48"
+                    android:elevation="16dp"/>
+
+                <ImageView
+                    android:id="@+id/ra_imagePreview_imageView"
+                    android:contentDescription="@string/result_image_content_description_en"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center|center_horizontal"
+                    android:adjustViewBounds="true"
+                    android:background="@color/white"
+                    android:elevation="15dp"
+                    android:outlineProvider="bounds"
+                    android:outlineSpotShadowColor="@color/black"
+                    android:scaleType="fitXY"/>
+
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="3"
+                android:background="@color/white"
+                android:orientation="horizontal"
+                android:padding="5dp"
+                android:baselineAligned="false">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <androidx.appcompat.widget.AppCompatImageButton
+                        android:id="@+id/ra_shareButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:background="@color/white"
+                        android:src="@drawable/ic_baseline_share_48"/>
+
+                    <TextView
+                        android:id="@+id/ra_shareButtonText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <androidx.appcompat.widget.AppCompatImageButton
+                        android:id="@+id/ra_saveOneButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:background="@color/white"
+                        android:src="@drawable/ic_baseline_image_48"/>
+
+                    <TextView
+                        android:id="@+id/ra_saveOneButtonText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <androidx.appcompat.widget.AppCompatImageButton
+                        android:id="@+id/ra_saveBothButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:background="@color/white"
+                        android:src="@drawable/ic_baseline_filter_2_48"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="@string/result_activity_saveBothButtonText_en"/>
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/ra_retakeImageButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:background="@color/white"
+        android:text="@string/result_activity_retake_button_en"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/ra_cardView"/>
+</androidx.constraintlayout.widget.ConstraintLayout>
