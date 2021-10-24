@@ -14,51 +14,55 @@
             android:id="@+id/frameLayout2"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            app:layout_constraintVertical_weight="1"
-            app:layout_constraintHeight_max="75dp"
+            app:layout_constraintHeight_min="75dp"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHeight_max="75dp"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toTopOf="@id/camera_activity_frameLayout">
+            app:layout_constraintVertical_weight="1"
+            >
 
             <FrameLayout
+                android:id="@id/select_device_button_frame"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:id="@id/select_device_button_frame"
                 android:layout_margin="5dp"
-                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent">
+                app:layout_constraintTop_toTopOf="parent">
 
                 <ImageButton
                     android:id="@+id/select_device_button"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:background="@drawable/select_device_disconnected" />
+
                 <TextView
                     android:id="@+id/camera_activity_select_device_text"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:gravity="center_vertical"
-                    android:textSize="15sp"
                     android:layout_marginLeft="5dp"
-                    android:layout_marginRight="5dp">
-                </TextView>
+                    android:layout_marginRight="5dp"
+                    android:gravity="center_vertical"
+                    android:textSize="15sp"></TextView>
             </FrameLayout>
+
             <FrameLayout
+                android:id="@+id/frameLayout"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_margin="5dp"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintDimensionRatio="1:1"
-                app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent">
+                app:layout_constraintTop_toTopOf="parent">
 
                 <ImageButton
                     android:id="@+id/camera_activity_settings_button"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:background="@drawable/round_button"
                     android:src="@drawable/ic_baseline_settings_24"
-                    android:background="@drawable/round_button" />
+                    android:contentDescription="Settings button" />
             </FrameLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -66,13 +70,14 @@
             android:id="@+id/capture_button_frame"
             android:layout_width="match_parent"
             android:layout_height="0dp"
+            android:maxHeight="150dp"
+            android:minHeight="100dp"
+            app:layout_constraintHeight_min="150dp"
+
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintVertical_weight="2"
-            app:layout_constraintTop_toBottomOf="@id/camera_activity_frameLayout"
-            android:maxHeight="150dp"
-            android:minHeight="100dp">
+            app:layout_constraintVertical_weight="2">
 
 
             <ImageButton
@@ -86,27 +91,28 @@
 
         <FrameLayout
             android:id="@+id/camera_activity_frameLayout"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="0dp"
+            app:layout_constraintVertical_weight="8"
             app:layout_constraintDimensionRatio="3:4"
+            app:layout_constraintBottom_toTopOf="@id/capture_button_frame"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/frameLayout2"
-            app:layout_constraintBottom_toTopOf="@id/capture_button_frame">
+            app:layout_constraintTop_toBottomOf="@+id/frameLayout2">
 
             <TextureView
                 android:id="@+id/preview_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
+
             <ImageButton
                 android:id="@+id/camera_activity_gallery_button"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:src="@drawable/ic_baseline_image_24"
-                android:background="@drawable/round_button"
                 android:layout_gravity="bottom"
-                android:layout_margin="10dp">
-            </ImageButton>
+                android:layout_margin="10dp"
+                android:background="@drawable/round_button"
+                android:src="@drawable/ic_baseline_image_24"></ImageButton>
 
 
         </FrameLayout>
