@@ -5,14 +5,15 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.drawable.BitmapDrawable
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import android.widget.FrameLayout
 import android.widget.ImageButton
@@ -24,16 +25,15 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
 import com.pda.screenshotmatcher2.R
-import com.pda.screenshotmatcher2.viewHelpers.CameraActivityFragmentHandler
-import com.pda.screenshotmatcher2.utils.createDeviceID
-import com.pda.screenshotmatcher2.utils.rescale
-import com.pda.screenshotmatcher2.utils.verifyPermissions
 import com.pda.screenshotmatcher2.logger.StudyLogger
-import com.pda.screenshotmatcher2.network.sendBitmap
-import com.pda.screenshotmatcher2.viewModels.GalleryViewModel
-import com.pda.screenshotmatcher2.viewModels.ServerConnectionViewModel
+import com.pda.screenshotmatcher2.utils.createDeviceID
+import com.pda.screenshotmatcher2.utils.verifyPermissions
+import com.pda.screenshotmatcher2.viewHelpers.CameraActivityFragmentHandler
 import com.pda.screenshotmatcher2.viewHelpers.CameraInstance
 import com.pda.screenshotmatcher2.viewModels.CaptureViewModel
+import com.pda.screenshotmatcher2.viewModels.GalleryViewModel
+import com.pda.screenshotmatcher2.viewModels.ServerConnectionViewModel
+import java.io.ByteArrayOutputStream
 
 
 class CameraActivity : AppCompatActivity(), SensorEventListener {
@@ -212,6 +212,13 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     // Functionality
     private fun capturePhoto(){
         window.decorView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+        val d = getDrawable(R.drawable.debug_crop)
+        val bitmap: Bitmap = (d as BitmapDrawable).getBitmap()
+        val stream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
+        val bitmapdata: ByteArray = stream.toByteArray()
+        onMatchResult("123", bitmapdata)
+        /*
         val mBitmap = cameraInstance.captureImageWithPreviewExtraction()
         val mServerURL = serverConnectionViewModel.getServerUrl()
         Log.d("CA", "Setting model url: $mServerURL")
@@ -234,6 +241,8 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         } else {
             onMatchRequestError()
         }
+
+         */
     }
 
     private fun updateConnectionStatus(isConnected: Boolean) {
