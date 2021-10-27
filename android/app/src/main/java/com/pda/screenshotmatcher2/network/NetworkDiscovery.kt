@@ -34,11 +34,14 @@ fun discoverServersOnNetwork(context: Context, port: Int = 49050, message: Strin
         try {
             s.receive(packetR)  // receive will block here, until soTimeout gets reached
             val payload = String(packetR.data, 0, packetR.length).split('|')
-            val pair = Pair(PROTOCOL + payload[0], payload[1])
-            //only add to list if it's not a duplicate
-            if (serverList.indexOf(pair) == -1) {
-                serverList.add(Pair(PROTOCOL + payload[0], payload[1]))
+            if (payload.size == 2) {
+                val pair = Pair(PROTOCOL + payload[0], payload[1])
+                //only add to list if it's not a duplicate
+                if (serverList.indexOf(pair) == -1) {
+                    serverList.add(Pair(PROTOCOL + payload[0], payload[1]))
+                }
             }
+
         }
         catch(e: SocketTimeoutException) {
             break
