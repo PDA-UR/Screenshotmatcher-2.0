@@ -126,9 +126,11 @@ class NewPhotoService : Service() {
         contentObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
             override fun onChange(selfChange: Boolean, uri: Uri?) {
                 super.onChange(selfChange, uri)
-                if (uri != null) {
+                val serverUrl = ServerConnectionModel.serverUrl.value
+                if (serverUrl != null && serverUrl != "" && uri != null) {
                     val path = getPathFromObserverUri(uri)
                     if (path != null && !lastPaths.contains(path) && !path.contains(Regex("/_"))) {
+
                         lastPaths.push(path)
                         Log.d("NPS", "call path: $path, paths: ${lastPaths}}")
                         timestamp = System.currentTimeMillis()
@@ -139,39 +141,14 @@ class NewPhotoService : Service() {
                             "loaded file" + (System.currentTimeMillis() - timestamp).toString()
                         )
                         timestamp = System.currentTimeMillis()
-
-                        //glide
-
-
-                        //val ogBitmap = BitmapFactory.decodeFile(file.absolutePath)
-                        val image = decodeSampledBitmapFromResource(file, 512, 512)
-                        //val mImage = MediaStore.Images.Media.getBitmap(contentResolver,uri)
-                        //Log.d("NPS", image.width.toString())
+                        val sampledCameraImage = decodeSampledBitmapFromResource(file, 512, 512)
                         Log.d(
                             "NPS_TS",
                             "loaded og bitmap " + (System.currentTimeMillis() - timestamp).toString()
                         )
                         timestamp = System.currentTimeMillis()
-                        /*
-                        //val image = BitmapFactory.decodeFile(file.path)
-                        val THUMBSIZE = 512
-
-                        *//*val image = ThumbnailUtils.extractThumbnail(
-                             ogBitmap,
-                             THUMBSIZE,
-                             THUMBSIZE
-                         )*//*
-                        Log.d(
-                            "NPS_TS",
-                            "decoded bitmap from file after:" + (System.currentTimeMillis() - timestamp).toString()
-                        )*/
-
-                        rescaleAndSendToServer(image = image)
-
-
-                    } else {
-                        path?.let { Log.d("NPS", "Not printed: $path") }
-                    }
+                        rescaleAndSendToServer(image = sampledCameraImage)
+                    } else path?.let { Log.d("NPS", "Not printed: $path") }
                 }
             }
         }
@@ -184,6 +161,7 @@ class NewPhotoService : Service() {
 
     private fun rescaleAndSendToServer(image: Bitmap) {
         timestamp = System.currentTimeMillis()
+        Log.d("NPS", "Bitmap width: ${image.width}")
         val greyImg = rescale(
             image,
             512
@@ -196,7 +174,7 @@ class NewPhotoService : Service() {
         val serverUrl = ServerConnectionModel.serverUrl.value
         if (serverUrl != null && serverUrl != "") {
             Log.d("NPS", serverUrl)
-            val matchingOptions: java.util.HashMap<Any?, Any?>? =
+            val matchingOptions: java.util.HashMap<Any?, Any?> =
                 getMatchingOptionsFromPref()
             Log.d(
                 "NPS_TS",
@@ -238,7 +216,11 @@ class NewPhotoService : Service() {
         }
     }
 
-    fun calculateInSampleSize(options: BitmapFactory.Options, reqWidth: Int, reqHeight: Int): Int {
+    private fun calculateInSampleSize(
+        options: BitmapFactory.Options,
+        reqWidth: Int,
+        reqHeight: Int
+    ): Int {
         // Raw height and width of image
         val (height: Int, width: Int) = options.run { outHeight to outWidth }
         var inSampleSize = 4
@@ -266,7 +248,6 @@ class NewPhotoService : Service() {
         timestamp = System.currentTimeMillis()
         if (ba != null) {
             val image = BitmapFactory.decodeByteArray(ba, 0, ba.size)
-            //val image = MediaStore.Images.Media.getBitmap(contentResolver, uri)
             sendMatchNotification(image, true)
             Log.d(
                 "NPS_TS",
