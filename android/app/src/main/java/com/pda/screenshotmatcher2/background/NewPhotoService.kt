@@ -28,9 +28,7 @@ import kotlin.collections.HashMap
 
 class NewPhotoService : Service() {
 
-    private var wakeLock: PowerManager.WakeLock? = null
     private var isServiceStarted = false
-    private lateinit var observer: FileObserver
     private lateinit var contentObserver: ContentObserver
     private lateinit var sp: SharedPreferences
     private lateinit var MATCHING_MODE_PREF_KEY: String
@@ -96,7 +94,6 @@ class NewPhotoService : Service() {
                 it.enableLights(true)
                 it.lightColor = Color.RED
                 it.enableVibration(true)
-                it.vibrationPattern = longArrayOf(100, 200, 300, 400, 500, 400, 300, 200, 400)
                 it
             }
             notificationManager.createNotificationChannel(channel)
@@ -149,7 +146,8 @@ class NewPhotoService : Service() {
                         timestamp = System.currentTimeMillis()
                         rescaleAndSendToServer(image = sampledCameraImage)
                     } else path?.let { Log.d("NPS", "Not printed: $path") }
-                }
+                } else {Log.d("NPS", "CO event, didnt meet requirements")}
+
             }
         }
         contentResolver.registerContentObserver(
