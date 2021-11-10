@@ -8,7 +8,6 @@ import android.database.ContentObserver
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
-import android.media.ThumbnailUtils
 import android.net.Uri
 import android.os.*
 import android.provider.MediaStore
@@ -17,6 +16,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.preference.PreferenceManager
+import com.bumptech.glide.Glide
 import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.models.ServerConnectionModel
 import com.pda.screenshotmatcher2.network.sendBitmap2
@@ -25,6 +25,7 @@ import com.pda.screenshotmatcher2.views.activities.CameraActivity
 import java.io.File
 import java.util.*
 import kotlin.collections.HashMap
+import kotlin.concurrent.thread
 
 
 class NewPhotoService : Service() {
@@ -36,7 +37,8 @@ class NewPhotoService : Service() {
     private var lastPath: String = ""
     private lateinit var sp: SharedPreferences
     private lateinit var MATCHING_MODE_PREF_KEY: String
-    private var timestamp : Long = 0
+    private var timestamp: Long = 0
+
     companion object {
         var lastPaths: LinkedList<String> = object : LinkedList<String>() {
             override fun push(e: String?) {
@@ -147,49 +149,41 @@ class NewPhotoService : Service() {
                         timestamp = System.currentTimeMillis()
                         Log.d("NPS", path)
                         val file = File(path)
-                        Log.d("NPS_TS", "loaded file" + (System.currentTimeMillis() - timestamp).toString())
+                        Log.d(
+                            "NPS_TS",
+                            "loaded file" + (System.currentTimeMillis() - timestamp).toString()
+                        )
                         timestamp = System.currentTimeMillis()
+
+                        //glide
+
+
+
                         //val ogBitmap = BitmapFactory.decodeFile(file.absolutePath)
                         val image = decodeSampledBitmapFromResource(file, 512, 512)
                         //val mImage = MediaStore.Images.Media.getBitmap(contentResolver,uri)
                         //Log.d("NPS", image.width.toString())
-                        Log.d("NPS_TS", "loaded og bitmap " + (System.currentTimeMillis() - timestamp).toString())
+                        Log.d(
+                            "NPS_TS",
+                            "loaded og bitmap " + (System.currentTimeMillis() - timestamp).toString()
+                        )
                         timestamp = System.currentTimeMillis()
+                        /*
                         //val image = BitmapFactory.decodeFile(file.path)
                         val THUMBSIZE = 512
 
-                       /*val image = ThumbnailUtils.extractThumbnail(
-                            ogBitmap,
-                            THUMBSIZE,
-                            THUMBSIZE
+                        *//*val image = ThumbnailUtils.extractThumbnail(
+                             ogBitmap,
+                             THUMBSIZE,
+                             THUMBSIZE
+                         )*//*
+                        Log.d(
+                            "NPS_TS",
+                            "decoded bitmap from file after:" + (System.currentTimeMillis() - timestamp).toString()
                         )*/
-                        Log.d("NPS_TS", "decoded bitmap from file after:" + (System.currentTimeMillis() - timestamp).toString())
-                        timestamp = System.currentTimeMillis()
-                        val greyImg = rescale(
-                            image,
-                            512
-                        )
-                        Log.d("NPS_TS", "Converted grey after: " + (System.currentTimeMillis() - timestamp).toString())
-                        timestamp = System.currentTimeMillis()
-                        val serverUrl = ServerConnectionModel.serverUrl.value
-                        if (serverUrl != null && serverUrl != "") {
-                            Log.d("NPS", serverUrl)
-                            val matchingOptions: java.util.HashMap<Any?, Any?>? =
-                                getMatchingOptionsFromPref()
-                            Log.d("NPS_TS", "Sending bitmap after: " + (System.currentTimeMillis() - timestamp).toString())
-                            timestamp = System.currentTimeMillis()
-                            sendBitmap2(
-                                greyImg,
-                                serverUrl,
-                                this@NewPhotoService,
-                                matchingOptions,
-                                null,
-                                null,
-                                ::onMatch
-                            )
-                        } else {
-                            Log.d("NPS", "invalid serverURL")
-                        }
+
+                        rescaleAndSendToServer(image = image)
+
 
 
                     } else {
@@ -204,6 +198,42 @@ class NewPhotoService : Service() {
             contentObserver
         )
     }
+
+    private fun rescaleAndSendToServer(image: Bitmap) {
+        timestamp = System.currentTimeMillis()
+        val greyImg = rescale(
+            image,
+            512
+        )
+        Log.d(
+            "NPS_TS",
+            "Converted grey after: " + (System.currentTimeMillis() - timestamp).toString()
+        )
+        timestamp = System.currentTimeMillis()
+        val serverUrl = ServerConnectionModel.serverUrl.value
+        if (serverUrl != null && serverUrl != "") {
+            Log.d("NPS", serverUrl)
+            val matchingOptions: java.util.HashMap<Any?, Any?>? =
+                getMatchingOptionsFromPref()
+            Log.d(
+                "NPS_TS",
+                "Sending bitmap after: " + (System.currentTimeMillis() - timestamp).toString()
+            )
+            timestamp = System.currentTimeMillis()
+            sendBitmap2(
+                greyImg,
+                serverUrl,
+                this@NewPhotoService,
+                matchingOptions,
+                null,
+                null,
+                ::onMatch
+            )
+        } else {
+            Log.d("NPS", "invalid serverURL")
+        }
+    }
+
 
     fun decodeSampledBitmapFromResource(
         file: File,
@@ -246,7 +276,6 @@ class NewPhotoService : Service() {
     }
 
 
-
     private fun onMatch(matchId: String?, ba: ByteArray?, original: Bitmap?) {
         Log.d("NPS_TS", "got response after:" + (System.currentTimeMillis() - timestamp).toString())
         Log.d("NPS", "matchid: $matchId, url: ${ServerConnectionModel.serverUrl.value}")
@@ -269,7 +298,10 @@ class NewPhotoService : Service() {
                 // notificationId is a unique int for each notification that you must define
                 notify(1, notification.build())
             }
-            Log.d("NPS_TS", "sent notification after: " + (System.currentTimeMillis() - timestamp).toString())
+            Log.d(
+                "NPS_TS",
+                "sent notification after: " + (System.currentTimeMillis() - timestamp).toString()
+            )
             timestamp = System.currentTimeMillis()
         } else {
             val notification =
@@ -343,9 +375,11 @@ class NewPhotoService : Service() {
             while (cursor.moveToNext()) {
                 name = cursor.getString(displayNameColumn)
                 // TODO : Remove?
-                relativePath = "${Environment.getExternalStorageDirectory()}/${cursor.getString(
-                    relativePathColumn
-                )}$name"
+                relativePath = "${Environment.getExternalStorageDirectory()}/${
+                    cursor.getString(
+                        relativePathColumn
+                    )
+                }$name"
             }
         }
         return relativePath

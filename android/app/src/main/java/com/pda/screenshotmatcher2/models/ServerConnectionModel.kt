@@ -134,7 +134,6 @@ object ServerConnectionModel {
 
     val heartbeatRunnable = object : Runnable {
         override fun run() {
-            Log.d("SCVM", "Heartbeating")
             if (isConnected.value!! && serverUrl.value != "") {
                 sendHeartbeatRequest(
                     serverUrl.value,
