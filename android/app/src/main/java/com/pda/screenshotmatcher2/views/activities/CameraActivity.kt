@@ -29,7 +29,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
 import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.background.NewPhotoService
-import com.pda.screenshotmatcher2.background.PhotosContentJob
 import com.pda.screenshotmatcher2.logger.StudyLogger
 import com.pda.screenshotmatcher2.network.sendBitmap
 import com.pda.screenshotmatcher2.utils.createDeviceID
@@ -88,11 +87,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         createDeviceID(this)
         initViews()
         setViewListeners()
-
-
-
-
-
         cameraActivityFragmentHandler =
             CameraActivityFragmentHandler(
                 this
@@ -263,25 +257,21 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         val mServerURL = serverConnectionViewModel.getServerUrl()
         Log.d("CA", "Setting model url: $mServerURL")
         captureViewModel.setCaptureRequestData(mServerURL, mBitmap!!)
-        if (mBitmap != null) {
-            if (mServerURL != ""){
-                StudyLogger.hashMap["tc_image_captured"] = System.currentTimeMillis()   // image is in memory
-                StudyLogger.hashMap["long_side"] = cameraInstance.IMG_TARGET_SIZE
-                val greyImg =
-                    rescale(
-                        mBitmap,
-                        cameraInstance.IMG_TARGET_SIZE
-                    )
-                val matchingOptions: java.util.HashMap<Any?, Any?>? = getMatchingOptionsFromPref()
-                sendBitmap(
-                    greyImg,
-                    mServerURL,
-                    this,
-                    matchingOptions
+        if (mServerURL != ""){
+            StudyLogger.hashMap["tc_image_captured"] = System.currentTimeMillis()   // image is in memory
+            StudyLogger.hashMap["long_side"] = cameraInstance.IMG_TARGET_SIZE
+            val greyImg =
+                rescale(
+                    mBitmap,
+                    cameraInstance.IMG_TARGET_SIZE
                 )
-            } else {
-                onMatchRequestError()
-            }
+            val matchingOptions: java.util.HashMap<Any?, Any?>? = getMatchingOptionsFromPref()
+            sendBitmap(
+                greyImg,
+                mServerURL,
+                this,
+                matchingOptions
+            )
         } else {
             onMatchRequestError()
         }
