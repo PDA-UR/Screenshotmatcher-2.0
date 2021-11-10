@@ -16,7 +16,6 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.preference.PreferenceManager
-import com.bumptech.glide.Glide
 import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.models.ServerConnectionModel
 import com.pda.screenshotmatcher2.network.sendBitmap2
@@ -25,7 +24,6 @@ import com.pda.screenshotmatcher2.views.activities.CameraActivity
 import java.io.File
 import java.util.*
 import kotlin.collections.HashMap
-import kotlin.concurrent.thread
 
 
 class NewPhotoService : Service() {
@@ -34,12 +32,13 @@ class NewPhotoService : Service() {
     private var isServiceStarted = false
     private lateinit var observer: FileObserver
     private lateinit var contentObserver: ContentObserver
-    private var lastPath: String = ""
     private lateinit var sp: SharedPreferences
     private lateinit var MATCHING_MODE_PREF_KEY: String
     private var timestamp: Long = 0
+    private val notificationChannelId = "SM"
 
     companion object {
+        // list to keep track of recently checked files to avoid double processing (content observer fires multiple identical events per file)
         var lastPaths: LinkedList<String> = object : LinkedList<String>() {
             override fun push(e: String?) {
                 if (size > 10) removeAt(10)
@@ -48,25 +47,28 @@ class NewPhotoService : Service() {
         }
     }
 
+    override fun onCreate() {
+        super.onCreate()
+        val notification = createNotification()
+        startForeground(1, notification)
+    }
+
+    // called when Service is getting started
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        startService()
+        return START_NOT_STICKY
+    }
 
     private fun startService() {
         Log.d("NPS", "started fg")
         if (isServiceStarted) return
         isServiceStarted = true
         ServerConnectionModel.start(application, false)
-        // Prevent Doze mode
-        //acquireDozeLock()
-        val pathToWatch = File(
-            Environment.getExternalStorageDirectory()
-                .toString() + "/" + Environment.DIRECTORY_DCIM + "/"
-        )
         startContentObserver()
     }
 
     fun stopService(context: Context) {
         try {
-            // release doze mode lock
-            //releaseDozeLock()
             contentResolver.unregisterContentObserver(contentObserver)
             stopForeground(true)
             stopSelf()
@@ -76,36 +78,21 @@ class NewPhotoService : Service() {
         isServiceStarted = false
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        startService()
-        return START_NOT_STICKY
-    }
-
-    override fun onCreate() {
-        super.onCreate()
-        val notification = createNotification()
-        startForeground(1, notification)
-    }
-
     override fun onBind(intent: Intent?): IBinder? {
         //Bind other components here
         return null
     }
 
     private fun createNotification(): Notification {
-        val notificationChannelId = "ENDLESS SERVICE CHANNEL"
-
-        // depending on the Android API that we're dealing with we will have
-        // to use a specific method to create the notification
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationManager =
                 getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             val channel = NotificationChannel(
                 notificationChannelId,
-                "Endless Service notifications channel",
+                "ScreenshotMatcher",
                 NotificationManager.IMPORTANCE_HIGH
             ).let {
-                it.description = "Endless Service channel"
+                it.description = "Matching screenshots in the background"
                 it.enableLights(true)
                 it.lightColor = Color.RED
                 it.enableVibration(true)
@@ -131,11 +118,9 @@ class NewPhotoService : Service() {
             .setContentText("ScreenshotMatcher is active in the background")
             .setContentIntent(pendingIntent)
             .setSmallIcon(R.mipmap.ic_launcher)
-            .setTicker("Ticker text")
-            .setPriority(Notification.PRIORITY_HIGH) // for under android 26 compatibility
+            .setPriority(Notification.PRIORITY_HIGH) // android sdk < 26
             .build()
     }
-
 
     private fun startContentObserver() {
         contentObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
@@ -156,7 +141,6 @@ class NewPhotoService : Service() {
                         timestamp = System.currentTimeMillis()
 
                         //glide
-
 
 
                         //val ogBitmap = BitmapFactory.decodeFile(file.absolutePath)
@@ -183,7 +167,6 @@ class NewPhotoService : Service() {
                         )*/
 
                         rescaleAndSendToServer(image = image)
-
 
 
                     } else {
@@ -284,66 +267,58 @@ class NewPhotoService : Service() {
         if (ba != null) {
             val image = BitmapFactory.decodeByteArray(ba, 0, ba.size)
             //val image = MediaStore.Images.Media.getBitmap(contentResolver, uri)
-            val notification =
-                NotificationCompat.Builder(this@NewPhotoService, "ENDLESS SERVICE CHANNEL")
-                    .setSmallIcon(R.drawable.ic_baseline_close_48)
-                    .setContentTitle("ScreenshotMatcher")
-                    .setContentText("Looks like you took a screenshot!")
-                    .setStyle(
-                        NotificationCompat.BigPictureStyle()
-                            .bigPicture(image)
-                    )
-
-            with(NotificationManagerCompat.from(this@NewPhotoService)) {
-                // notificationId is a unique int for each notification that you must define
-                notify(1, notification.build())
-            }
+            sendMatchNotification(image, true)
             Log.d(
                 "NPS_TS",
                 "sent notification after: " + (System.currentTimeMillis() - timestamp).toString()
             )
             timestamp = System.currentTimeMillis()
         } else {
-            val notification =
-                NotificationCompat.Builder(this@NewPhotoService, "ENDLESS SERVICE CHANNEL")
-                    .setSmallIcon(R.drawable.ic_baseline_close_48)
-                    .setContentTitle("ScreenshotMatcher")
-                    .setContentText("NO SCREENSHOT")
-                    .setStyle(
-                        NotificationCompat.BigPictureStyle()
-                            .bigPicture(original)
-                    )
+            if (original != null) sendMatchNotification(original, false)
 
-            with(NotificationManagerCompat.from(this@NewPhotoService)) {
-                // notificationId is a unique int for each notification that you must define
-                notify(1, notification.build())
-            }
         }
 
     }
 
-    private fun getMatchingOptionsFromPref(): HashMap<Any?, Any?>? {
+    private fun sendMatchNotification(bmp: Bitmap, didMatch: Boolean) {
+        val notification =
+            NotificationCompat.Builder(this@NewPhotoService, notificationChannelId)
+                .setSmallIcon(R.drawable.ic_baseline_close_48)
+                .setContentTitle("ScreenshotMatcher")
+                .setStyle(
+                    NotificationCompat.BigPictureStyle()
+                        .bigPicture(bmp)
+                )
+                .apply {
+                    if (didMatch) this.setContentText("match success") else this.setContentText("NO SCREENSHOT")
+                }
+
+        with(NotificationManagerCompat.from(this@NewPhotoService)) {
+            // notificationId is a unique int for each notification that you must define
+            notify(1, notification.build())
+        }
+    }
+
+    private fun getMatchingOptionsFromPref(): HashMap<Any?, Any?> {
         if (!::sp.isInitialized) {
             sp = PreferenceManager.getDefaultSharedPreferences(this)
             MATCHING_MODE_PREF_KEY = getString(R.string.settings_algorithm_key)
         }
-        val matchingMode: HashMap<Any?, Any?>? = HashMap()
+        val matchingMode: HashMap<Any?, Any?> = HashMap()
         val fastMatchingMode: Boolean = sp.getBoolean(MATCHING_MODE_PREF_KEY, true)
 
         if (fastMatchingMode) {
-            matchingMode?.set(
-                getString(R.string.algorithm_key_server),
+            matchingMode[getString(R.string.algorithm_key_server)] =
                 getString(R.string.algorithm_fast_mode_name_server)
-            )
         } else {
-            matchingMode?.set(
-                getString(R.string.algorithm_key_server),
+            matchingMode[getString(R.string.algorithm_key_server)] =
                 getString(R.string.algorithm_accurate_mode_name_server)
-            )
         }
         return matchingMode
     }
 
+
+    // depending on the sdk version, different methods have to be used to obtain the file path
     fun getPathFromObserverUri(uri: Uri): String? {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             queryRelativeDataColumn(uri)
@@ -351,7 +326,6 @@ class NewPhotoService : Service() {
             queryDataColumn(uri)
         }
     }
-
 
     @RequiresApi(Build.VERSION_CODES.Q)
     fun queryRelativeDataColumn(uri: Uri): String? {
@@ -386,7 +360,7 @@ class NewPhotoService : Service() {
     }
 
 
-    fun queryDataColumn(uri: Uri): String? {
+    private fun queryDataColumn(uri: Uri): String? {
         var returnPath: String? = null
         val projection = arrayOf(
             MediaStore.Images.Media.DATA
@@ -406,58 +380,6 @@ class NewPhotoService : Service() {
             }
         }
         return returnPath
-    }
-
-    fun startFileObserver(pathToWatch: File) {
-        observer = object : FileObserver(pathToWatch) {
-            // set up a file observer to watch this directory on sd card
-            override fun onEvent(event: Int, fileName: String?) {
-                Log.d("NPS", (event and ALL_EVENTS).toString())
-                if (fileName != null) {
-                    Log.d("NPS", fileName)
-                }
-                when {
-                    // bitwise AND operation needed to check
-                    CREATE and event != 0 -> {
-                        Log.d(
-                            "NPS",
-                            "File created [" + pathToWatch.toString() + fileName.toString() + "]"
-                        )
-                    }
-                    MODIFY and event != 0 -> {
-                        Log.d("NPS", "modified")
-                    }
-                    CLOSE_WRITE and event != 0 -> {
-                        Log.d("NPS", "close write")
-                    }
-                    CLOSE_NOWRITE and event != 0 -> {
-                        Log.d("NPS", "Took photo: ${pathToWatch}$fileName")
-                    }
-                    OPEN and event != 0 -> {
-                        Log.d("NPS", "start writing camera image OR opened dir in file exporer")
-                    }
-                    event == FileObserver.CREATE -> Log.d("NPS", "CREATE")
-                }
-            }
-        }
-        observer.startWatching() //START OBSERVING
-    }
-
-    fun acquireDozeLock() {
-        wakeLock =
-            (getSystemService(Context.POWER_SERVICE) as PowerManager).run {
-                newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "NewPhotoService::lock").apply {
-                    acquire(10 * 60 * 1000L /*10 minutes*/)
-                }
-            }
-    }
-
-    fun releaseDozeLock() {
-        wakeLock?.let {
-            if (it.isHeld) {
-                it.release()
-            }
-        }
     }
 
 }

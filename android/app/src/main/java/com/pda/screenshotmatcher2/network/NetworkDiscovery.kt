@@ -30,7 +30,6 @@ fun discoverServersOnNetwork(context: Context, port: Int = 49050, message: Strin
     val serverList = mutableListOf<Pair<String, String>>()
 
     try {
-
         s.send(packetS)
         for (i in 1..MAX_SERVERS){
             try {
