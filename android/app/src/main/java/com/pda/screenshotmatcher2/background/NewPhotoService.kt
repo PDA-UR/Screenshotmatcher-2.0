@@ -25,9 +25,16 @@ import java.io.File
 import java.util.*
 import kotlin.collections.HashMap
 
-
+/**
+ * A [Service] running in the background, which detects when new photos are taken on the smartphone.
+ * A [ContentObserver] monitors changes in the phone gallery directory and sends match requests once new photos are detected
+ *
+ * @property isServiceStarted Indicates whether or not the service is active
+ * @property contentObserver [ContentObserver] instance, which monitors the gallery
+ * @property sp [SharedPreferences] instance, stores matching options
+ * @property notificationChannelId The channel id used to send notification
+ */
 class NewPhotoService : Service() {
-
     private var isServiceStarted = false
     private lateinit var contentObserver: ContentObserver
     private lateinit var sp: SharedPreferences
@@ -35,6 +42,9 @@ class NewPhotoService : Service() {
     private var timestamp: Long = 0
     private val notificationChannelId = "SM"
 
+    /**
+     * Stores the last 10 files dispatched by [contentObserver] in the variable [lastPaths]. This is done to avoid double processing, because [contentObserver] sometimes fires multiple identical events per file.
+     */
     companion object {
         // list to keep track of recently checked files to avoid double processing (content observer fires multiple identical events per file)
         var lastPaths: LinkedList<String> = object : LinkedList<String>() {
@@ -51,7 +61,6 @@ class NewPhotoService : Service() {
         startForeground(1, notification)
     }
 
-    // called when Service is getting started
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         startService()
         return START_NOT_STICKY
@@ -65,6 +74,11 @@ class NewPhotoService : Service() {
         startContentObserver()
     }
 
+    /**
+     * Stops the background service
+     *
+	 * @param context
+	 */
     fun stopService(context: Context) {
         try {
             contentResolver.unregisterContentObserver(contentObserver)

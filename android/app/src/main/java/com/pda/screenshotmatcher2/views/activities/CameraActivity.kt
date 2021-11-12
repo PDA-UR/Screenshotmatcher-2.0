@@ -98,10 +98,12 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
         savedInstanceState?.let { restoreFromSavedInstance(it) }
 
-
         initViewModels()
     }
 
+    /**
+     * Function to launch the background service via [Intent]
+     */
     private fun startBackgroundService() {
         Intent(this, NewPhotoService::class.java).also {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -112,8 +114,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             Log.d("CA","Starting the service in < 26 Mode")
             startService(it)
         }
-        //if (!PhotosContentJob.isScheduled(applicationContext)) PhotosContentJob.scheduleJob(applicationContext)
-        //else Log.d("CA", "job already running")
     }
 
     private fun stopBackgroundService() {
@@ -122,6 +122,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             stopService(it)
         }
     }
+
 
     private fun initViewModels() {
         val context = this
