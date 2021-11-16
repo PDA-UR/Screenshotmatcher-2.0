@@ -29,16 +29,24 @@ import kotlin.collections.ArrayList
 /**
  * A class that provides [Camera2 API](https://developer.android.com/reference/android/hardware/camera2/package-summary) features to any class that implements the [CameraInstance] interface.
  *
- * @constructor
+ * @constructor A class that implements the [CameraInstance] interface
  *
+ * @property ci The [CameraInstance] passed through the constructor
+ * @property ca The [Activity] of the [ci]
  *
  */
 class CameraProvider(cameraInstance: CameraInstance) {
     private val ci = cameraInstance
     private val ca: Activity = ci.getActivity()
-    private val MAX_PREVIEW_WIDTH = 1920
-    private val MAX_PREVIEW_HEIGHT = 1080
-    val IMG_TARGET_SIZE = 512
+
+    /**
+     * Options for the camera image.
+     */
+    companion object OPTIONS {
+        val MAX_PREVIEW_WIDTH = 1920
+        val MAX_PREVIEW_HEIGHT = 1080
+        val IMG_TARGET_SIZE = 512
+    }
 
     //Physical camera ID
     private lateinit var mCameraId: String
