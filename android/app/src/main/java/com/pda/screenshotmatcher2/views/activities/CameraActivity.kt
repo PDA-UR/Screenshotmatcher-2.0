@@ -1,7 +1,6 @@
 package com.pda.screenshotmatcher2.views.activities
 
 import android.app.Activity
-import android.app.job.JobScheduler
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -11,10 +10,8 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.media.MediaParser.SeekPoint.START
 import android.os.Build
 import android.os.Bundle
-import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import android.view.*
 import android.widget.FrameLayout
@@ -23,7 +20,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
@@ -35,13 +31,14 @@ import com.pda.screenshotmatcher2.utils.createDeviceID
 import com.pda.screenshotmatcher2.utils.rescale
 import com.pda.screenshotmatcher2.utils.verifyPermissions
 import com.pda.screenshotmatcher2.viewHelpers.CameraActivityFragmentHandler
-import com.pda.screenshotmatcher2.viewHelpers.CameraInstance
+import com.pda.screenshotmatcher2.viewHelpers.CameraProvider
 import com.pda.screenshotmatcher2.viewModels.CaptureViewModel
 import com.pda.screenshotmatcher2.viewModels.GalleryViewModel
 import com.pda.screenshotmatcher2.viewModels.ServerConnectionViewModel
+import com.pda.screenshotmatcher2.views.activities.interfaces.CameraInstance
 
 
-class CameraActivity : AppCompatActivity(), SensorEventListener {
+class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance {
    //Sensors
     private lateinit var mSensorManager : SensorManager
     private lateinit var mAccelerometer : Sensor
@@ -71,8 +68,8 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     //custom helper classes for server connection, fragment management and camera preview
     lateinit var cameraActivityFragmentHandler: CameraActivityFragmentHandler
-    var cameraInstance: CameraInstance =
-        CameraInstance(this)
+    var cameraProvider: CameraProvider =
+        CameraProvider(this)
 
 
     // Activity lifecycle
@@ -91,7 +88,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             CameraActivityFragmentHandler(
                 this
             )
-        cameraInstance.start()
+        cameraProvider.start()
 
         mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
@@ -223,7 +220,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
         mCaptureButton.apply {
             if (!hasOnClickListeners()){
                 mCaptureButtonListener = View.OnClickListener {
-                    if (!cameraInstance.isCapturing){
+                    if (!cameraProvider.isCapturing){
                         StudyLogger.hashMap["tc_button_pressed"] = System.currentTimeMillis()
                         capturePhoto()
                     }
@@ -254,17 +251,17 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     // Functionality
     private fun capturePhoto(){
         window.decorView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-        val mBitmap = cameraInstance.captureImageWithPreviewExtraction()
+        val mBitmap = cameraProvider.captureImageWithPreviewExtraction()
         val mServerURL = serverConnectionViewModel.getServerUrl()
         Log.d("CA", "Setting model url: $mServerURL")
         captureViewModel.setCaptureRequestData(mServerURL, mBitmap!!)
         if (mServerURL != ""){
             StudyLogger.hashMap["tc_image_captured"] = System.currentTimeMillis()   // image is in memory
-            StudyLogger.hashMap["long_side"] = cameraInstance.IMG_TARGET_SIZE
+            StudyLogger.hashMap["long_side"] = cameraProvider.IMG_TARGET_SIZE
             val greyImg =
                 rescale(
                     mBitmap,
-                    cameraInstance.IMG_TARGET_SIZE
+                    cameraProvider.IMG_TARGET_SIZE
                 )
             val matchingOptions: java.util.HashMap<Any?, Any?>? = getMatchingOptionsFromPref()
             sendBitmap(
@@ -356,7 +353,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
                 if (grantResults.isNotEmpty()
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED
                 ) {
-                    cameraInstance.openCamera(surfaceTextureHeight, surfaceTextureWidth)
+                    cameraProvider.openCamera(surfaceTextureHeight, surfaceTextureWidth)
                 } else {
                     Toast.makeText(this,getString(R.string.permission_request_en), Toast.LENGTH_LONG).show()
                     verifyPermissions(this)
@@ -377,20 +374,20 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     }
 
     fun onMatchResult(matchID: String, img: ByteArray) {
-        cameraInstance.isCapturing = false
+        cameraProvider.isCapturing = false
         window.decorView.performHapticFeedback(HapticFeedbackConstants.REJECT)
         captureViewModel.setCaptureResultData(matchID, BitmapFactory.decodeByteArray(img, 0, img.size))
         startResultsActivity(matchID, img)
     }
 
     fun onMatchRequestError(){
-        cameraInstance.isCapturing = false
+        cameraProvider.isCapturing = false
         window.decorView.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
         Toast.makeText(this, getString(R.string.match_request_error_en), Toast.LENGTH_LONG).show()
     }
 
     fun onPermissionDenied() {
-        cameraInstance.isCapturing = false
+        cameraProvider.isCapturing = false
         Toast.makeText(this, "Permission denied from server.", Toast.LENGTH_LONG).show()
     }
 
@@ -405,7 +402,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
     fun onCloseSelectDeviceFragment() {
         mCaptureButton.setImageResource(R.drawable.ic_baseline_photo_camera_24)
         mCaptureButton.setOnClickListener {
-            if (!cameraInstance.isCapturing){
+            if (!cameraProvider.isCapturing){
                 StudyLogger.hashMap["tc_button_pressed"] = System.currentTimeMillis()
                 capturePhoto()
             }
@@ -416,7 +413,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
 
     fun onOpenErrorFragment(uid: String) {
         captureViewModel.setCaptureResultData(uid, null)
-        cameraInstance.isCapturing = false
+        cameraProvider.isCapturing = false
     }
 
     override fun onSensorChanged(event: SensorEvent?) {
@@ -496,6 +493,18 @@ class CameraActivity : AppCompatActivity(), SensorEventListener {
             )
         }
         return matchingMode
+    }
+
+    override fun getActivity(): Activity {
+        return this
+    }
+
+    override fun getTextureView(): TextureView {
+        return findViewById(R.id.preview_view)
+    }
+
+    override fun getOrientation(): Int {
+        return phoneOrientation
     }
 
 

@@ -1,6 +1,7 @@
 package com.pda.screenshotmatcher2.viewHelpers
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -18,14 +19,23 @@ import com.pda.screenshotmatcher2.views.activities.CameraActivity
 import com.pda.screenshotmatcher2.utils.CompareSizesByArea
 import com.pda.screenshotmatcher2.utils.rotateBitmap
 import com.pda.screenshotmatcher2.logger.StudyLogger
+import com.pda.screenshotmatcher2.views.activities.interfaces.CameraInstance
 import java.util.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
 
 
-class CameraInstance(cameraActivity: CameraActivity) {
-    private val ca = cameraActivity
+/**
+ * A class that provides [Camera2 API](https://developer.android.com/reference/android/hardware/camera2/package-summary) features to any class that implements the [CameraInstance] interface.
+ *
+ * @constructor
+ *
+ *
+ */
+class CameraProvider(cameraInstance: CameraInstance) {
+    private val ci = cameraInstance
+    private val ca: Activity = ci.getActivity()
     private val MAX_PREVIEW_WIDTH = 1920
     private val MAX_PREVIEW_HEIGHT = 1080
     val IMG_TARGET_SIZE = 512
@@ -62,7 +72,7 @@ class CameraInstance(cameraActivity: CameraActivity) {
     }
     
     private fun initializeTextureView(){
-        mTextureView = ca.findViewById(R.id.preview_view)
+        mTextureView = ci.getTextureView()
         mTextureView.surfaceTextureListener =
             object : TextureView.SurfaceTextureListener {
                 override fun onSurfaceTextureAvailable(
@@ -273,8 +283,8 @@ class CameraInstance(cameraActivity: CameraActivity) {
         startTime = System.currentTimeMillis()
         var mBitmap: Bitmap? = mTextureView.bitmap
 
-        if(ca.phoneOrientation != Surface.ROTATION_0 && mBitmap != null){
-            when(ca.phoneOrientation){
+        if(ci.getOrientation() != Surface.ROTATION_0 && mBitmap != null){
+            when(ci.getOrientation()){
                 Surface.ROTATION_90 -> mBitmap =
                     rotateBitmap(
                         mBitmap,
