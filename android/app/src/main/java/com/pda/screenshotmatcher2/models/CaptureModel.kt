@@ -10,7 +10,6 @@ import android.graphics.Bitmap
  * @property cameraImage Variable that stores the photo taken by the camera, sent to the server for matching.
  * @property fullScreenshot Variable that stores the full screenshot returned by the server as a result of the matching process. This is null until the user requests the full screenshot in the [ResultsActivity][com.pda.screenshotmatcher2.views.activities.ResultsActivity].
  * @property croppedScreenshot Variable that stores the cropped screenshot returned by the server as a result of the matching process.
- * @see com.pda.screenshotmatcher2.views.activities.ResultsActivity
  */
 object CaptureModel {
     private var matchID: String? = null
