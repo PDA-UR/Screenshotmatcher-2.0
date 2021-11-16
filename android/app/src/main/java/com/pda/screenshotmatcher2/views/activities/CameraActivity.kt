@@ -257,11 +257,11 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
         captureViewModel.setCaptureRequestData(mServerURL, mBitmap!!)
         if (mServerURL != ""){
             StudyLogger.hashMap["tc_image_captured"] = System.currentTimeMillis()   // image is in memory
-            StudyLogger.hashMap["long_side"] = cameraProvider.IMG_TARGET_SIZE
+            StudyLogger.hashMap["long_side"] = CameraProvider.IMG_TARGET_SIZE
             val greyImg =
                 rescale(
                     mBitmap,
-                    cameraProvider.IMG_TARGET_SIZE
+                    CameraProvider.IMG_TARGET_SIZE
                 )
             val matchingOptions: java.util.HashMap<Any?, Any?>? = getMatchingOptionsFromPref()
             sendBitmap(
