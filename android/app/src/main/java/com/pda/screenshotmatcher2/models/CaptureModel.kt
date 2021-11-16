@@ -5,11 +5,11 @@ import android.graphics.Bitmap
 /**
  * Data model used to store all relevant information about the last capture process.
  *
- * @property matchID Variable that stores the ID of the matching process, as returned by the server.
- * @property serverURL Variable that stores the server url, where the [cameraImage] has been sent to.
- * @property cameraImage Variable that stores the photo taken by the camera, sent to the server for matching.
- * @property fullScreenshot Variable that stores the full screenshot returned by the server as a result of the matching process. This is null until the user requests the full screenshot in the [ResultsActivity][com.pda.screenshotmatcher2.views.activities.ResultsActivity].
- * @property croppedScreenshot Variable that stores the cropped screenshot returned by the server as a result of the matching process.
+ * @property matchID The ID of the matching process, as returned by the server.
+ * @property serverURL The server url, where the [cameraImage] has been sent to.
+ * @property cameraImage The photo taken by the camera, sent to the server for matching.
+ * @property fullScreenshot The full screenshot returned by the server as a result of the matching process. This is null until the user requests the full screenshot in the [ResultsActivity][com.pda.screenshotmatcher2.views.activities.ResultsActivity].
+ * @property croppedScreenshot The cropped screenshot returned by the server as a result of the matching process.
  */
 object CaptureModel {
     private var matchID: String? = null
