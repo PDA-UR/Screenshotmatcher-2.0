@@ -11,6 +11,17 @@ import androidx.lifecycle.MutableLiveData
 import com.pda.screenshotmatcher2.network.discoverServersOnNetwork
 import com.pda.screenshotmatcher2.network.sendHeartbeatRequest
 
+/**
+ * Data model used to store all relevant information about the current server connection.
+ * Also handles server discovery and heartbeats.
+ *
+ * @property serverUrlList Variable that stores all currently available servers
+ * @property serverUrl Variable that stores the currently connected server
+ * @property isConnected Variable that indicates whether or not the application is connected to a server
+ * @property isDiscovering Variable that indicates whether or not the application is currently searching for servers
+ * @property isHeartbeating Variable that indicates whether or not the application is currently sending out heartbeats to a server
+ */
+
 object ServerConnectionModel {
     var serverUrlList = MutableLiveData<List<Pair<String, String>>>(emptyList())
     var serverUrl = MutableLiveData<String>("")
@@ -26,15 +37,28 @@ object ServerConnectionModel {
     private lateinit var looper: Looper
     private lateinit var mHandler: Handler
 
-    private val END_ALL_THREADS: Int = 0
-    private val START_DISCOVER: Int = 1
-    private val START_HEARTBEAT: Int = 2
+    /**
+     * All potential messages
+     */
+    private object HANDLER_MESSAGES {
+        val END_ALL_THREADS: Int = 0
+        val START_DISCOVER: Int = 1
+        val START_HEARTBEAT: Int = 2
+    }
 
+    /**
+     * Replaces the current [serverUrlList] with the provided [serverUrlList]
+     *
+	 * @return The **value** of the new [serverUrlList]
+	 */
     fun setServerUrlList(serverUrlList: List<Pair<String, String>>): List<Pair<String, String>> {
         this.serverUrlList.postValue(serverUrlList)
         return this.serverUrlList.value!!
     }
 
+    /**
+     * Changes the current [serverUrl] to the **url** that is associated with the provided [hostname]
+	 */
     fun setServerUrl(hostname: String) {
         serverUrlList.value?.forEach {
             if (it.second == hostname) {
@@ -43,11 +67,17 @@ object ServerConnectionModel {
             }
         }
     }
-    private fun onConnectionChanged(isConnected: Boolean) {
-        isDiscovering.postValue(!isConnected)
-        isHeartbeating.postValue(isConnected)
-        this.isConnected.postValue(isConnected)
-        if (isConnected) startHeartbeatThread()
+
+    /**
+     * Callback that gets executed when the current connection status changes.
+     * Updates the connection state variables and starts a new runnable depending on [newConnectionState]
+     * @param newConnectionState The new connection status (true = connected, false = disconnected)
+	 */
+    private fun onConnectionChanged(newConnectionState: Boolean) {
+        isDiscovering.postValue(!newConnectionState)
+        isHeartbeating.postValue(newConnectionState)
+        this.isConnected.postValue(newConnectionState)
+        if (newConnectionState) startHeartbeatThread()
         else {
             serverUrl.postValue("")
             startDiscoverThread()
@@ -55,6 +85,11 @@ object ServerConnectionModel {
     }
 
 
+    /**
+     * Initiates the threads & handlers. Starts the first [Runnable].
+     *
+	 * @param isForeground Whether or not the model is called from a background service or a foreground activity
+	 */
     fun start(application: Application, isForeground: Boolean) {
         this.application = application
         if (!isDiscovering.value!! && !isHeartbeating.value!!) {
@@ -63,14 +98,14 @@ object ServerConnectionModel {
             mHandler = object : Handler(looper) {
                 override fun handleMessage(msg: Message) {
                     when (msg.what) {
-                        END_ALL_THREADS -> {
+                        HANDLER_MESSAGES.END_ALL_THREADS -> {
                             this.removeCallbacksAndMessages(null)
                         }
-                        START_DISCOVER -> {
+                        HANDLER_MESSAGES.START_DISCOVER -> {
                             this.removeCallbacksAndMessages(null)
                             this.post(discoverRunnable)
                         }
-                        START_HEARTBEAT -> {
+                        HANDLER_MESSAGES.START_HEARTBEAT -> {
                             this.removeCallbacksAndMessages(null)
                             this.post(heartbeatRunnable)
                         }
@@ -84,20 +119,30 @@ object ServerConnectionModel {
         }
     }
 
+    /**
+     * Starts [heartbeatRunnable]
+     */
     private fun startHeartbeatThread() {
         if (handlerThread.isAlive) {
             isHeartbeating.postValue(true)
-            mHandler.sendMessage(mHandler.obtainMessage(START_HEARTBEAT))
-        }
-    }
-    private fun startDiscoverThread() {
-        if (handlerThread.isAlive) {
-            isDiscovering.postValue(true)
-            mHandler.sendMessage(mHandler.obtainMessage(START_DISCOVER))
+            mHandler.sendMessage(mHandler.obtainMessage(HANDLER_MESSAGES.START_HEARTBEAT))
         }
     }
 
-    val discoverRunnable = object : Runnable {
+    /**
+     * Starts [discoverRunnable]
+     */
+    private fun startDiscoverThread() {
+        if (handlerThread.isAlive) {
+            isDiscovering.postValue(true)
+            mHandler.sendMessage(mHandler.obtainMessage(HANDLER_MESSAGES.START_DISCOVER))
+        }
+    }
+
+    /**
+     * [Runnable] that discovers all available servers on the network
+     */
+    private val discoverRunnable = object : Runnable {
         override fun run() {
             Log.d("SCVM", "Discovering")
             requestServerURL(application!!.applicationContext)
@@ -105,23 +150,32 @@ object ServerConnectionModel {
         }
     }
 
+    /**
+     * Retrieves all available servers on the network and updates [serverUrlList]
+	 */
     private fun requestServerURL(context: Context) {
         Thread {
-            serverUrlList.postValue(
                 discoverServersOnNetwork(
                     context,
                     49050,
                     "",
                     ::onServerURLsGet
                 )
-            )
         }.start()
     }
+
+    /**
+     * Helper function to update [serverUrlList] with [newServers]
+	 */
     private fun updateServerUrlList(newServers: List<Pair<String, String>>) {
         serverUrlList.postValue(newServers)
     }
 
 
+    /**
+     * Callback that gets executed when new servers have been discovered.
+     * Updates [serverUrlList] with the new list of [servers].
+	 */
     private fun onServerURLsGet(servers: List<Pair<String, String>>) {
         if (servers.isNotEmpty()) {
             updateServerUrlList(servers).also {
@@ -132,9 +186,13 @@ object ServerConnectionModel {
         }
     }
 
-    val heartbeatRunnable = object : Runnable {
+    /**
+     * [Runnable] that sends heartbeats to the currently connected server ([serverUrl]
+     */
+    private val heartbeatRunnable = object : Runnable {
         override fun run() {
             if (isConnected.value!! && serverUrl.value != "") {
+                Log.d("SCM", "Sending heartbeat")
                 sendHeartbeatRequest(
                     serverUrl.value,
                     application!!.applicationContext,
@@ -144,7 +202,11 @@ object ServerConnectionModel {
             mHandler.postDelayed(this, 1000)
         }
     }
-    fun onHeartbeatFail() {
+
+    /**
+     * Callback that gets executed when sending a heartbeat fails
+     */
+    private fun onHeartbeatFail() {
         onConnectionChanged(false)
         Log.d("SCVM", "Failed HB")
     }
