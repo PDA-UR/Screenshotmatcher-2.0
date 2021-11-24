@@ -15,6 +15,8 @@ import com.pda.screenshotmatcher2.network.sendHeartbeatRequest
  * Data model used to store all relevant information about the current server connection.
  * Also handles server discovery and heartbeats.
  *
+ * Accessed through [ServerConnectionViewModel][com.pda.screenshotmatcher2.viewModels.ServerConnectionViewModel].
+ *
  * @property serverUrlList All currently available servers
  * @property serverUrl The currently connected server
  * @property isConnected Whether or not the application is connected to a server

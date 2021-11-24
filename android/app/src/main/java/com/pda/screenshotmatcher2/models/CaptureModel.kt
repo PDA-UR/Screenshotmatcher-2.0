@@ -5,6 +5,8 @@ import android.graphics.Bitmap
 /**
  * Data model used to store all relevant information about the last capture process.
  *
+ * Accessed through [CaptureModel][com.pda.screenshotmatcher2.models.CaptureModel].
+ *
  * @property matchID The ID of the matching process, as returned by the server.
  * @property serverURL The server url, where the [cameraImage] has been sent to.
  * @property cameraImage The photo taken by the camera, sent to the server for matching.

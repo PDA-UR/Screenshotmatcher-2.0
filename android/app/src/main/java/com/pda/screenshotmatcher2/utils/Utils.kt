@@ -18,6 +18,9 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.Exception
 
+/**
+ * The permissions used by the application.
+ */
 private val PERMISSIONS = arrayOf(
     Manifest.permission.READ_EXTERNAL_STORAGE,
     Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -25,11 +28,21 @@ private val PERMISSIONS = arrayOf(
     Manifest.permission.CAMERA
 )
 
+/**
+ * Returns the current date/time.
+ *
+ * @return The current date/time in the format "yyyy-MM-dd'T'HH-mm-ss"
+ */
 fun getDateString() : String{
     val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH-mm-ss", Locale.getDefault())
     return sdf.format(Date())
 }
 
+/**
+ * Verifies if [activity] has been granted all permissions of [PERMISSIONS].
+ *
+ * @return true = all permissions granted; false = at least one permission denied
+ */
 fun verifyPermissions(activity: Activity?): Boolean {
     // Check if we have write permission
     val writePermission = ActivityCompat.checkSelfPermission(
@@ -52,11 +65,17 @@ fun verifyPermissions(activity: Activity?): Boolean {
     } else return true
 }
 
+/**
+ * Converts a [b64String] to a [Bitmap] and returns it.
+ */
 fun base64ToBitmap(b64String: String) : Bitmap{
     val byteArray = Base64.decode(b64String, Base64.DEFAULT)
     return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
 }
 
+/**
+ * Saves [bitmap] to [filename].
+ */
 fun saveBitmapToFile(filename: File, bitmap: Bitmap){
     try {
         val out = FileOutputStream(filename)
@@ -68,6 +87,9 @@ fun saveBitmapToFile(filename: File, bitmap: Bitmap){
     }
 }
 
+/**
+ * Returns the devices model name.
+ */
 fun getDeviceName(): String {
     val manufacturer = Build.MANUFACTURER
     val model = Build.MODEL
@@ -78,18 +100,18 @@ fun getDeviceName(): String {
     }
 }
 
+/**
+ * Rotates [bitmap] by [deg] and returns it.
+ */
 fun rotateBitmap(bitmap: Bitmap, deg: Float): Bitmap{
     return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, Matrix().apply { postRotate(deg) }, true)
 }
 
-fun rotateBitmapAndAdjustRatio(bitmap: Bitmap, deg: Float): Bitmap{
-    val width = bitmap.width
-    val height = bitmap.height
-    var mBitmap = Bitmap.createScaledBitmap(bitmap, height, width, false)
-    mBitmap = Bitmap.createBitmap(mBitmap, 0, 0, height, width, Matrix().apply { postRotate(deg) }, true)
-    return mBitmap
-}
-
+/**
+ * Creates a new device ID if the app is running for the very first time.
+ *
+ * @param context The application [Context], required to access the application shared preferences.
+ */
 fun createDeviceID(context: Context) {
     val prefs = context.getSharedPreferences("device_id", Context.MODE_PRIVATE)
     val savedID = prefs.getString("ID", "")
@@ -101,6 +123,12 @@ fun createDeviceID(context: Context) {
     prefs.edit().putString("ID", id).apply()
 }
 
+/**
+ * Returns the device ID.
+ *
+ * @exception Exception Thrown when no device ID is set in shared preferences
+ * @param context The application [Context], required to access the application shared preferences.
+ */
 fun getDeviceID(context: Context) : String{
     val prefs = context.getSharedPreferences("device_id", Context.MODE_PRIVATE)
     val savedID = prefs.getString("ID", "")
@@ -112,6 +140,9 @@ fun getDeviceID(context: Context) : String{
     }
 }
 
+/**
+ * [Comparator], which compares two [Sizes][Size] and returns the bigger one.
+ */
 class CompareSizesByArea : Comparator<Size?> {
     override fun compare(o1: Size?, o2: Size?): Int {
         if (o1 != null) {
