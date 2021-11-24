@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -58,6 +59,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
     private lateinit var mSettingsButton: ImageButton
     private lateinit var mGalleryButton: ImageButton
 
+    var isCapturing: Boolean = false
     //Shared preferences
     private lateinit var sp: SharedPreferences
     private lateinit var MATCHING_MODE_PREF_KEY: String
@@ -65,6 +67,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
     private lateinit var galleryViewModel: GalleryViewModel
     private lateinit var serverConnectionViewModel: ServerConnectionViewModel
     private lateinit var captureViewModel: CaptureViewModel
+
 
     //custom helper classes for server connection, fragment management and camera preview
     lateinit var cameraActivityFragmentHandler: CameraActivityFragmentHandler
@@ -220,7 +223,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
         mCaptureButton.apply {
             if (!hasOnClickListeners()){
                 mCaptureButtonListener = View.OnClickListener {
-                    if (!cameraProvider.isCapturing){
+                    if (!isCapturing){
                         StudyLogger.hashMap["tc_button_pressed"] = System.currentTimeMillis()
                         capturePhoto()
                     }
@@ -250,7 +253,9 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
 
     // Functionality
     private fun capturePhoto(){
+        isCapturing = true
         window.decorView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+
         val mBitmap = cameraProvider.captureImageWithPreviewExtraction()
         val mServerURL = serverConnectionViewModel.getServerUrl()
         Log.d("CA", "Setting model url: $mServerURL")
@@ -268,7 +273,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
                 greyImg,
                 mServerURL,
                 this,
-                matchingOptions
+                matchingOptions,
             )
         } else {
             onMatchRequestError()
@@ -374,20 +379,20 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
     }
 
     fun onMatchResult(matchID: String, img: ByteArray) {
-        cameraProvider.isCapturing = false
+        isCapturing = false
         window.decorView.performHapticFeedback(HapticFeedbackConstants.REJECT)
         captureViewModel.setCaptureResultData(matchID, BitmapFactory.decodeByteArray(img, 0, img.size))
         startResultsActivity(matchID, img)
     }
 
     fun onMatchRequestError(){
-        cameraProvider.isCapturing = false
+        isCapturing = false
         window.decorView.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
         Toast.makeText(this, getString(R.string.match_request_error_en), Toast.LENGTH_LONG).show()
     }
 
     fun onPermissionDenied() {
-        cameraProvider.isCapturing = false
+        isCapturing = false
         Toast.makeText(this, "Permission denied from server.", Toast.LENGTH_LONG).show()
     }
 
@@ -402,7 +407,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
     fun onCloseSelectDeviceFragment() {
         mCaptureButton.setImageResource(R.drawable.ic_baseline_photo_camera_24)
         mCaptureButton.setOnClickListener {
-            if (!cameraProvider.isCapturing){
+            if (!isCapturing){
                 StudyLogger.hashMap["tc_button_pressed"] = System.currentTimeMillis()
                 capturePhoto()
             }
@@ -413,7 +418,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
 
     fun onOpenErrorFragment(uid: String) {
         captureViewModel.setCaptureResultData(uid, null)
-        cameraProvider.isCapturing = false
+        isCapturing = false
     }
 
     override fun onSensorChanged(event: SensorEvent?) {

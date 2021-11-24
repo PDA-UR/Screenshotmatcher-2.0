@@ -30,7 +30,7 @@ fun getDateString() : String{
     return sdf.format(Date())
 }
 
-fun verifyPermissions(activity: Activity?) {
+fun verifyPermissions(activity: Activity?): Boolean {
     // Check if we have write permission
     val writePermission = ActivityCompat.checkSelfPermission(
         activity!!,
@@ -42,12 +42,14 @@ fun verifyPermissions(activity: Activity?) {
     )
     if (writePermission != PackageManager.PERMISSION_GRANTED || cameraPermission != PackageManager.PERMISSION_GRANTED) {
         // We don't have permission so prompt the user
+
         ActivityCompat.requestPermissions(
             activity,
             PERMISSIONS,
             1
         )
-    }
+        return false
+    } else return true
 }
 
 fun base64ToBitmap(b64String: String) : Bitmap{
