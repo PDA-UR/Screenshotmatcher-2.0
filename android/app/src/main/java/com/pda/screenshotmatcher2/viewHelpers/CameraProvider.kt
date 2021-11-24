@@ -14,8 +14,6 @@ import android.util.Size
 import android.view.Surface
 import android.view.TextureView
 import androidx.core.app.ActivityCompat
-import com.pda.screenshotmatcher2.R
-import com.pda.screenshotmatcher2.views.activities.CameraActivity
 import com.pda.screenshotmatcher2.utils.CompareSizesByArea
 import com.pda.screenshotmatcher2.utils.rotateBitmap
 import com.pda.screenshotmatcher2.logger.StudyLogger
@@ -29,10 +27,18 @@ import kotlin.collections.ArrayList
 /**
  * A class that provides [Camera2 API](https://developer.android.com/reference/android/hardware/camera2/package-summary) features to any class that implements the [CameraInstance] interface.
  *
- * @constructor A class that implements the [CameraInstance] interface
- *
  * @property ci The [CameraInstance] passed through the constructor
- * @property ca The [Activity] of the [ci]
+ * @property ca The [Activity] of the [CameraInstance][ci]
+ *
+ * @property cameraId The physical camera id
+ * @property captureSession The active camera capture session
+ * @property cameraDevice The open camera
+ * @property previewTextureView The [TextureView], on which the camera preview image will be displayed
+ * @property previewSize The [Size] of the camera preview image
+ * @property imageReader Handler for still image capture
+ * @property previewRequestBuilder The builder for [previewRequest]
+ * @property previewRequest The [CaptureRequest] to get camera images for the preview
+ * @property cameraOpenCloseLock Prevents closing the app without closing the camera first
  *
  */
 class CameraProvider(cameraInstance: CameraInstance) {
@@ -48,48 +54,35 @@ class CameraProvider(cameraInstance: CameraInstance) {
         val IMG_TARGET_SIZE = 512
     }
 
-    //Physical camera ID
-    private lateinit var mCameraId: String
-    //Active camera session
-    private lateinit var mCaptureSession: CameraCaptureSession
-    //opened camera
-    private lateinit var mCameraDevice: CameraDevice
+    private lateinit var cameraId: String
+    private lateinit var captureSession: CameraCaptureSession
+    private lateinit var cameraDevice: CameraDevice
+    private lateinit var previewTextureView: TextureView
+    private lateinit var previewSize: Size
+    private lateinit var imageReader: ImageReader
+    private lateinit var previewRequestBuilder: CaptureRequest.Builder
+    private lateinit var previewRequest: CaptureRequest
+    private var cameraOpenCloseLock: Semaphore = Semaphore(1)
 
-    //Preview view
-    private lateinit var mTextureView: TextureView
-    //size of preview
-    private lateinit var mPreviewSize: Size
-    private var surfaceTextureHeight: Int = 0
-    private var surfaceTextureWidth: Int = 0
-
-    //Handles still image capture
-    private lateinit var mImageReader: ImageReader
-    //Camera preview builder
-    private lateinit var mPreviewRequestBuilder: CaptureRequest.Builder
-    //Request from builder
-    private lateinit var mPreviewRequest: CaptureRequest
-
-    //Prevent exit before closing cam
-    private var mCameraOpenCloseLock: Semaphore = Semaphore(1)
-
-    private var startTime: Long = 0
-    var isCapturing: Boolean = false
-
+    /**
+     * Starts the camera preview on [previewTextureView].
+     */
     fun start(){
         initializeTextureView()
     }
-    
+
+    /**
+     * Initializes [previewTextureView] and sets the [SurfaceTextureListener][TextureView.SurfaceTextureListener].
+     */
     private fun initializeTextureView(){
-        mTextureView = ci.getTextureView()
-        mTextureView.surfaceTextureListener =
+        previewTextureView = ci.getTextureView()
+        previewTextureView.surfaceTextureListener =
             object : TextureView.SurfaceTextureListener {
                 override fun onSurfaceTextureAvailable(
                     texture: SurfaceTexture,
                     width: Int,
                     height: Int
                 ) {
-                    surfaceTextureWidth = width
-                    surfaceTextureHeight = height
                     openCamera(width, height)
                 }
 
@@ -108,6 +101,9 @@ class CameraProvider(cameraInstance: CameraInstance) {
             }
     }
 
+    /**
+     * Opens the camera with the provided [width] and [height] if [Manifest.permission.CAMERA] is granted.
+	 */
     fun openCamera(width: Int, height: Int) {
         setUpCameraOutputs(width, height)
         val manager =
@@ -120,8 +116,8 @@ class CameraProvider(cameraInstance: CameraInstance) {
             return
         }
         try {
-            mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)
-            manager.openCamera(mCameraId, mCameraDeviceStateCallback, null)
+            cameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)
+            manager.openCamera(cameraId, cameraDeviceStateCallback, null)
         } catch (e: CameraAccessException) {
             e.printStackTrace()
         } catch (e: InterruptedException) {
@@ -129,6 +125,12 @@ class CameraProvider(cameraInstance: CameraInstance) {
         }
     }
 
+    /**
+     * Sets up the camera output by choosing the optimal size from all available cameras.
+     *
+	 * @param width The target camera image width
+	 * @param height The target camera image height
+	 */
     private fun setUpCameraOutputs(width: Int, height: Int) {
         val manager =
             ca.getSystemService(Context.CAMERA_SERVICE) as CameraManager
@@ -143,7 +145,7 @@ class CameraProvider(cameraInstance: CameraInstance) {
 
                 // Use largest size available
                 val largest: Size = listOf(map.getOutputSizes(ImageFormat.JPEG))[0][0]
-                mImageReader = ImageReader.newInstance(
+                imageReader = ImageReader.newInstance(
                     largest.width, largest.height,
                     ImageFormat.JPEG, 2
                 )
@@ -156,12 +158,12 @@ class CameraProvider(cameraInstance: CameraInstance) {
                 if (maxPreviewWidth > MAX_PREVIEW_WIDTH) maxPreviewWidth = MAX_PREVIEW_WIDTH
                 if (maxPreviewHeight > MAX_PREVIEW_HEIGHT) maxPreviewHeight = MAX_PREVIEW_HEIGHT
 
-                mPreviewSize = chooseOptimalSize(
+                previewSize = chooseOptimalSize(
                     map.getOutputSizes(SurfaceTexture::class.java),
                     width, height, maxPreviewWidth,
                     maxPreviewHeight, largest
                 )!!
-                mCameraId = cameraId
+                this.cameraId = cameraId
                 return
             }
         } catch (e: CameraAccessException) {
@@ -170,40 +172,46 @@ class CameraProvider(cameraInstance: CameraInstance) {
         }
     }
 
-    private val mCameraDeviceStateCallback: CameraDevice.StateCallback = object : CameraDevice.StateCallback() {
+    /**
+     * Callback for handling all state changes of the open camera.
+     */
+    private val cameraDeviceStateCallback: CameraDevice.StateCallback = object : CameraDevice.StateCallback() {
         override fun onOpened(cameraDevice: CameraDevice) {
-            mCameraOpenCloseLock.release()
-            mCameraDevice = cameraDevice
+            cameraOpenCloseLock.release()
+            this@CameraProvider.cameraDevice = cameraDevice
             createCameraCaptureSession()
         }
 
         override fun onDisconnected(cameraDevice: CameraDevice) {
-            mCameraOpenCloseLock.release()
+            cameraOpenCloseLock.release()
             cameraDevice.close()
         }
 
         override fun onError(cameraDevice: CameraDevice, error: Int) {
-            mCameraOpenCloseLock.release()
+            cameraOpenCloseLock.release()
             cameraDevice.close()
             ca.finish()
         }
     }
 
+    /**
+     * Creates a [captureSession] on [previewTextureView], using [previewRequestBuilder].
+     */
     private fun createCameraCaptureSession() {
         try {
-            val texture = mTextureView.surfaceTexture!!.apply { 
-                setDefaultBufferSize(mPreviewSize.width, mPreviewSize.height)
+            val texture = previewTextureView.surfaceTexture!!.apply {
+                setDefaultBufferSize(previewSize.width, previewSize.height)
             }
             val surface = Surface(texture)
 
             //Capturing for preview
-            mPreviewRequestBuilder =
-                mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
-            mPreviewRequestBuilder.addTarget(surface)
+            previewRequestBuilder =
+                cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
+            previewRequestBuilder.addTarget(surface)
 
-            mCameraDevice.createCaptureSession(
-                listOf(surface, mImageReader.surface),
-                mCameraCaptureSessionStateCallback,
+            cameraDevice.createCaptureSession(
+                listOf(surface, imageReader.surface),
+                cameraCaptureSessionStateCallback,
                 null
             )
         } catch (e: CameraAccessException) {
@@ -211,22 +219,25 @@ class CameraProvider(cameraInstance: CameraInstance) {
         }
     }
 
-    private var mCameraCaptureSessionStateCallback: CameraCaptureSession.StateCallback = object : CameraCaptureSession.StateCallback() {
+    /**
+     * Callback for handling all state changes of [captureSession].
+     */
+    private var cameraCaptureSessionStateCallback: CameraCaptureSession.StateCallback = object : CameraCaptureSession.StateCallback() {
         override fun onConfigured(cameraCaptureSession: CameraCaptureSession) {
-            mCaptureSession = cameraCaptureSession
+            captureSession = cameraCaptureSession
             try {
-                mPreviewRequestBuilder.set(
+                previewRequestBuilder.set(
                     CaptureRequest.CONTROL_AF_MODE,
                     CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
                 )
 
-                mPreviewRequest = mPreviewRequestBuilder.build()
-                mCaptureSession.setRepeatingRequest(
-                    mPreviewRequest,
+                previewRequest = previewRequestBuilder.build()
+                captureSession.setRepeatingRequest(
+                    previewRequest,
                     null, null
                 )
-                StudyLogger.hashMap["preview_width"] = mPreviewSize.width
-                StudyLogger.hashMap["preview_height"] = mPreviewSize.height
+                StudyLogger.hashMap["preview_width"] = previewSize.width
+                StudyLogger.hashMap["preview_height"] = previewSize.height
             } catch (e: CameraAccessException) {
                 e.printStackTrace()
             }
@@ -238,7 +249,17 @@ class CameraProvider(cameraInstance: CameraInstance) {
             throw RuntimeException("Failed to configure CameraCaptureSession")
         }
     }
-    
+
+    /**
+     * Helper method for choosing a [Size] of a given set of [choices], which best fits the given constraints.
+     *
+	 * @param choices All available camera output sizes
+	 * @param textureViewWidth The width of [previewTextureView]
+	 * @param textureViewHeight The height of [previewTextureView]
+	 * @param maxWidth The maximum width
+	 * @param maxHeight The maximum height
+	 * @param aspectRatio The aspect ratio
+	 */
     private fun chooseOptimalSize(
         choices: Array<Size>, textureViewWidth: Int,
         textureViewHeight: Int, maxWidth: Int, maxHeight: Int, aspectRatio: Size
@@ -286,10 +307,11 @@ class CameraProvider(cameraInstance: CameraInstance) {
     }
 
 
+    /**
+     * Captures the current frame of the [previewTextureView] and returns it as a [Bitmap].
+	 */
     fun captureImageWithPreviewExtraction(): Bitmap? {
-        isCapturing = true
-        startTime = System.currentTimeMillis()
-        var mBitmap: Bitmap? = mTextureView.bitmap
+        var mBitmap: Bitmap? = previewTextureView.bitmap
 
         if(ci.getOrientation() != Surface.ROTATION_0 && mBitmap != null){
             when(ci.getOrientation()){

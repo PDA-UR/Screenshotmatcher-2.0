@@ -379,7 +379,7 @@ fun requestPermission(
             if(error.networkResponse == null) {
                 Toast.makeText(activity.applicationContext, "Permission request timeout", Toast.LENGTH_LONG).show()
                 val ca = activity as CameraActivity
-                ca.cameraProvider.isCapturing = false
+                ca.isCapturing = false
             }
             else{
                 error.printStackTrace()
