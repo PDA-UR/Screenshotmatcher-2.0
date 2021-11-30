@@ -4,9 +4,11 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.view.HapticFeedbackConstants
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import com.github.appintro.AppIntro
@@ -15,7 +17,15 @@ import com.github.appintro.AppIntroPageTransformerType
 import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.views.fragments.AnimatedIntroFragment
 
+/**
+ * Carousel intro that introduces new users to the app. Shown when launching the app for the first time.
+ * @see <a href="https://github.com/AppIntro/AppIntro">AppIntro</a> for more information
+ */
 class AppTutorial : AppIntro() {
+
+    /**
+     * Sets display options ([setTransformer]), adds all slides to the carousel ([addSlide]) and requests specified app permissions upon reaching the last slide ([askForPermissions])
+	 */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setTransformer(AppIntroPageTransformerType.Parallax(
@@ -75,6 +85,9 @@ class AppTutorial : AppIntro() {
         isWizardMode = true
     }
 
+    /**
+     * Callback for permission request results, calls [savePrefsAndStartCameraActivity] if all permissions have been granted.
+	 */
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<String>,
@@ -83,24 +96,42 @@ class AppTutorial : AppIntro() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (this.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
             this.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-            savePerfAndStartCamera()
+            savePrefsAndStartCameraActivity()
         }
     }
 
+    /**
+     * Callback that's being called when a user **denies** a permission.
+	 * @param permissionName The name of the denied permission
+	 */
     override fun onUserDeniedPermission(permissionName: String) {
         // User pressed "Deny"
         Toast.makeText(this, getString(R.string.app_intro_denied_permission), Toast.LENGTH_SHORT).show()
     }
+
+    /**
+     * Callback that's being called  when a user **disables** a permission
+	 * @param permissionName The name of the disabled permission
+	 */
     override fun onUserDisabledPermission(permissionName: String) {
         // User pressed "Deny" + "Don't ask again" on the permission dialog
-        Toast.makeText(this, getString(R.string.app_intro_disabled_permission), Toast.LENGTH_SHORT)
+        Toast.makeText(this, getString(R.string.app_intro_disabled_permission), Toast.LENGTH_SHORT).show()
     }
+
+    /**
+     * Callback that's being called when a new slide is displayed
+	 * @param oldFragment The previously displayed slide
+	 * @param newFragment The new slide
+	 */
     override fun onSlideChanged(oldFragment: Fragment?, newFragment: Fragment?) {
         super.onSlideChanged(oldFragment, newFragment)
         window.decorView.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
     }
-    private fun savePerfAndStartCamera() {
-        // debug: val FIRST_RUN_KEY = "r"
+
+    /**
+     * Updates shared preferences (onboarding complete) and launches [CameraActivity]
+     */
+    private fun savePrefsAndStartCameraActivity() {
         val FIRST_RUN_KEY = getString(R.string.FIRST_RUN_KEY)
         window.decorView.performHapticFeedback(HapticFeedbackConstants.GESTURE_END)
         val sp = PreferenceManager.getDefaultSharedPreferences(this)
