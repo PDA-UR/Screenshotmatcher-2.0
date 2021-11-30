@@ -12,7 +12,7 @@ import com.pda.screenshotmatcher2.network.discoverServersOnNetwork
 import com.pda.screenshotmatcher2.network.sendHeartbeatRequest
 
 /**
- * Data model used to store all relevant information about the current server connection.
+ * Data model that stores all relevant information about the current server connection.
  * Also handles server discovery and heartbeats.
  *
  * Accessed through [ServerConnectionViewModel][com.pda.screenshotmatcher2.viewModels.ServerConnectionViewModel].
