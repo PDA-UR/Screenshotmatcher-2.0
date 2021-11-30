@@ -29,7 +29,7 @@ class GalleryViewModel(application: Application) : AndroidViewModel(application)
     }
 
     /**
-     * Getter method that returns [images] as [MutableLiveData]
+     * Getter that returns [images] as [MutableLiveData]
 	 * @return
 	 */
     fun getImages(): LiveData<ArrayList<ArrayList<File>>> {

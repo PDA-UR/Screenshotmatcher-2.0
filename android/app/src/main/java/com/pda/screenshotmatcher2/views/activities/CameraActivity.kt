@@ -38,17 +38,42 @@ import com.pda.screenshotmatcher2.viewModels.ServerConnectionViewModel
 import com.pda.screenshotmatcher2.views.activities.interfaces.CameraInstance
 
 
+/**
+ * Main activity that displays a camera preview and allows users to take screenshots of their connected pc.
+ *
+ * @property mAccelerometer Sensor, used get [mSensorManager]
+ * @property mSensorManager SensorManager, used to register [CameraActivity] as a listener for orientation changes
+ * @property phoneOrientation The current device orientation. Possible values: [Surface.ROTATION_0], [Surface.ROTATION_90], [Surface.ROTATION_180], [Surface.ROTATION_270]
+ * @property surfaceTextureHeight TODO: Remove
+ * @property surfaceTextureWidth TODO: Remove
+ *
+ * @property mSelectDeviceButton Button that opens [SelectDeviceFragment][com.pda.screenshotmatcher2.views.fragments.rotationFragments.SelectDeviceFragment]
+ * @property mCaptureButton Button that captures an image starts a new match request
+ * @property mCaptureButtonListener Listener that listens to events of [mCaptureButton]
+ * @property mFragmentDarkBackground Dark background, displayed when a [Fragment][com.pda.screenshotmatcher2.views.fragments] is being opened
+ * @property mSelectDeviceButtonText Text that's being displayed on [mSelectDeviceButton]. "Disconnected" or "HOSTNAME", depending on [serverConnectionViewModel] connection status.
+ * @property mSelectDeviceButtonListener Lister that listens to events of [mSelectDeviceButton]
+ * @property mSettingsButton Button that opens [SettingsFragment][com.pda.screenshotmatcher2.views.fragments.SettingsFragment]
+ * @property mGalleryButton Button that opens [GalleryFragment][com.pda.screenshotmatcher2.views.fragments.rotationFragments.GalleryFragment]
+ *
+ * @property isCapturing Whether or no a capture request is currently ongoing or not
+ * @property sp The shared preferences of the application
+ * @property MATCHING_MODE_PREF_KEY The key to access the type of matching mode via [sp]
+ *
+ * @property galleryViewModel [GalleryViewModel] that provides two way data bindings to access images of the internal gallery
+ * @property serverConnectionViewModel [ServerConnectionViewModel] that provides two way data bindings to access [ServerConnectionModel][com.pda.screenshotmatcher2.models.ServerConnectionModel]
+ * @property captureViewModel [CaptureViewModel] that provides two way data bindings to access [CaptureModel][com.pda.screenshotmatcher2.models.CaptureModel]
+ *
+ * @property cameraActivityFragmentHandler Instance of [CameraActivityFragmentHandler], manages fragments
+ */
 class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance {
-   //Sensors
-    private lateinit var mSensorManager : SensorManager
     private lateinit var mAccelerometer : Sensor
+    private lateinit var mSensorManager : SensorManager
     var phoneOrientation : Int = 0
 
-    //Permission ID
     private var surfaceTextureHeight: Int = 0
     private var surfaceTextureWidth: Int = 0
 
-    //Other UI Views
     private lateinit var mSelectDeviceButton: ImageButton
     private lateinit var mCaptureButton: ImageButton
     private lateinit var mCaptureButtonListener: View.OnClickListener
@@ -59,7 +84,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
     private lateinit var mGalleryButton: ImageButton
 
     var isCapturing: Boolean = false
-    //Shared preferences
+
     private lateinit var sp: SharedPreferences
     private lateinit var MATCHING_MODE_PREF_KEY: String
 
@@ -67,14 +92,11 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
     private lateinit var serverConnectionViewModel: ServerConnectionViewModel
     private lateinit var captureViewModel: CaptureViewModel
 
-
-    //custom helper classes for server connection, fragment management and camera preview
     lateinit var cameraActivityFragmentHandler: CameraActivityFragmentHandler
-    var cameraProvider: CameraProvider =
+    private var cameraProvider: CameraProvider =
         CameraProvider(this)
 
 
-    // Activity lifecycle
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -102,6 +124,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
 
     /**
      * Function to launch the background service via [Intent]
+     * TODO: Implement fully
      */
     private fun startBackgroundService() {
         Intent(this, NewPhotoService::class.java).also {
@@ -115,6 +138,9 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
         }
     }
 
+    /**
+     * TODO: Implement fully
+     */
     private fun stopBackgroundService() {
         Intent(this, NewPhotoService::class.java).also {
             Log.d("CA","Stopping service")
@@ -123,6 +149,11 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
     }
 
 
+    /**
+     * Initializes [galleryViewModel], [serverConnectionViewModel], [captureViewModel] and registers Observers
+     *
+     * Called in [onCreate]
+     */
     private fun initViewModels() {
         val context = this
         galleryViewModel = ViewModelProvider(this, GalleryViewModel.Factory(application)).get(GalleryViewModel::class.java).apply {
@@ -145,6 +176,13 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
         captureViewModel = ViewModelProvider(this, CaptureViewModel.Factory(application)).get(CaptureViewModel::class.java)
     }
 
+    /**
+     * Checks whether the app is started for the first time and opens [AppTutorial] if that is the case.
+     *
+     * Called in [onCreate]
+     *
+	 * @param context Application context
+	 */
     private fun checkForFirstRun(context: Context) {
         val FIRST_RUN_KEY = getString(R.string.FIRST_RUN_KEY)
         // debug: val FIRST_RUN_KEY = "d"
@@ -157,6 +195,10 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
         }
     }
 
+    /**
+     * Resumes state when an instance gets restored
+	 * @param savedInstanceState
+	 */
     private fun restoreFromSavedInstance(savedInstanceState: Bundle) {
         val urlList = savedInstanceState.getStringArrayList(getString(R.string.ca_saved_instance_url_list_key))
         val hostList = savedInstanceState.getStringArrayList(getString(R.string.ca_saved_instance_host_list_key))
@@ -166,6 +208,10 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
         }
     }
 
+    /**
+     * Saves state of an instance when it gets finished
+	 * @param outState
+	 */
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
 
@@ -178,6 +224,10 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
         }
     }
 
+    /**
+     * TODO implement background service behavior
+     * Registers [mSensorManager]
+     */
     override fun onResume() {
         super.onResume()
         stopBackgroundService()
@@ -194,6 +244,10 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
         }
     }
 
+    /**
+     * TODO: implement background service behavior
+     * Unregisters [mSensorManager]
+     */
     override fun onPause() {
         super.onPause()
         startBackgroundService()
@@ -201,7 +255,11 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
     }
 
 
-    // Views
+    /**
+     * Initiates all views.
+     *
+     * Called in [onCreate]
+     */
     private fun initViews() {
         if (!::mCaptureButton.isInitialized) {
             mCaptureButton = findViewById(R.id.capture_button)
@@ -218,6 +276,11 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
         }
     }
 
+    /**
+     * Sets all view listeners.
+     *
+     * Called in [onCreate]
+     */
     private fun setViewListeners() {
         mCaptureButton.apply {
             if (!hasOnClickListeners()){
@@ -241,6 +304,11 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
         }
     }
 
+    /**
+     * Hides the status and action bars.
+     *
+     * Called in [onCreate].
+     */
     private fun hideStatusAndActionBars() {
         supportActionBar?.hide()
         window.setFlags(
@@ -250,7 +318,11 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
 
     }
 
-    // Functionality
+    /**
+     * Captures a camera image via [cameraProvider] and sends it to the connected server via [sendBitmap]
+     *
+     * Called in [mCaptureButtonListener].
+     */
     private fun capturePhoto(){
         isCapturing = true
         window.decorView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
@@ -279,6 +351,13 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
         }
     }
 
+    /**
+     * Updates [mSelectDeviceButton] and [mSelectDeviceButtonText] to match the new connection status.
+     *
+     * Called when [serverConnectionViewModel] updates or [onSensorChanged] detects a change in orientation.
+     *
+	 * @param isConnected Whether or a server is currently connected
+	 */
     private fun updateConnectionStatus(isConnected: Boolean) {
         when (isConnected){
             true -> {
@@ -300,6 +379,11 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
         }
     }
 
+    /**
+     * Starts [ResultsActivity].
+     *
+     * TODO: use [CaptureViewModel]
+	 */
     private fun startResultsActivity(matchID: String, img: ByteArray) {
         val intent = Intent(this, ResultsActivity::class.java).apply {
             putExtra("matchID", matchID)
@@ -311,8 +395,12 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
         )
     }
 
-    // Orientation changes
-    private fun changeOrientation() {
+    /**
+     * Callback that updates the layout of this activity and rotates all [rotationFragments][com.pda.screenshotmatcher2.views.fragments.rotationFragments].
+     *
+     * Called when [onSensorChanged] detects change in orientation.
+     */
+    private fun onOrientationChanged() {
             when (phoneOrientation) {
                 Surface.ROTATION_0 -> {
                     mSelectDeviceButton.setImageResource(android.R.color.transparent)
@@ -345,7 +433,13 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
 
     }
 
-    // Permissions
+    /**
+     * Callback for permission request results. Calls [verifyPermissions] if a permission has not been granted.
+     *
+	 * @param requestCode Request code of the permission(s)
+	 * @param permissions The permission(s) requested
+	 * @param grantResults Whether or not the permission(s) have been granted
+	 */
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -366,7 +460,15 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
         }
     }
 
-    //Callbacks
+    /**
+     * Callback for listening to key events.
+     *
+     * Calls [capturePhoto] if the volume down button has been pressed.
+     *
+	 * @param keyCode The key code of the pressed key
+	 * @param event
+	 * @return
+	 */
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
             StudyLogger.hashMap["tc_button_pressed"] = System.currentTimeMillis()
@@ -377,6 +479,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
         return true
     }
 
+    
     fun onMatchResult(matchID: String, img: ByteArray) {
         isCapturing = false
         window.decorView.performHapticFeedback(HapticFeedbackConstants.REJECT)
@@ -424,28 +527,28 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
         if (event!!.values[1] > 0 && event.values[0].toInt() == 0) {
             if (phoneOrientation != Surface.ROTATION_0){
                 phoneOrientation = Surface.ROTATION_0 //portrait
-                changeOrientation()
+                onOrientationChanged()
             }
         }
 
         else if (event.values[1] < 0 && event.values[0].toInt() == 0) {
             if (phoneOrientation != Surface.ROTATION_180) {
                 phoneOrientation = Surface.ROTATION_180 //landscape
-                changeOrientation()
+                onOrientationChanged()
             }
         }
 
         else if (event.values[0] > 0 && event.values[1].toInt() == 0) {
             if (phoneOrientation != Surface.ROTATION_90) {
                 phoneOrientation = Surface.ROTATION_90 //landscape
-                changeOrientation()
+                onOrientationChanged()
             }
         }
 
         else if (event.values[0] < 0 && event.values[1].toInt() == 0) {
             if (phoneOrientation != Surface.ROTATION_270) {
                 phoneOrientation = Surface.ROTATION_270 //landscape
-                changeOrientation()
+                onOrientationChanged()
             }
         }
     }

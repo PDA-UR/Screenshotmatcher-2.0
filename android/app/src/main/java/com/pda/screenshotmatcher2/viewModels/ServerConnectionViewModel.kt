@@ -9,7 +9,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.pda.screenshotmatcher2.models.ServerConnectionModel
 
 /**
- * [ViewModel that provides two way data bindings for [ServerConnectionModel]
+ * [ViewModel] that provides two way data bindings for [ServerConnectionModel]
  * Use this class to retrieve/manipulate data stored in [ServerConnectionModel]
  *
  * @see [MVVM Architecture](https://developer.android.com/jetpack/guide) For more information about how this software architectural pattern works.
