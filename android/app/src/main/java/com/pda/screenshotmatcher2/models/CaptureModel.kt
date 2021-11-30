@@ -3,7 +3,7 @@ package com.pda.screenshotmatcher2.models
 import android.graphics.Bitmap
 
 /**
- * Data model used to store all relevant information about the last capture process.
+ * Data model that stores all relevant information about the last capture process.
  *
  * Accessed through [CaptureModel][com.pda.screenshotmatcher2.models.CaptureModel].
  *

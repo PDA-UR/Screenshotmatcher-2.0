@@ -100,3 +100,4 @@ python-server/src/whitelist.txt
 python-server/src/config.ini
 python-server/src/config.ini
 python-server/src/.python-version
+.python-version
