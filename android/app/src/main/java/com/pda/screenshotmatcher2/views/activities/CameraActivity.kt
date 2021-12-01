@@ -250,7 +250,8 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
      */
     override fun onPause() {
         super.onPause()
-        startBackgroundService()
+        //TODO: Enable this when background service is implemented
+        //startBackgroundService()
         mSensorManager.unregisterListener(this)
     }
 
@@ -479,7 +480,15 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
         return true
     }
 
-    
+
+    /**
+     * Callback for when the server answers to a match request with a match.
+     *
+     * Updates [captureViewModel] with [matchID] and [matchName], then starts the [ResultsActivity]
+     *
+	 * @param matchID The ID of the match
+	 * @param img The cropped image of the match
+	 */
     fun onMatchResult(matchID: String, img: ByteArray) {
         isCapturing = false
         window.decorView.performHapticFeedback(HapticFeedbackConstants.REJECT)
@@ -487,17 +496,45 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
         startResultsActivity(matchID, img)
     }
 
+    /**
+     * Opens [ErrorFragment][com/pda/screenshotmatcher2/views/fragments/ErrorFragment.kt]
+     *
+     * Updates [captureViewModel] with [uid]
+     * Called when the server answers to a match request with no match.
+     *
+     * @param uid The ID of the match
+     */
+    fun onOpenErrorFragment(uid: String) {
+        captureViewModel.setCaptureResultData(uid, null)
+        isCapturing = false
+    }
+
+    /**
+     * Callback for when sending the match request fails.
+     *
+     * Displays a toast with the error message.
+     */
     fun onMatchRequestError(){
         isCapturing = false
         window.decorView.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
         Toast.makeText(this, getString(R.string.match_request_error_en), Toast.LENGTH_LONG).show()
     }
 
+    /**
+     * Callback for when the server denies a match request.
+     *
+     * Displays a toast with the error message.
+     */
     fun onPermissionDenied() {
         isCapturing = false
         Toast.makeText(this, "Permission denied from server.", Toast.LENGTH_LONG).show()
     }
 
+    /**
+     * Opens [SelectDeviceFragment][com/pda/screenshotmatcher2/views/fragments/rotationFragments/SelectDeviceFragment.kt]
+     *
+     * Changes the drawable and onClickListener of [mSelectDeviceButton] and hides [mSettingsButton]
+     */
     fun onOpenSelectDeviceFragment(){
         mSettingsButton.visibility = View.INVISIBLE
         mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_close_48))
@@ -506,6 +543,11 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
         }
     }
 
+    /**
+     * Closes [SelectDeviceFragment][com/pda/screenshotmatcher2/views/fragments/rotationFragments/SelectDeviceFragment.kt]
+     *
+     * Changes the drawable and onClickListener of [mSelectDeviceButton] and shows [mSettingsButton]
+     */
     fun onCloseSelectDeviceFragment() {
         mCaptureButton.setImageResource(R.drawable.ic_baseline_photo_camera_24)
         mCaptureButton.setOnClickListener {
@@ -518,11 +560,12 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
         mSettingsButton.visibility = View.VISIBLE
     }
 
-    fun onOpenErrorFragment(uid: String) {
-        captureViewModel.setCaptureResultData(uid, null)
-        isCapturing = false
-    }
 
+    /**
+     * Listens to [SensorEvents][SensorEvent] and calls [onOrientationChanged] when the device orientation changes.
+     *
+     * @param event The [SensorEvent]
+     */
     override fun onSensorChanged(event: SensorEvent?) {
         if (event!!.values[1] > 0 && event.values[0].toInt() == 0) {
             if (phoneOrientation != Surface.ROTATION_0){
@@ -553,6 +596,11 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
         }
     }
 
+    /**
+     * Callback for when the back button is pressed.
+     *
+     * Removes all fragments from the backstack and prevents the back button from closing the app.
+     */
     override fun onBackPressed() {
         if (cameraActivityFragmentHandler.removeAllFragments() == 0){
             super.onBackPressed()
@@ -563,6 +611,15 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
         return
     }
 
+    /**
+     * Callback for when the [ResultsActivity] is finished.
+     *
+     * Reloads [galleryViewModel] if the activity was started from [CameraActivity] and [resultCode] is [Activity.RESULT_OK].
+     *
+     * @param requestCode The request code set by [CameraActivity] when [ResultsActivity] was started.
+     * @param resultCode The result code set by [ResultsActivity] when it was finished.
+     * @param data Extra data set by [ResultsActivity] when it was finished.
+     */
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
@@ -576,7 +633,12 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
         }
     }
 
-    // Preferences
+    /**
+     * Initiates the shared preferences.
+     *
+     * Initiates [sp] if it is null.
+     * Retrieves [MATCHING_MODE_PREF_KEY] from [R.string.matching_mode_pref_key]
+     */
     private fun setupSharedPref() {
         if (!::sp.isInitialized) {
             sp = PreferenceManager.getDefaultSharedPreferences(this)
@@ -584,6 +646,11 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
         }
     }
 
+    /**
+     * Retrieves the matching mode from [sp] and returns it.
+     *
+     * @return The matching mode (fast or accurate).
+     */
     private fun getMatchingOptionsFromPref(): HashMap<Any?, Any?>? {
         val matchingMode: HashMap<Any?, Any?>? = HashMap()
         val fastMatchingMode: Boolean = sp.getBoolean(MATCHING_MODE_PREF_KEY, true)
@@ -602,14 +669,35 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
         return matchingMode
     }
 
+    /**
+     * Returns this activity
+     *
+     * Must be implemented because this class implements [CameraInstance].
+     *
+     * @return This activity
+     */
     override fun getActivity(): Activity {
         return this
     }
 
+    /**
+     * Returns the preview [TextureView] of the [CameraActivity].
+     *
+     * Must be implemented because this class implements [CameraInstance].
+     *
+     * @return The preview [TextureView] of the [CameraActivity]
+     */
     override fun getTextureView(): TextureView {
         return findViewById(R.id.preview_view)
     }
 
+    /**
+     * Returns the current [phoneOrientation]
+     *
+     * Must be implemented because this class implements [CameraInstance].
+     *
+     * @return The current [phoneOrientation]
+     */
     override fun getOrientation(): Int {
         return phoneOrientation
     }
