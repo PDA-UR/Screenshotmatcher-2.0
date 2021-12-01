@@ -101,3 +101,5 @@ python-server/src/config.ini
 python-server/src/config.ini
 python-server/src/.python-version
 .python-version
+
+android/.idea

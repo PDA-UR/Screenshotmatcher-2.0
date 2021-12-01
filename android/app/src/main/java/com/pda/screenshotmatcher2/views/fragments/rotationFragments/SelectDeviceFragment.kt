@@ -10,24 +10,36 @@ import androidx.lifecycle.ViewModelProvider
 import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.viewModels.ServerConnectionViewModel
 
+/**
+ * [RotationFragment] to connect to a matching server (= pc/laptop)
+ *
+ * @property mSelectDeviceButton The select device button of [CameraActivity][com/pda/screenshotmatcher2/views/activities/CameraActivity.kt], opens/closes this fragment
+ * @property mListView The list view containing all available servers
+ * @property adapter The adapter to fill up [mListView]
+ * @property mServerList The list of all available servers, updated by [ServerConnectionViewModel]
+ * @property lastSelectedItem The last selected item in [mListView], green highlight
+ * @property serverConnectionViewModel The [ServerConnectionViewModel], provides two way data bindings for [ServerConnectionViewModel.serverUrlList]
+ */
 class SelectDeviceFragment : RotationFragment() {
     private lateinit var mSelectDeviceButton: ImageButton
     private lateinit var mListView: ListView
     private lateinit var adapter: ArrayAdapter<String>
     private var mServerList: ArrayList<String> = ArrayList()
     private lateinit var lastSelectedItem: TextView
-    private lateinit var mHandler: Handler
+    private lateinit var serverConnectionViewModel: ServerConnectionViewModel
 
+    /**
+     * Called when the fragment is created, calls [initServerList] and [initViews].
+     */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        mHandler = Handler(Looper.getMainLooper())
         initServerList()
         initViews()
     }
 
-
-    private lateinit var serverConnectionViewModel: ServerConnectionViewModel
-
+    /**
+     * Registers an observer for [ServerConnectionViewModel.getServerUrlListLiveData], which updates  [mServerList] and refreshes [adapter] on data change.
+     */
     private fun initServerList() {
         serverConnectionViewModel = ViewModelProvider(requireActivity(), ServerConnectionViewModel.Factory(requireActivity().application)).get(ServerConnectionViewModel::class.java).apply {
             getServerUrlListLiveData().observe(viewLifecycleOwner, Observer {
@@ -43,6 +55,9 @@ class SelectDeviceFragment : RotationFragment() {
         }
     }
 
+    /**
+     * Initiates all views and sets their listeners.
+     */
     private fun initViews() {
         mSelectDeviceButton = activity?.findViewById(R.id.select_device_button)!!
         mSelectDeviceButton.setOnClickListener { removeThisFragment() }
@@ -62,14 +77,14 @@ class SelectDeviceFragment : RotationFragment() {
         }
     }
 
+    /**
+     * Removes this fragment.
+     *
+     * Plays a short vibration & animation to indicate that the fragment is removed.
+     */
     override fun removeThisFragment(removeBackground: Boolean) {
         ca.window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
         ca.onCloseSelectDeviceFragment()
         super.removeThisFragment(removeBackground)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        mHandler.removeCallbacksAndMessages(null)
     }
 }

@@ -22,6 +22,7 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModelProvider
 import com.pda.screenshotmatcher2.BuildConfig
 import com.pda.screenshotmatcher2.R
+import com.pda.screenshotmatcher2.logger.StudyLogger
 import com.pda.screenshotmatcher2.views.activities.CameraActivity
 import com.pda.screenshotmatcher2.viewModels.GalleryViewModel
 import java.io.File
@@ -29,30 +30,57 @@ import java.io.File
 const val FIRST_IMAGE_KEY: String = "FIRST_IMAGE"
 const val SECOND_IMAGE_KEY: String = "SECOND_IMAGE"
 
+/**
+ * [RotationFragment] that displays a capture result image pair.
+ *
+ * Displayed in [GalleryFragment] when the user clicks on a capture result image pair.
+ *
+ * @property mPillNavigationButton1 The first pill navigation button, used to navigate to the previous image
+ * @property mPillNavigationButton2 The second pill navigation button, used to navigate to the next image
+ * @property mImagePreviewNextButton The next image button (right), used to navigate to the next image
+ * @property mImagePreviewPreviousButton The previous image button (left), used to navigate to the previous image
+ * @property mScreenshotImageView The image view displaying the screenshot (either cropped or full)
+ * @property mShareButton The share button, calls [shareImage] when clicked
+ * @property mDeleteBoth The delete both button, calls [deleteBothImages] when clicked
+ * @property mSaveOneButton The save one button, calls [saveCurrentPreviewImage] when clicked
+ * @property mShareButtonText The text view displaying the text beneath [mShareButton]
+ * @property mSaveOneButtonText The text view displaying the text beneath [mSaveOneButton]
+ *
+ * @property mFullImageFile The file containing the full screenshot
+ * @property mCroppedImageFile The file containing the cropped screenshot
+ *
+ * @property mPillNavigationState The current state of the pill navigation buttons, used to determine which pill navigation button is currently highlighted (0 = pill 1 = cropped screenshot, 1 = pill 2 = full screenshot)
+ * @property StudyLogger The [StudyLogger] used to log the events of this activity
+ *
+ * @property mFragmentBackground The dark background behind the fragment
+ * @property galleryViewModel The [GalleryViewModel] used to obtain old capture result image pairs
+ * @property numberOfAvailableImages The number of available images in the capture result image pair (1 or 2)
+ */
 class GalleryPreviewFragment : RotationFragment() {
-    //Views
+
     private lateinit var mPillNavigationButton1: AppCompatButton
     private lateinit var mPillNavigationButton2: AppCompatButton
     private lateinit var mImagePreviewPreviousButton: AppCompatImageButton
     private lateinit var mImagePreviewNextButton: AppCompatImageButton
     private lateinit var mScreenshotImageView: ImageView
     private lateinit var mShareButton: AppCompatImageButton
-    private lateinit var mSaveBothButton: AppCompatImageButton
+    private lateinit var mDeleteBoth: AppCompatImageButton
     private lateinit var mSaveOneButton: AppCompatImageButton
     private lateinit var mShareButtonText: TextView
     private lateinit var mSaveOneButtonText: TextView
-
     private lateinit var mFragmentBackground: FrameLayout
 
-    // -1 = cropped page, 1 = full page
     private var mPillNavigationState: Int = 1
 
-    //Files
     private var mFullImageFile: File? = null
     private var mCroppedImageFile: File? = null
     private var numberOfAvailableImages: Int = 0
     private lateinit var oldBundle: Bundle
     private lateinit var galleryViewModel: GalleryViewModel
+
+    /**
+     * Returns an inflated [View] for this fragment.
+     */
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -69,6 +97,9 @@ class GalleryPreviewFragment : RotationFragment() {
         return inflater.inflate(R.layout.fragment_gallery_preview, container, false)
     }
 
+    /**
+     * Called when the fragment is created, initializes all views, listeners and the [galleryViewModel].
+     */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initViews()
@@ -78,6 +109,9 @@ class GalleryPreviewFragment : RotationFragment() {
 
     }
 
+    /**
+     * Receives all image [File]s from a [bundle], and saves them in [mFullImageFile] and [mCroppedImageFile].
+     */
     private fun getFilesFromBundle(bundle: Bundle) {
         oldBundle = bundle
         val keys = arrayOf(FIRST_IMAGE_KEY, SECOND_IMAGE_KEY)
@@ -99,10 +133,15 @@ class GalleryPreviewFragment : RotationFragment() {
          }
     }
 
+    /**
+     * Toggles the [mPillNavigationState] between 0 and 1.
+     *
+     * If [numberOfAvailableImages] is 1, the pill navigation buttons are disabled.
+     */
     private fun togglePillNavigationSelection() {
         if (numberOfAvailableImages > 1) {
             mPillNavigationState *= -1
-            setupPillNavigationState()
+            updatePillNavigation()
         } else {
             Toast.makeText(
                 requireActivity(),
@@ -112,7 +151,13 @@ class GalleryPreviewFragment : RotationFragment() {
         }
     }
 
-    private fun setupPillNavigationState() {
+    /**
+     * Updates views to match the [mPillNavigationState].
+     *
+     * If [mPillNavigationState] is 1, the [mCroppedImageFile] is shown.
+     * If [mPillNavigationState] is -1, the [mFullImageFile] is shown.
+     */
+    private fun updatePillNavigation() {
         when (mPillNavigationState) {
             -1 -> {
                 //Switch to cropped screenshot
@@ -149,6 +194,9 @@ class GalleryPreviewFragment : RotationFragment() {
         }
     }
 
+    /**
+     * Sets the [mScreenshotImageView] to the [mFullImageFile] or [mCroppedImageFile] depending on the [mPillNavigationState].
+     */
     private fun setImage() {
         when (mPillNavigationState) {
             -1 -> {
@@ -160,6 +208,9 @@ class GalleryPreviewFragment : RotationFragment() {
         }
     }
 
+    /**
+     * Saves either [mFullImageFile] or [mCroppedImageFile] to the phone gallery, depending on the [mPillNavigationState].
+     */
     private fun saveCurrentPreviewImage() {
         when (mPillNavigationState) {
             -1 -> {
@@ -195,6 +246,9 @@ class GalleryPreviewFragment : RotationFragment() {
         }
     }
 
+    /**
+     * Deletes both [mFullImageFile] and [mCroppedImageFile] from the external app directory and closes this fragment.
+     */
     private fun deleteBothImages() {
         val images = ArrayList<File>()
         images.apply {
@@ -211,6 +265,9 @@ class GalleryPreviewFragment : RotationFragment() {
         removeThisFragment(true)
     }
 
+    /**
+     * Opens the share intent to share the current preview image.
+     */
     private fun shareImage() {
         if (mPillNavigationState == -1 && mCroppedImageFile != null) {
             //Start sharing
@@ -264,6 +321,9 @@ class GalleryPreviewFragment : RotationFragment() {
         }
     }
 
+    /**
+     * Initiates all views and calls [updatePillNavigation] to initiate the pill navigation.
+     */
     private fun initViews() {
         mFragmentBackground = activity?.findViewById(R.id.gallery_fragment_preview_background)!!
         mFragmentBackground.setOnClickListener { removeThisFragment(true) }
@@ -274,15 +334,18 @@ class GalleryPreviewFragment : RotationFragment() {
         mImagePreviewNextButton = activity?.findViewById(R.id.pf_imagePreview_nextButton)!!
         mScreenshotImageView = activity?.findViewById(R.id.pf_imagePreview_imageView)!!
         mShareButton = activity?.findViewById(R.id.pf_shareButton)!!
-        mSaveBothButton = activity?.findViewById(R.id.pf_deleteImages)!!
+        mDeleteBoth = activity?.findViewById(R.id.pf_deleteImages)!!
         mSaveOneButton = activity?.findViewById(R.id.pf_saveOneButton)!!
         mShareButtonText = activity?.findViewById(R.id.pf_shareButtonText)!!
         mShareButtonText.text = getString(R.string.result_activity_shareButtonText1_en)
         mSaveOneButtonText = activity?.findViewById(R.id.pf_saveOneButtonText)!!
         mSaveOneButtonText.text = getString(R.string.result_activity_saveOneButtonText1_en)
-        setupPillNavigationState()
+        updatePillNavigation()
     }
 
+    /**
+     * Sets all view listeners.
+     */
     private fun setViewListeners() {
         mPillNavigationButton1.setOnClickListener {
             if (mPillNavigationState != -1) {
@@ -297,15 +360,26 @@ class GalleryPreviewFragment : RotationFragment() {
         mImagePreviewPreviousButton.setOnClickListener { togglePillNavigationSelection() }
         mImagePreviewNextButton.setOnClickListener { togglePillNavigationSelection() }
         mShareButton.setOnClickListener { shareImage() }
-        mSaveBothButton.setOnClickListener { deleteBothImages() }
+        mDeleteBoth.setOnClickListener { deleteBothImages() }
         mSaveOneButton.setOnClickListener { saveCurrentPreviewImage() }
     }
 
+    /**
+     * Remove this fragment to rotate it.
+     *
+     * @param removeBackground Whether to remove the dark background behind the fragment or not
+     */
     override fun removeThisFragment(removeBackground: Boolean) {
         super.removeThisFragment(removeBackground)
         requireActivity().window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
         if (removeBackground) mFragmentBackground.visibility = View.INVISIBLE
     }
+
+    /**
+     * Removes this fragment and returns the displayed image pair.
+     *
+     * @return The displayed image pair
+     */
     override fun removeThisFragmentForRotation(): ArrayList<File?> {
         super.removeThisFragmentForRotation()
         return arrayListOf(mCroppedImageFile, mFullImageFile)

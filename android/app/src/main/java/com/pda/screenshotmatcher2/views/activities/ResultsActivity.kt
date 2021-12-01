@@ -34,14 +34,14 @@ const val RESULT_ACTIVITY_REQUEST_CODE = 20
  * Activity for displaying the results of a capture request.
  *
  * @property mBackButton The back button, used to return to the previous activity
- * @property mPillNavigationButton1 The first pill navigation button, used to navigate to the next image
- * @property mPillNavigationButton2 The second pill navigation button, used to navigate to the previous image
+ * @property mPillNavigationButton1 The first pill navigation button, used to navigate to the previous image
+ * @property mPillNavigationButton2 The second pill navigation button, used to navigate to the next image
  * @property mImagePreviewNextButton The next image button (right), used to navigate to the next image
  * @property mImagePreviewPreviousButton The previous image button (left), used to navigate to the previous image
  * @property mScreenshotImageView The image view displaying the screenshot (either cropped or full)
- * @property mShareButton The share button, opens up the share menu with the currently displayed screenshot
- * @property mSaveBothButton The save both button, saves both the cropped and full screenshot to the phone gallery
- * @property mSaveOneButton The save one button, saves the currently displayed screenshot to the phone gallery
+ * @property mShareButton The share button, calls [shareImage] when clicked
+ * @property mSaveBothButton The save both button, calls [saveBothImages] when clicked
+ * @property mSaveOneButton The save one button, calls [saveCurrentPreviewImage] when clicked
  * @property mShareButtonText The text view displaying the text beneath [mShareButton]
  * @property mSaveOneButtonText The text view displaying the text beneath [mSaveOneButton]
  * @property mRetakeImageButton The retake image button, used to return to the previous activity
