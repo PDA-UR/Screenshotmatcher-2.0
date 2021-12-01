@@ -30,6 +30,40 @@ import java.io.File
 
 const val RESULT_ACTIVITY_REQUEST_CODE = 20
 
+/**
+ * Activity for displaying the results of a capture request.
+ *
+ * @property mBackButton The back button, used to return to the previous activity
+ * @property mPillNavigationButton1 The first pill navigation button, used to navigate to the next image
+ * @property mPillNavigationButton2 The second pill navigation button, used to navigate to the previous image
+ * @property mImagePreviewNextButton The next image button (right), used to navigate to the next image
+ * @property mImagePreviewPreviousButton The previous image button (left), used to navigate to the previous image
+ * @property mScreenshotImageView The image view displaying the screenshot (either cropped or full)
+ * @property mShareButton The share button, opens up the share menu with the currently displayed screenshot
+ * @property mSaveBothButton The save both button, saves both the cropped and full screenshot to the phone gallery
+ * @property mSaveOneButton The save one button, saves the currently displayed screenshot to the phone gallery
+ * @property mShareButtonText The text view displaying the text beneath [mShareButton]
+ * @property mSaveOneButtonText The text view displaying the text beneath [mSaveOneButton]
+ * @property mRetakeImageButton The retake image button, used to return to the previous activity
+ *
+ * @property mFullImageFile The file containing the full screenshot
+ * @property mCroppedImageFile The file containing the cropped screenshot
+ * @property mServerURL The URL of the server that sent the match response, stored in the [CaptureViewModel]
+ * @property lastDateTime The date and time when this activity was created, used as a prefix for the file names when saving images
+ * @property matchID The ID of the match, stored in the [CaptureViewModel]
+ *
+ * @property displayFullScreenshotOnly Whether to only allow the user to view the full screenshot or both the cropped and full screenshots. Set to true if no cropped screenshot is available.
+ * @property hasSharedImage Whether the user has shared/saved the image via [mShareButton], [mSaveOneButton] or [mSaveBothButton]
+ * @property fullScreenshotDownloaded Whether the full screenshot has been downloaded or not (can be downloaded using [downloadFullScreenshot])
+ * @property croppedScreenshotDownloaded Whether the cropped screenshot has been downloaded or not (can't be downloaded if false, because no matching cropped screenshot is available)
+ * @property shareIntentIsActive Whether a share intent is currently being processed or not
+ *
+ * @property captureViewModel The [CaptureViewModel], used to access data of the current matching process
+ * @property didRegisterObservers Whether the observers for [captureViewModel] have been registered or not. Necessary to prevent calling evens when registering the observers.
+ *
+ * @property mPillNavigationState The current state of the pill navigation buttons, used to determine which pill navigation button is currently highlighted (0 = pill 1 = cropped screenshot, 1 = pill 2 = full screenshot)
+ * @property StudyLogger The [StudyLogger] used to log the events of this activity
+ */
 class ResultsActivity : AppCompatActivity() {
     //Views
     private lateinit var mBackButton: AppCompatImageButton
@@ -56,51 +90,78 @@ class ResultsActivity : AppCompatActivity() {
 
     private var fullScreenshotDownloaded = false
     private var croppedScreenshotDownloaded = false
-    private var isWaitingForShare = false
+    private var shareIntentIsActive = false
 
     private lateinit var captureViewModel: CaptureViewModel
     private var didRegisterObservers = false
 
-    // -1 = cropped page, 1 = full page
     private var mPillNavigationState: Int = -1
 
+    /**
+     * Initializes the activity and sets up the views as well as the [CaptureViewModel].
+     *
+     * @param savedInstanceState The saved instance state of the activity
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_results)
         initViews()
         setViewListeners()
 
+        // TODO: Remove, use capture model instead
         mServerURL = intent.getStringExtra("ServerURL")!!
         matchID = intent.getStringExtra("matchID")!!
 
         StudyLogger.hashMap["tc_result_shown"] = System.currentTimeMillis()
         lastDateTime = getDateString()
 
+        initiateCaptureViewModel()
+    }
+
+    /**
+     * Initiates [captureViewModel].
+     *
+     * Retrieves [mCroppedImageFile] and [mFullImageFile] from the [CaptureViewModel] if available.
+     * If no [mFullImageFile] is available, [displayFullScreenshotOnly] is set to true.
+     * If [mCroppedImageFile] is available, it is displayed in [mScreenshotImageView].
+     *
+     * @see CaptureViewModel
+     */
+    private fun initiateCaptureViewModel() {
         captureViewModel = ViewModelProvider(this, CaptureViewModel.Factory(application)).get(
             CaptureViewModel::class.java
         )
-
-        // only full screenshot available
         if (captureViewModel.getCroppedScreenshot() == null) {
+            // no cropped image available
             Log.d("RA", "cropped = null")
             displayFullScreenshotOnly = true
             activateFullScreenshotOnlyMode()
         } else {
+            // cropped image available
             mScreenshotImageView.setImageBitmap(captureViewModel.getCroppedScreenshot())
             saveCroppedImageToAppDir()
             croppedScreenshotDownloaded = true
         }
-            captureViewModel.getLiveDataFullScreenshot().observe(this, Observer { fullScreenshot ->
-                run {
-                    // prevent calling the event when registering the observer
-                    if (didRegisterObservers)
-                        onFullScreenshotDownloaded(fullScreenshot)
-                    else didRegisterObservers = true
-                }
-            })
+        // register observers
+        captureViewModel.getLiveDataFullScreenshot().observe(this, Observer { fullScreenshot ->
+            run {
+                // prevent calling the event when registering the observer
+                if (didRegisterObservers)
+                    onFullScreenshotDownloaded(fullScreenshot)
+                else didRegisterObservers = true
+            }
+        })
     }
 
-    //full screenshot only mode = when the user clicks "full image" in the error fragment, no cropped screenshot available
+    /**
+     * Activates full screenshot only mode.
+     *
+     * Downloads the full screenshot from the server and displays it in [mScreenshotImageView].
+     * Updates [mPillNavigationState].
+     * Updates [mShareButtonText] and [mSaveOneButton] to display the correct text.
+     *
+     * @return true
+     */
     private fun activateFullScreenshotOnlyMode(): Boolean {
         downloadFullScreenshot()
         mImagePreviewPreviousButton.visibility = View.INVISIBLE
@@ -114,6 +175,9 @@ class ResultsActivity : AppCompatActivity() {
         return true
     }
 
+    /**
+     * Initiates all views.
+     */
     private fun initViews() {
         supportActionBar?.hide()
         mBackButton = findViewById(R.id.ra_backButton)
@@ -134,6 +198,9 @@ class ResultsActivity : AppCompatActivity() {
         mRetakeImageButton = findViewById(R.id.ra_retakeImageButton)
     }
 
+    /**
+     * Sets all view listeners.
+     */
     private fun setViewListeners() {
         mBackButton.setOnClickListener { goBackToCameraActivity() }
         mRetakeImageButton.setOnClickListener { goBackToCameraActivity() }
@@ -150,12 +217,13 @@ class ResultsActivity : AppCompatActivity() {
         mSaveOneButton.setOnClickListener { saveCurrentPreviewImage() }
     }
 
-    //Saves the currently displayed screenshot to the gallery
+    /**
+     * Saves the current preview image to the phone gallery.
+     */
     private fun saveCurrentPreviewImage() {
         hasSharedImage = true
         //Check if cropped image is available as bitmap, if so save it as a file to app directory. This is necessary so the user can see the the screenshot when browsing older screenshots
         if (!displayFullScreenshotOnly) saveCroppedImageToAppDir()
-
         Log.d("RA", mPillNavigationState.toString())
         when (mPillNavigationState) {
             -1 -> {
@@ -201,6 +269,11 @@ class ResultsActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Saves both the cropped and full screenshot to the phone gallery.
+     *
+     * Downloads the full screenshot if it is not available.
+     */
     private fun saveBothImages() {
         when (displayFullScreenshotOnly) {
             true -> {
@@ -237,7 +310,7 @@ class ResultsActivity : AppCompatActivity() {
                     ).show()
                 } else {
                     //Full screenshot needs to be downloaded, gets saved to gallery on download complete
-                    isWaitingForShare = true
+                    shareIntentIsActive = true
                     downloadFullScreenshot()
                 }
                 StudyLogger.hashMap["save_match"] = true
@@ -246,6 +319,9 @@ class ResultsActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Opens the share intent to share the current preview image.
+     */
     private fun shareImage() {
         hasSharedImage = true
         when (mPillNavigationState) {
@@ -314,6 +390,9 @@ class ResultsActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Toggles the pill navigation state and changes the current preview image.
+     */
     private fun togglePillNavigationSelection() {
         //Only toggle if cropped screenshot is available
         if (!displayFullScreenshotOnly) {
@@ -360,6 +439,13 @@ class ResultsActivity : AppCompatActivity() {
 
     }
 
+    /**
+     * Saves the cropped screenshot to the external app directory.
+     *
+     * TODO: combine with saveFullImageToAppDir()
+     *
+     * Filename: [lastDateTime]_Cropped.png
+     */
     private fun saveCroppedImageToAppDir() {
         if (!::mCroppedImageFile.isInitialized && !displayFullScreenshotOnly) {
             mCroppedImageFile = File(
@@ -375,6 +461,13 @@ class ResultsActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Saves the full screenshot to the external app directory.
+     *
+     * TODO: combine with saveCroppedImageToAppDir()
+     *
+     * Filename: [lastDateTime]_Full.png
+     */
     private fun saveFullImageToAppDir() {
         if (!::mFullImageFile.isInitialized) {
             mFullImageFile = File(
@@ -391,28 +484,44 @@ class ResultsActivity : AppCompatActivity() {
     }
 
 
+    /**
+     * Downloads the  full screenshot from the server via the [captureViewModel]
+     */
     private fun downloadFullScreenshot() {
         captureViewModel.loadFullScreenshot()
     }
 
+    /**
+     * Callback for the [captureViewModel] to notify the this activity that the full screenshot has been loaded.
+     *
+     * Calls either [onFullScreenshotDenied] or [onFullScreenshotSuccess] depending on whether [screenshot] is null or not.
+     *
+     * @param screenshot The full screenshot as a [Bitmap]. Null if the full screenshot could not be loaded.
+     */
     private fun onFullScreenshotDownloaded(screenshot: Bitmap?) {
             when (screenshot) {
                 null -> onFullScreenshotDenied()
-                else -> onFullScreenshotSuccess(screenshot)
+                else -> onFullScreenshotSuccess()
         }
 
     }
 
+    /**
+     * Callback for [onFullScreenshotDownloaded] to notify the user that the full screenshot could not be loaded.
+     */
     private fun onFullScreenshotDenied() {
-        isWaitingForShare = false
+        shareIntentIsActive = false
         Toast.makeText(this, "Full screenshots not allowed by this PC.", Toast.LENGTH_LONG).show()
     }
 
-    private fun onFullScreenshotSuccess(bitmap: Bitmap) {
+    /**
+     * Callback for [onFullScreenshotDownloaded] to set the full screenshot as the image view save it to the phone gallery if [shareIntentIsActive].
+     */
+    private fun onFullScreenshotSuccess() {
         fullScreenshotDownloaded = true
         if (displayFullScreenshotOnly || mPillNavigationState == 1) {
             mScreenshotImageView.setImageBitmap(captureViewModel.getFullScreenshot())
-        } else if (isWaitingForShare) {
+        } else if (shareIntentIsActive) {
             saveFullImageToAppDir()
             //Full screenshot has been requested by the user pressing "save both", save downloaded screenshot to gallery
             MediaStore.Images.Media.insertImage(
@@ -426,10 +535,16 @@ class ResultsActivity : AppCompatActivity() {
                 getText(R.string.result_activity_saved_both_en),
                 Toast.LENGTH_SHORT
             ).show()
-            isWaitingForShare = false
+            shareIntentIsActive = false
         }
     }
 
+    /**
+     * Finishes this activity.
+     *
+     * Sets the result code to [Activity.RESULT_OK] if [hasSharedImage] is true.
+     * Otherwise sets the result code to [Activity.RESULT_CANCELED].
+     */
     private fun goBackToCameraActivity() {
         val intent = Intent()
         if (!hasSharedImage) {
@@ -446,6 +561,9 @@ class ResultsActivity : AppCompatActivity() {
         finish()
     }
 
+    /**
+     * Sends a log using [sendLog] and clears [StudyLogger.hashMap]
+     */
     override fun onStop() {
         super.onStop()
 
