@@ -260,6 +260,7 @@ fun sendHeartbeatRequest(serverURL: String?, context: Context, onFail: () -> Uni
             onFail()
         })
 
+    //TODO: declare outside of function, and use it here
     val queue = Volley.newRequestQueue(context)
     queue.add(request)
 }
