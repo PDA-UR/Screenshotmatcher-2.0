@@ -23,8 +23,23 @@ import com.pda.screenshotmatcher2.network.sendLog
 const val UID_KEY: String = "UID"
 const val URL_KEY: String = "URL"
 
+/**
+ * Fragment displaying an error message to the user when a match request results in no matches.
+ *
+ * @property mBackButton The back button, calls [removeThisFragment] on click
+ * @property mFeedbackButton The feedback button, calls [openFeedbackFragment] on click
+ * @property mFullImageButton The full image button, calls [openResultsActivity] on click
+ * @property containerView The container view holding this fragment
+ * @property mFragmentBackground The dark background behind this fragment, calls [removeThisFragment] on click
+ * @property mErrorImageView The image view displaying the image taken with the camera
+ *
+ * @property uid The id of the match request
+ * @property url The matching server url
+ * @property bmp The bitmap of the image taken with the camera
+ *
+ * @property resultsOpened Whether the results activity was opened by this fragment or not
+ */
 class ErrorFragment : Fragment() {
-    //Views
     private lateinit var mBackButton: Button
     private lateinit var mFeedbackButton: Button
     private lateinit var mFullImageButton: Button
@@ -32,13 +47,17 @@ class ErrorFragment : Fragment() {
     private lateinit var mFragmentBackground: FrameLayout
     private lateinit var mErrorImageView: ImageView
 
-    //Full screenshot info
     private lateinit var uid: String
     private lateinit var url: String
     private lateinit var bmp: Bitmap
 
     private var resultsOpened = false
 
+    /**
+     * Called when the fragment is created, sets the uid, url, and bitmap.
+     *
+     * TODO: Use CaptureViewModel to get the uid, url and bmp
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val bundle = this.arguments
@@ -55,6 +74,10 @@ class ErrorFragment : Fragment() {
         }
     }
 
+    /**
+     * On view creation, returns an inflated view of this fragment.
+     * @return An inflated view of this fragment
+     */
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -64,11 +87,17 @@ class ErrorFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_error, container, false)
     }
 
+    /**
+     * Called after the view of this fragment has been created, calls [initViews].
+     */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initViews()
     }
 
+    /**
+     * Initiates the views of this fragment and loads the image taken with the camera into [mErrorImageView].
+     */
     private fun initViews() {
         mBackButton = requireView().findViewById(R.id.ef_back_button)
         mBackButton.setOnClickListener { removeThisFragment() }
@@ -86,6 +115,11 @@ class ErrorFragment : Fragment() {
             .into(mErrorImageView)
     }
 
+    /**
+     * Opens [ResultsActivity].
+     *
+     * TODO: Remove extras
+     */
     private fun openResultsActivity() {
         val intent = Intent(activity, ResultsActivity::class.java)
         intent.putExtra("matchID", uid)
@@ -97,6 +131,11 @@ class ErrorFragment : Fragment() {
         removeThisFragment()
     }
 
+    /**
+     * Opens [FeedbackFragment].
+     *
+     * TODO: Remove extras
+     */
     private fun openFeedbackFragment() {
         val feedbackFragment = FeedbackFragment()
         feedbackFragment.arguments = Bundle().apply {
@@ -113,6 +152,9 @@ class ErrorFragment : Fragment() {
     }
 
 
+    /**
+     * Removes this fragment.
+     */
     private fun removeThisFragment() {
         requireActivity().window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
         mFragmentBackground.visibility = View.INVISIBLE

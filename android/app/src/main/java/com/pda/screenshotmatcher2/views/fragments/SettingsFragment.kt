@@ -14,16 +14,28 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.pda.screenshotmatcher2.R
 
-
+/**
+ * A fragment allowing users to change application settings.
+ *
+ * @property mFragmentBackground The dark background behind the fragment, calls [removeThisFragment] on click
+ * @property containerView The container view for the fragment
+ */
 class SettingsFragment : PreferenceFragmentCompat() {
 
     private lateinit var mFragmentBackground: FrameLayout
     private lateinit var containerView: CardView
 
+    /**
+     * Called when the fragment is created, calls [setPreferencesFromResource] to set the preferences
+     */
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.root_preferences, rootKey)
     }
 
+    /**
+     * Called on fragment view creation, returns an inflated view of this fragment.
+     * @return Inflated view of this fragment
+     */
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -34,6 +46,9 @@ class SettingsFragment : PreferenceFragmentCompat() {
         return super.onCreateView(inflater, container, savedInstanceState)
     }
 
+    /**
+     * Called when the fragment view has been created, initializes the views and listeners.
+     */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         mFragmentBackground = activity?.findViewById(R.id.ca_dark_background)!!
@@ -51,6 +66,9 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
     }
 
+    /**
+     * Removes this fragment
+     */
     private fun removeThisFragment() {
         containerView.visibility = View.INVISIBLE
         mFragmentBackground.visibility = View.INVISIBLE
