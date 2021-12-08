@@ -382,15 +382,9 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
 
     /**
      * Starts [ResultsActivity].
-     *
-     * TODO: use [CaptureViewModel]
 	 */
     private fun startResultsActivity(matchID: String, img: ByteArray) {
-        val intent = Intent(this, ResultsActivity::class.java).apply {
-            putExtra("matchID", matchID)
-            putExtra("img", img)
-            putExtra("ServerURL", serverConnectionViewModel.getServerUrl())
-        }
+        val intent = Intent(this, ResultsActivity::class.java)
         startActivityForResult(intent,
             RESULT_ACTIVITY_REQUEST_CODE
         )
