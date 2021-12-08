@@ -218,7 +218,6 @@ class ResultsActivity : AppCompatActivity() {
     private fun saveCurrentPreviewImage() {
         hasSharedImage = true
         //Check if cropped image is available as bitmap, if so save it as a file to app directory. This is necessary so the user can see the the screenshot when browsing older screenshots
-        Log.d("RA", mPillNavigationState.toString())
         when (mPillNavigationState) {
             -1 -> {
                 //Save cropped screenshot to gallery
@@ -521,14 +520,9 @@ class ResultsActivity : AppCompatActivity() {
     private fun goBackToCameraActivity() {
         val intent = Intent()
         if (!hasSharedImage) {
-            if (::mFullImageFile.isInitialized) {
-                mFullImageFile.delete()
-            }
-            if (::mCroppedImageFile.isInitialized) {
-                mCroppedImageFile.delete()
-            }
             setResult(Activity.RESULT_CANCELED, intent)
         } else {
+            if (hasSharedImage) saveToAppDir(captureViewModel.getCroppedScreenshot(), captureViewModel.getFullScreenshot())
             setResult(Activity.RESULT_OK, intent)
         }
         finish()
@@ -539,10 +533,6 @@ class ResultsActivity : AppCompatActivity() {
      */
     override fun onStop() {
         super.onStop()
-
-        // if the user has shared the image, save them to the external app gallery
-        Log.d("RS", "onStop: $hasSharedImage")
-        if (hasSharedImage) saveToAppDir(captureViewModel.getCroppedScreenshot(), captureViewModel.getFullScreenshot())
 
         captureViewModel.getServerUrl()?.let {
             sendLog(it, this)

@@ -93,7 +93,7 @@ object ServerConnectionModel {
 	 * @param isForeground Whether or not the model is called from a background service or a foreground activity
 	 */
     fun start(application: Application, isForeground: Boolean) {
-        Log.d("SCM", "call start, foreground: $isForeground")
+        //Log.d("SCM", "call start, foreground: $isForeground")
         this.application = application
         if (!isDiscovering.value!! && !isHeartbeating.value!!) {
             handlerThread = HandlerThread(this.javaClass.simpleName).apply { start() }
@@ -158,7 +158,7 @@ object ServerConnectionModel {
      * Calls [discoverServersOnNetwork] to discover all available servers on the network, passes [onServerURLsGet] as a callback.
 	 */
     private fun discover(context: Context) {
-        Log.d("SCM", "starting discover thread")
+        //Log.d("SCM", "starting discover thread")
         Thread {
                 discoverServersOnNetwork(
                     context,
@@ -183,7 +183,7 @@ object ServerConnectionModel {
      * Updates [serverUrlList] with the new list of [servers].
 	 */
     private fun onServerURLsGet(servers: List<Pair<String, String>>) {
-        Log.d("SCM", "onserverurlget, list len: " + servers.size)
+        //Log.d("SCM", "onserverurlget, list len: " + servers.size)
 
         if (servers.isNotEmpty()) {
             updateServerUrlList(servers)
@@ -206,7 +206,7 @@ object ServerConnectionModel {
      */
     private fun heartbeat () {
         if (isConnected.value!! && serverUrl.value != "") {
-            Log.d("SCM", "Sending heartbeat")
+            //Log.d("SCM", "Sending heartbeat")
             sendHeartbeatRequest(
                 serverUrl.value,
                 application!!.applicationContext,
@@ -221,6 +221,6 @@ object ServerConnectionModel {
      */
     private fun onHeartbeatFail() {
         onConnectionChanged(false)
-        Log.d("SCVM", "Failed HB")
+        //Log.d("SCVM", "Failed HB")
     }
 }

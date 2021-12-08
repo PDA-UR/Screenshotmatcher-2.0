@@ -10,6 +10,7 @@ import android.graphics.Point
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.*
 import android.media.ImageReader
+import android.util.Log
 import android.util.Size
 import android.view.Surface
 import android.view.TextureView
@@ -68,6 +69,7 @@ class CameraProvider(cameraInstance: CameraInstance) {
      * Starts the camera preview on [previewTextureView].
      */
     fun start(){
+        Log.d("CA", "CA-L cameraProvider start")
         initializeTextureView()
     }
 
@@ -83,6 +85,7 @@ class CameraProvider(cameraInstance: CameraInstance) {
                     width: Int,
                     height: Int
                 ) {
+                    Log.d("CA", "CA-L cameraProvider initializeTextureView onSurfaceTextureAvailable")
                     openCamera(width, height)
                 }
 
@@ -99,12 +102,17 @@ class CameraProvider(cameraInstance: CameraInstance) {
 
                 override fun onSurfaceTextureUpdated(texture: SurfaceTexture) {}
             }
+        if (previewTextureView.isAvailable) {
+            Log.d("CA", "CA-L cameraProvider initializeTextureView isAvailable, starting")
+            openCamera(previewTextureView.width, previewTextureView.height)
+        }
     }
 
     /**
      * Opens the camera with the provided [width] and [height] if [Manifest.permission.CAMERA] is granted.
 	 */
     fun openCamera(width: Int, height: Int) {
+        Log.d("CA", "CA-L cameraProvider openCamera")
         setUpCameraOutputs(width, height)
         val manager =
             ca.getSystemService(Context.CAMERA_SERVICE) as CameraManager
@@ -113,6 +121,7 @@ class CameraProvider(cameraInstance: CameraInstance) {
                 Manifest.permission.CAMERA
             ) != PackageManager.PERMISSION_GRANTED
         ) {
+            Log.d("CA", "CA-L cameraProvider openCamera permission not granted")
             return
         }
         try {
