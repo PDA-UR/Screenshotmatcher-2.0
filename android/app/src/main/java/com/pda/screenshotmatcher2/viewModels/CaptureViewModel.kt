@@ -106,6 +106,10 @@ class CaptureViewModel(application: Application) : AndroidViewModel(application)
         return this.matchID.value
     }
 
+    fun getServerUrl(): String? {
+        return this.serverURL.value
+    }
+
     /**
      * Getter that returns [serverURL] as [MutableLiveData]
 	 */

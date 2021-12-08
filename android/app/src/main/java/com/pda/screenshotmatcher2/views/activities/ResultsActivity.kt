@@ -48,9 +48,7 @@ const val RESULT_ACTIVITY_REQUEST_CODE = 20
  *
  * @property mFullImageFile The file containing the full screenshot
  * @property mCroppedImageFile The file containing the cropped screenshot
- * @property mServerURL The URL of the server that sent the match response, stored in the [CaptureViewModel]
  * @property lastDateTime The date and time when this activity was created, used as a prefix for the file names when saving images
- * @property matchID The ID of the match, stored in the [CaptureViewModel]
  *
  * @property displayFullScreenshotOnly Whether to only allow the user to view the full screenshot or both the cropped and full screenshots. Set to true if no cropped screenshot is available.
  * @property hasSharedImage Whether the user has shared/saved the image via [mShareButton], [mSaveOneButton] or [mSaveBothButton]
@@ -81,9 +79,7 @@ class ResultsActivity : AppCompatActivity() {
 
     private lateinit var mFullImageFile: File
     private lateinit var mCroppedImageFile: File
-    private lateinit var mServerURL: String
     private lateinit var lastDateTime: String
-    private lateinit var matchID: String
 
     private var displayFullScreenshotOnly: Boolean = false
     private var hasSharedImage: Boolean = false
@@ -107,10 +103,6 @@ class ResultsActivity : AppCompatActivity() {
         setContentView(R.layout.activity_results)
         initViews()
         setViewListeners()
-
-        // TODO: Remove, use capture model instead
-        mServerURL = intent.getStringExtra("ServerURL")!!
-        matchID = intent.getStringExtra("matchID")!!
 
         StudyLogger.hashMap["tc_result_shown"] = System.currentTimeMillis()
         lastDateTime = getDateString()
@@ -139,7 +131,10 @@ class ResultsActivity : AppCompatActivity() {
         } else {
             // cropped image available
             mScreenshotImageView.setImageBitmap(captureViewModel.getCroppedScreenshot())
-            saveCroppedImageToAppDir()
+            this.mCroppedImageFile = File(
+                getExternalFilesDir(Environment.DIRECTORY_PICTURES),
+                lastDateTime + "_Cropped.png"
+            )
             croppedScreenshotDownloaded = true
         }
         // register observers
@@ -223,7 +218,6 @@ class ResultsActivity : AppCompatActivity() {
     private fun saveCurrentPreviewImage() {
         hasSharedImage = true
         //Check if cropped image is available as bitmap, if so save it as a file to app directory. This is necessary so the user can see the the screenshot when browsing older screenshots
-        if (!displayFullScreenshotOnly) saveCroppedImageToAppDir()
         Log.d("RA", mPillNavigationState.toString())
         when (mPillNavigationState) {
             -1 -> {
@@ -242,7 +236,6 @@ class ResultsActivity : AppCompatActivity() {
                 ).show()
             }
             else -> {
-                saveFullImageToAppDir()
                 //Save full screenshot to gallery
                 if (fullScreenshotDownloaded) {
                     MediaStore.Images.Media.insertImage(
@@ -287,7 +280,6 @@ class ResultsActivity : AppCompatActivity() {
             false -> {
                 hasSharedImage = true
                 //Save cropped screenshot to app directory and then to gallery
-                saveCroppedImageToAppDir()
                 MediaStore.Images.Media.insertImage(
                     contentResolver,
                     captureViewModel.getCroppedScreenshot(),
@@ -295,7 +287,6 @@ class ResultsActivity : AppCompatActivity() {
                     getString(R.string.screenshot_description_en)
                 )
                 if (fullScreenshotDownloaded) {
-                    saveFullImageToAppDir()
                     //Save full screenshot if it has been downloaded already
                     MediaStore.Images.Media.insertImage(
                         contentResolver,
@@ -329,7 +320,7 @@ class ResultsActivity : AppCompatActivity() {
                 //Cropped screenshot needs to be shared
                 StudyLogger.hashMap["share_match"] = true
 
-                saveCurrentPreviewImage()
+                saveToAppDir(captureViewModel.getCroppedScreenshot(), null)
                 //Start sharing
                 val contentUri =
                     getUriForFile(
@@ -362,7 +353,7 @@ class ResultsActivity : AppCompatActivity() {
                     //Full screenshot needs to be shared
                     StudyLogger.hashMap["share_full"] = true
 
-                    saveFullImageToAppDir()
+                    saveToAppDir(null, captureViewModel.getFullScreenshot())
                     //Start sharing
                     val contentUri =
                         getUriForFile(
@@ -374,7 +365,7 @@ class ResultsActivity : AppCompatActivity() {
                         this.action = Intent.ACTION_SEND
                         this.putExtra(Intent.EXTRA_STREAM, contentUri)
                         this.type = "image/png"
-                        this.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        this.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
                     }
                     val shareIntent = Intent.createChooser(sendIntent, null)
                     startActivity(shareIntent)
@@ -440,46 +431,25 @@ class ResultsActivity : AppCompatActivity() {
     }
 
     /**
-     * Saves the cropped screenshot to the external app directory.
+     * Save the screenshots to the app directory.
      *
-     * TODO: combine with saveFullImageToAppDir()
-     *
-     * Filename: [lastDateTime]_Cropped.png
+     * @param croppedScreenshot The cropped screenshot to save.
+     * @param fullScreenshot The full screenshot to save.
      */
-    private fun saveCroppedImageToAppDir() {
-        if (!::mCroppedImageFile.isInitialized && !displayFullScreenshotOnly) {
-            mCroppedImageFile = File(
-                getExternalFilesDir(Environment.DIRECTORY_PICTURES),
-                lastDateTime + "_Cropped.png"
+    private fun saveToAppDir(croppedScreenshot: Bitmap?, fullScreenshot: Bitmap?) {
+        if (croppedScreenshot != null) {
+            Log.d("ResultActivity", "Saving cropped screenshot")
+            saveBitmapToFile(
+                mCroppedImageFile,
+                croppedScreenshot
             )
-            captureViewModel.getCroppedScreenshot()?.let {
-                saveBitmapToFile(
-                    mCroppedImageFile,
-                    it
-                )
-            }
         }
-    }
-
-    /**
-     * Saves the full screenshot to the external app directory.
-     *
-     * TODO: combine with saveCroppedImageToAppDir()
-     *
-     * Filename: [lastDateTime]_Full.png
-     */
-    private fun saveFullImageToAppDir() {
-        if (!::mFullImageFile.isInitialized) {
-            mFullImageFile = File(
-                getExternalFilesDir(Environment.DIRECTORY_PICTURES),
-                lastDateTime + "_Full.png"
+        if (fullScreenshot != null) {
+            Log.d("ResultActivity", "Saving full screenshot")
+            saveBitmapToFile(
+                mFullImageFile,
+                fullScreenshot
             )
-            captureViewModel.getFullScreenshot()?.let {
-                saveBitmapToFile(
-                    mFullImageFile,
-                    it
-                )
-            }
         }
     }
 
@@ -519,10 +489,13 @@ class ResultsActivity : AppCompatActivity() {
      */
     private fun onFullScreenshotSuccess() {
         fullScreenshotDownloaded = true
+        mFullImageFile = File(
+            getExternalFilesDir(Environment.DIRECTORY_PICTURES),
+            lastDateTime + "_Full.png"
+        )
         if (displayFullScreenshotOnly || mPillNavigationState == 1) {
             mScreenshotImageView.setImageBitmap(captureViewModel.getFullScreenshot())
         } else if (shareIntentIsActive) {
-            saveFullImageToAppDir()
             //Full screenshot has been requested by the user pressing "save both", save downloaded screenshot to gallery
             MediaStore.Images.Media.insertImage(
                 contentResolver,
@@ -567,7 +540,13 @@ class ResultsActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
 
-        sendLog(mServerURL, this)
+        // if the user has shared the image, save them to the external app gallery
+        Log.d("RS", "onStop: $hasSharedImage")
+        if (hasSharedImage) saveToAppDir(captureViewModel.getCroppedScreenshot(), captureViewModel.getFullScreenshot())
+
+        captureViewModel.getServerUrl()?.let {
+            sendLog(it, this)
+        }
         StudyLogger.hashMap.clear()
     }
 }
