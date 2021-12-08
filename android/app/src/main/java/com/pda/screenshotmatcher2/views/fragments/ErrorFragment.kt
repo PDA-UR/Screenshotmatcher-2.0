@@ -100,8 +100,6 @@ class ErrorFragment : Fragment() {
 
     /**
      * Opens [ResultsActivity].
-     *
-     * TODO: Remove extras
      */
     private fun openResultsActivity() {
         val intent = Intent(activity, ResultsActivity::class.java)
