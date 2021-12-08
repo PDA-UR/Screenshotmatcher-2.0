@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.HapticFeedbackConstants
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -15,6 +16,8 @@ import com.github.appintro.AppIntro
 import com.github.appintro.AppIntroFragment
 import com.github.appintro.AppIntroPageTransformerType
 import com.pda.screenshotmatcher2.R
+import com.pda.screenshotmatcher2.utils.getPermissions
+import com.pda.screenshotmatcher2.utils.verifyPermissions
 import com.pda.screenshotmatcher2.views.fragments.AnimatedIntroFragment
 
 /**
@@ -68,15 +71,7 @@ class AppTutorial : AppIntro() {
             descriptionColor = Color.BLACK,
             backgroundColor = Color.WHITE
         ))
-       askForPermissions(
-            permissions = arrayOf(
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                Manifest.permission.INTERNET,
-                Manifest.permission.CAMERA
-            ),
-            slideNumber = 5,
-            required = true)
+
         setBackArrowColor(Color.BLACK)
         setNextArrowColor(Color.BLACK)
         showStatusBar(false)
@@ -85,39 +80,10 @@ class AppTutorial : AppIntro() {
         isWizardMode = true
     }
 
-    /**
-     * Callback for permission request results, calls [savePrefsAndStartCameraActivity] if all permissions have been granted.
-	 */
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (this.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
-            this.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-            savePrefsAndStartCameraActivity()
-        }
+    override fun onDonePressed(currentFragment: Fragment?) {
+        super.onDonePressed(currentFragment)
+        savePrefsAndStartCameraActivity()
     }
-
-    /**
-     * Callback that's being called when a user **denies** a permission.
-	 * @param permissionName The name of the denied permission
-	 */
-    override fun onUserDeniedPermission(permissionName: String) {
-        // User pressed "Deny"
-        Toast.makeText(this, getString(R.string.app_intro_denied_permission), Toast.LENGTH_SHORT).show()
-    }
-
-    /**
-     * Callback that's being called  when a user **disables** a permission
-	 * @param permissionName The name of the disabled permission
-	 */
-    override fun onUserDisabledPermission(permissionName: String) {
-        // User pressed "Deny" + "Don't ask again" on the permission dialog
-        Toast.makeText(this, getString(R.string.app_intro_disabled_permission), Toast.LENGTH_SHORT).show()
-    }
-
     /**
      * Callback that's being called when a new slide is displayed
 	 * @param oldFragment The previously displayed slide

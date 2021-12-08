@@ -9,6 +9,7 @@ import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.os.Build
 import android.util.Base64
+import android.util.Log
 import android.util.Size
 import androidx.core.app.ActivityCompat
 import java.io.File
@@ -38,31 +39,43 @@ fun getDateString() : String{
     return sdf.format(Date())
 }
 
+fun getPermissions (): Array<String> {
+    val permissions = arrayListOf(
+        Manifest.permission.READ_EXTERNAL_STORAGE,
+        Manifest.permission.INTERNET,
+        Manifest.permission.CAMERA
+    )
+    // if device sdk version is larger than 29
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        permissions.add(Manifest.permission.MANAGE_EXTERNAL_STORAGE)
+    }
+     else {
+        permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    }
+    return permissions.toTypedArray()
+}
+
 /**
  * Verifies if [activity] has been granted all permissions of [PERMISSIONS].
  *
  * @return true = all permissions granted; false = at least one permission denied
  */
-fun verifyPermissions(activity: Activity?): Boolean {
-    // Check if we have write permission
-    val writePermission = ActivityCompat.checkSelfPermission(
-        activity!!,
-        Manifest.permission.WRITE_EXTERNAL_STORAGE
-    )
-    val cameraPermission = ActivityCompat.checkSelfPermission(
-        activity,
-        Manifest.permission.CAMERA
-    )
-    if (writePermission != PackageManager.PERMISSION_GRANTED || cameraPermission != PackageManager.PERMISSION_GRANTED) {
-        // We don't have permission so prompt the user
-
-        ActivityCompat.requestPermissions(
-            activity,
-            PERMISSIONS,
-            1
-        )
-        return false
-    } else return true
+fun verifyPermissions(activity: Activity): Boolean {
+    for (permission in getPermissions()) {
+        if (activity.checkSelfPermission(
+                permission
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            Log.d("INTRO", "Permission not granted: $permission")
+            ActivityCompat.requestPermissions(
+                activity,
+                PERMISSIONS,
+                1
+            )
+            return false
+        }
+    }
+    return true
 }
 
 /**

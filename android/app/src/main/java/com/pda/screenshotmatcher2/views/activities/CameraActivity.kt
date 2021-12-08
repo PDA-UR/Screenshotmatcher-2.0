@@ -44,8 +44,6 @@ import com.pda.screenshotmatcher2.views.activities.interfaces.CameraInstance
  * @property mAccelerometer Sensor, used get [mSensorManager]
  * @property mSensorManager SensorManager, used to register [CameraActivity] as a listener for orientation changes
  * @property phoneOrientation The current device orientation. Possible values: [Surface.ROTATION_0], [Surface.ROTATION_90], [Surface.ROTATION_180], [Surface.ROTATION_270]
- * @property surfaceTextureHeight TODO: Remove
- * @property surfaceTextureWidth TODO: Remove
  *
  * @property mSelectDeviceButton Button that opens [SelectDeviceFragment][com.pda.screenshotmatcher2.views.fragments.rotationFragments.SelectDeviceFragment]
  * @property mCaptureButton Button that captures an image starts a new match request
@@ -70,9 +68,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
     private lateinit var mAccelerometer : Sensor
     private lateinit var mSensorManager : SensorManager
     var phoneOrientation : Int = 0
-
-    private var surfaceTextureHeight: Int = 0
-    private var surfaceTextureWidth: Int = 0
 
     private lateinit var mSelectDeviceButton: ImageButton
     private lateinit var mCaptureButton: ImageButton
@@ -104,7 +99,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
         setupSharedPref()
         checkForFirstRun(this)
         setContentView(R.layout.activity_camera)
-        verifyPermissions(this)
+        if(verifyPermissions(this)) cameraProvider.start()
         createDeviceID(this)
         initViews()
         setViewListeners()
@@ -112,7 +107,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
             CameraActivityFragmentHandler(
                 this
             )
-        cameraProvider.start()
+
 
         mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
@@ -446,7 +441,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
                 if (grantResults.isNotEmpty()
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED
                 ) {
-                    cameraProvider.openCamera(surfaceTextureHeight, surfaceTextureWidth)
+                    cameraProvider.start()
                 } else {
                     Toast.makeText(this,getString(R.string.permission_request_en), Toast.LENGTH_LONG).show()
                     verifyPermissions(this)
@@ -522,6 +517,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
     fun onPermissionDenied() {
         isCapturing = false
         Toast.makeText(this, "Permission denied from server.", Toast.LENGTH_LONG).show()
+        verifyPermissions(this)
     }
 
     /**
