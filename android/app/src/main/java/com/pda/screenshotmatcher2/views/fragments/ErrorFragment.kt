@@ -13,12 +13,14 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
+import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.logger.StudyLogger
 import com.pda.screenshotmatcher2.views.activities.RESULT_ACTIVITY_REQUEST_CODE
 import com.pda.screenshotmatcher2.views.activities.ResultsActivity
 import com.pda.screenshotmatcher2.network.sendLog
+import com.pda.screenshotmatcher2.viewModels.CaptureViewModel
 
 const val UID_KEY: String = "UID"
 const val URL_KEY: String = "URL"
@@ -32,11 +34,7 @@ const val URL_KEY: String = "URL"
  * @property containerView The container view holding this fragment
  * @property mFragmentBackground The dark background behind this fragment, calls [removeThisFragment] on click
  * @property mErrorImageView The image view displaying the image taken with the camera
- *
- * @property uid The id of the match request
- * @property url The matching server url
- * @property bmp The bitmap of the image taken with the camera
- *
+ * @property captureViewModel The [CaptureViewModel], used to access the server url and full camera image of the last match request
  * @property resultsOpened Whether the results activity was opened by this fragment or not
  */
 class ErrorFragment : Fragment() {
@@ -47,31 +45,16 @@ class ErrorFragment : Fragment() {
     private lateinit var mFragmentBackground: FrameLayout
     private lateinit var mErrorImageView: ImageView
 
-    private lateinit var uid: String
-    private lateinit var url: String
-    private lateinit var bmp: Bitmap
+    private lateinit var captureViewModel: CaptureViewModel
 
     private var resultsOpened = false
 
     /**
-     * Called when the fragment is created, sets the uid, url, and bitmap.
-     *
-     * TODO: Use CaptureViewModel to get the uid, url and bmp
+     * Called when the fragment is created, initiates [captureViewModel].
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val bundle = this.arguments
-        if (bundle != null) {
-            uid = bundle.getString(UID_KEY, "undefined")
-            url = bundle.getString(URL_KEY, "undefined")
-            bmp = if (bundle.getParcelable<Bitmap>("bmp") == null){
-                BitmapFactory.decodeResource(context?.resources,
-                    R.drawable.ic_comic_characters_sad
-                )
-            } else {
-                bundle.getParcelable("bmp")!!
-            }
-        }
+        this.captureViewModel = ViewModelProvider(this.viewModelStore, CaptureViewModel.Factory(this.requireActivity().application)).get(CaptureViewModel::class.java)
     }
 
     /**
@@ -110,7 +93,7 @@ class ErrorFragment : Fragment() {
         mFragmentBackground.visibility = View.VISIBLE
         mErrorImageView = requireView().findViewById(R.id.errorFragmentImage)
         Glide.with(requireActivity())
-            .load(bmp)
+            .load(captureViewModel.getCameraImage())
             .centerCrop()
             .into(mErrorImageView)
     }
@@ -122,8 +105,6 @@ class ErrorFragment : Fragment() {
      */
     private fun openResultsActivity() {
         val intent = Intent(activity, ResultsActivity::class.java)
-        intent.putExtra("matchID", uid)
-        intent.putExtra("ServerURL", url)
         resultsOpened = true
         activity?.startActivityForResult(intent,
             RESULT_ACTIVITY_REQUEST_CODE
@@ -133,15 +114,9 @@ class ErrorFragment : Fragment() {
 
     /**
      * Opens [FeedbackFragment].
-     *
-     * TODO: Remove extras
      */
     private fun openFeedbackFragment() {
         val feedbackFragment = FeedbackFragment()
-        feedbackFragment.arguments = Bundle().apply {
-            putString(UID_KEY, uid)
-            putString(URL_KEY, url)
-        }
 
         activity?.supportFragmentManager
             ?.beginTransaction()
@@ -166,7 +141,7 @@ class ErrorFragment : Fragment() {
     override fun onStop() {
         super.onStop()
         if (!resultsOpened) {
-            sendLog(url, requireContext())
+            sendLog(captureViewModel.getServerUrl()!!, requireContext())
             StudyLogger.hashMap.clear()
         }
     }

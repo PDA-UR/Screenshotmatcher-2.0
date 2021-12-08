@@ -10,9 +10,11 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
+import androidx.lifecycle.ViewModelProvider
 import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.logger.StudyLogger
 import com.pda.screenshotmatcher2.network.sendFeedbackToServer
+import com.pda.screenshotmatcher2.viewModels.CaptureViewModel
 
 /**
  * Fragment that lets the user send feedback to a feedback server.
@@ -24,9 +26,8 @@ import com.pda.screenshotmatcher2.network.sendFeedbackToServer
  * @property mFragmentBackground The dark background behind the fragment, calls [removeThisFragment] on click
  * @property mSendFeedbackButton Send feedback button, sends the feedback to the feedback server on click
  * @property mTextInputField The text input field for the user to enter feedback
+ * @property captureViewModel The [CaptureViewModel], used to access the server url and match id of the last match request
  *
- * @property uid The id of the match result
- * @property url The url of the matching server
  */
 class FeedbackFragment : Fragment() {
     //Views
@@ -36,21 +37,14 @@ class FeedbackFragment : Fragment() {
     private lateinit var mSendFeedbackButton: Button
     private lateinit var mTextInputField: EditText
 
-    private lateinit var uid: String
-    private lateinit var url: String
+    private lateinit var captureViewModel: CaptureViewModel
 
     /**
      * Called when the fragment is created, sets the match result id and the matching server url.
-     *
-     * TODO: Remove bundle, use CaptureViewModel instead
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val bundle = this.arguments
-        if (bundle != null) {
-            uid = bundle.getString(UID_KEY, "undefined")
-            url = bundle.getString(URL_KEY, "undefined")
-        }
+        this.captureViewModel = ViewModelProvider(this.viewModelStore, CaptureViewModel.Factory(this.requireActivity().application)).get(CaptureViewModel::class.java)
     }
 
     /**
@@ -141,8 +135,8 @@ class FeedbackFragment : Fragment() {
             sendFeedbackToServer(
                 this,
                 requireActivity().applicationContext,
-                url,
-                uid,
+                this.captureViewModel.getServerUrl()!!,
+                this.captureViewModel.getMatchID()!!,
                 hasResult = false,
                 hasScreenshot = false,
                 comment = getInputTextFieldText()
