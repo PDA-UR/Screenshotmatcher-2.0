@@ -9,7 +9,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.views.activities.CameraActivity
-import com.pda.screenshotmatcher2.views.fragments.removeForRotation
 import java.io.File
 
 /**
@@ -102,7 +101,6 @@ abstract class RotationFragment : Fragment() {
      * Does not play any animation.
      */
     open fun removeThisFragmentForRotation(): ArrayList<File?>? {
-        removeForRotation = true
         activity?.supportFragmentManager?.beginTransaction()?.remove(this)
             ?.commit()
         return null
@@ -116,7 +114,6 @@ abstract class RotationFragment : Fragment() {
      * @param removeBackground Whether to remove the dark background of the fragment or not
      */
     open fun removeThisFragment(removeBackground: Boolean = true) {
-        removeForRotation = !removeBackground
         activity?.supportFragmentManager?.beginTransaction()?.remove(this)
             ?.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)?.commit()
     }

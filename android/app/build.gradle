@@ -65,10 +65,22 @@ dokkaHtml.configure {
         }
     }
 }
+dokkaHtml {
+    dokkaSourceSets {
+        suppressInheritedMembers.set(true)
+        suppressObviousFunctions.set(true)
+        moduleName.set("ScreenshotMatcher2")
+        configureEach {
+            includes.from("screenshotmatcher2.md")
+        }
+    }
+}
 
 tasks.withType(dokkaHtml.getClass()).configureEach {
     pluginsMapConfiguration.set(
-            ["org.jetbrains.dokka.base.DokkaBase": """{ "separateInheritedMembers": true}"""]
+            [
+             "org.jetbrains.dokka.base.DokkaBase": """{ "customStyleSheets": ["${file("./dokka/logo-styles.css")}"], "customAssets": ["${file("./dokka/dokka_logo.png")}"] }""",
+            ]
     )
 }
 
