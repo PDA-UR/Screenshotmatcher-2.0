@@ -12,9 +12,9 @@ import androidx.fragment.app.Fragment
 import com.pda.screenshotmatcher2.R
 
 /**
- * Custom fragment for the first slide of the onboarding activity [AppTutorial][com/pda/screenshotmatcher2/views/activities/AppTutorial.kt].
+ * Custom fragment for the first slide of the on-boarding activity [AppTutorial][com.pda.screenshotmatcher2.views.activities.AppTutorial].
  *
- * Adds the extra functionality to display an [AnimationDrawable] in a slide.
+ * Adds the extra functionality to display an [AnimationDrawable] in a slide
  * @see <a href="https://github.com/AppIntro/AppIntro">AppIntro</a> for more information
  */
 class AnimatedIntroFragment : Fragment(){
