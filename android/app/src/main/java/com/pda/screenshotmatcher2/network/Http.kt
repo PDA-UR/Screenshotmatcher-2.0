@@ -17,7 +17,6 @@ import com.android.volley.toolbox.Volley
 import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.views.activities.CameraActivity
 import com.pda.screenshotmatcher2.views.fragments.FeedbackFragment
-import com.pda.screenshotmatcher2.viewHelpers.CameraActivityFragmentHandler
 import com.pda.screenshotmatcher2.utils.getDeviceID
 import com.pda.screenshotmatcher2.utils.getDeviceName
 import com.pda.screenshotmatcher2.logger.StudyLogger
@@ -33,97 +32,6 @@ private const val FEEDBACK_DEST = "/feedback"
 private const val HEARTBEAT_DEST = "/heartbeat"
 private const val PERMISSION_DEST = "/permission"
 
-fun sendBitmap(
-    bitmap: Bitmap,
-    serverURL: String,
-    activity: Activity,
-    matchingOptions: HashMap<Any?, Any?>? = null,
-    permissionToken: String = "",
-    matchID: String = ""
-) {
-    val baos = ByteArrayOutputStream()
-    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
-    val b64Image = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT)
-
-    val queue = Volley.newRequestQueue(activity.applicationContext)
-    val json = JSONObject()
-    matchingOptions?.forEach { (key, value) ->
-        json.put(key.toString(), value.toString())
-    }
-    // keys: "algorithm", "ORB_nfeatures", "SURF_hessian_threshold"
-
-    // add the device name
-    json.put("device_name", getDeviceName())
-
-    // add device ID for verification
-    val id =
-        getDeviceID(activity.applicationContext)
-    json.put("device_id", id)
-
-    if (permissionToken.isNotEmpty()) {
-        json.put("permission_token", permissionToken)
-    }
-    if (matchID.isNotEmpty()) {
-        json.put("match_id", matchID)
-    }
-
-    // add the image
-    json.put("b64", b64Image)
-
-    val jsonOR = JsonObjectRequest(
-        Request.Method.POST, serverURL + MATCH_DEST, json,
-        { response ->
-            StudyLogger.hashMap["tc_http_response"] = System.currentTimeMillis()
-            try {
-                StudyLogger.hashMap["match_id"] = response.get("uid").toString()
-            } catch (e: Exception) {
-                Log.d("HTTP", e.toString())
-                Log.d("HTTP", response.toString())
-            }
-            if (response.has("error")) {
-                if (activity is CameraActivity && response.getString("error") == "permission_error") {
-                    activity.onPermissionDenied()
-                } else if (response.getString("error") == "permission_required") {
-                    /*requestPermission(
-                        bitmap,
-                        serverURL,
-                        activity,
-                        matchingOptions,
-                        response.get("uid").toString()
-                    )*/
-                }
-            } else if (response.get("hasResult").toString() != "false") {
-                try {
-                    val b64ImageString = response.get("b64").toString()
-                    if (b64ImageString.isNotEmpty()) {
-                        val byteArray = Base64.decode(b64ImageString, Base64.DEFAULT)
-                        //downloadFullScreenshot(response.get("uid").toString(), "screenshot.png", serverURL, context)
-                        if (activity is CameraActivity) {
-                            activity.onMatchResult(
-                                matchID = response.get("uid").toString(),
-                                img = byteArray
-                            )
-                        }
-                    }
-                } catch (e: InvocationTargetException) {
-                    Log.e("HTTP", "b64 string error")
-                }
-            } else if (activity is CameraActivity) {
-                val fm: CameraActivityFragmentHandler = activity.cameraActivityFragmentHandler
-                //fm.openErrorFragment(response.get("uid").toString(), bitmap)
-            }
-        },
-        { error ->
-            if (activity is CameraActivity) {
-                activity.onMatchRequestError()
-            }
-
-        })
-
-    StudyLogger.hashMap["tc_http_request"] = System.currentTimeMillis()
-    queue.add(jsonOR)
-
-}
 
 var queue: RequestQueue? = null
 
@@ -132,8 +40,9 @@ fun sendBitmapCA(
     serverURL: String,
     activity: Activity,
     matchingOptions: HashMap<Any?, Any?>? = null,
-    permissionToken: String = "",
-    matchID: String = ""
+    permissionToken: String? = "",
+    matchID: String? = "",
+    captureCallback: CaptureCallback
 ) {
     if (queue === null) queue = Volley.newRequestQueue(activity.applicationContext)
 
@@ -155,97 +64,80 @@ fun sendBitmapCA(
         getDeviceID(activity.applicationContext)
     json.put("device_id", id)
 
-    if (permissionToken.isNotEmpty()) {
+    if (permissionToken !== null && permissionToken.isNotEmpty()) {
         json.put("permission_token", permissionToken)
     }
-    if (matchID.isNotEmpty()) {
+    if (matchID !== null && matchID.isNotEmpty()) {
         json.put("match_id", matchID)
     }
 
     // add the image
     json.put("b64", b64Image)
-    // create an object that implements CaptureRequestCallback
-    val cb = object : CaptureRequestCallback {
+
+    val captureRequestCallback = object : CaptureRequestCallback {
         override fun onPermissionDenied() {
-            // TODO: Remove cast
-            if (activity is CameraActivity) activity.onPermissionDenied()
+            captureCallback.onPermissionDenied()
+        }
+        override fun onMatchResult(matchID: String, img: ByteArray) {
+            captureCallback.onMatchResult(matchID, img)
+        }
+
+        override fun onMatchFailure(uid: String) {
+            captureCallback.onMatchFailure(uid)
+        }
+
+        override fun onMatchRequestError() {
+            captureCallback.onMatchRequestError()
         }
 
         override fun onPermissionRequired(uid: String) {
-            val permissionRequestCallback = object : PermissionRequestCallback {
-                override fun onPermissionGranted(matchID: String?, permissionToken: String?) {
-                    if (permissionToken != null && matchID != null) {
+            requestPermission(
+                serverURL,
+                activity,
+                uid,
+                object : PermissionRequestCallback {
+                    override fun onPermissionGranted(matchID: String?, permissionToken: String?) {
                         sendBitmapCA(
                             bitmap,
                             serverURL,
                             activity,
                             matchingOptions,
                             permissionToken,
-                            matchID
-                        )
-                    } else {
-                        sendBitmapCA(
-                            bitmap,
-                            serverURL,
-                            activity,
-                            matchingOptions,
+                            matchID,
+                            captureCallback
                         )
                     }
+                    override fun onPermissionDenied() {
+                        captureCallback.onPermissionDenied()
+                    }
                 }
-
-                override fun onPermissionDenied() {
-                    Log.d("HTTP", "Permission denied")
-                    if (activity is CameraActivity) activity.onPermissionDenied()
-                }
-            }
-            requestPermission(
-                bitmap,
-                serverURL,
-                activity,
-                matchingOptions,
-                uid,
-                permissionRequestCallback
             )
         }
 
-        override fun onMatchResult(matchID: String, img: ByteArray) {
-            if (activity is CameraActivity) {
-                activity.onMatchResult(
-                    matchID = matchID,
-                    img = img
-                )
-            }
-        }
 
-        override fun onMatchFailure(uid: String) {
-            if (activity is CameraActivity) {
-                val fm: CameraActivityFragmentHandler = activity.cameraActivityFragmentHandler
-                fm.openErrorFragment(uid)
-            }
-        }
-
-        override fun onMatchRequestError() {
-            if (activity is CameraActivity) {
-                activity.onMatchRequestError()
-            }
-        }
     }
 
-    val jsonOR = captureJsonObjectRequest(serverURL, json, cb)
+    val jsonOR = captureJsonObjectRequest(serverURL, json, captureRequestCallback)
 
     StudyLogger.hashMap["tc_http_request"] = System.currentTimeMillis()
     queue!!.add(jsonOR)
 
 }
 
-interface CaptureRequestCallback {
+// used by outside classes
+interface CaptureCallback {
     fun onPermissionDenied()
-    fun onPermissionRequired(uid: String)
     fun onMatchResult(matchID: String, img: ByteArray)
     fun onMatchFailure(uid: String)
     fun onMatchRequestError()
 }
 
+// used for making the request
+private interface CaptureRequestCallback : CaptureCallback {
+    fun onPermissionRequired(uid: String)
+}
+
+// used for handling the permission response
 interface PermissionRequestCallback {
     fun onPermissionDenied()
     fun onPermissionGranted(matchID: String?, permissionToken: String?)
@@ -262,20 +154,25 @@ private fun captureJsonObjectRequest(
             logMatchResponse(response)
             when {
                 response.has("hasResult") -> {
-                    when (response.getBoolean("hasResult")){
+                    when (response.getBoolean("hasResult")) {
                         true -> {
                             val byteArray = decodeBase64(response.get("b64").toString())
-                            if (byteArray != null) cb.onMatchResult(response.get("uid").toString(), byteArray)
+                            if (byteArray != null) cb.onMatchResult(
+                                response.get("uid").toString(),
+                                byteArray
+                            )
                             else cb.onMatchFailure(response.get("uid").toString())
                         }
-                        false ->  cb.onMatchFailure(response.get("uid").toString())
+                        false -> cb.onMatchFailure(response.get("uid").toString())
                     }
 
                 }
                 response.has("error") -> {
-                    when (response.getString("error")){
+                    when (response.getString("error")) {
                         "permission_denied" -> cb.onPermissionDenied()
-                        "permission_required" -> cb.onPermissionRequired(response.get("uid").toString())
+                        "permission_required" -> cb.onPermissionRequired(
+                            response.get("uid").toString()
+                        )
                         else -> throw Exception("Unknown error")
                     }
                 }
@@ -286,6 +183,7 @@ private fun captureJsonObjectRequest(
             cb.onMatchRequestError()
         })
 }
+
 private fun decodeBase64(input: String): ByteArray? {
     return if (input.isNotEmpty()) {
         Base64.decode(input, Base64.DEFAULT)
@@ -305,10 +203,8 @@ private fun logMatchResponse(response: JSONObject) {
 }
 
 fun requestPermission(
-    bitmap: Bitmap,
     serverURL: String,
     activity: Activity,
-    matchingOptions: HashMap<Any?, Any?>? = null,
     matchID: String,
     cb: PermissionRequestCallback
 ) {
@@ -328,21 +224,9 @@ fun requestPermission(
                 Log.d("HTTP", "got response for permission")
                 if (response.get("response") == "permission_granted") {
                     if (response.has("permission_token")) {
-                        sendBitmap(
-                            bitmap,
-                            serverURL,
-                            activity,
-                            matchingOptions,
-                            permissionToken = response.getString("permission_token"),
-                            matchID = matchID
-                        )
+                        cb.onPermissionGranted(matchID, response.get("permission_token").toString())
                     } else {
-                        sendBitmap(
-                            bitmap,
-                            serverURL,
-                            activity,
-                            matchingOptions
-                        )
+                        cb.onPermissionGranted(null, null)
                     }
                 } else if (response.get("response") == "permission_denied") {
                     cb.onPermissionDenied()

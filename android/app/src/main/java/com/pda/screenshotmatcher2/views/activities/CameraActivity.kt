@@ -26,7 +26,7 @@ import androidx.preference.PreferenceManager
 import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.background.NewPhotoService
 import com.pda.screenshotmatcher2.logger.StudyLogger
-import com.pda.screenshotmatcher2.network.sendBitmap
+import com.pda.screenshotmatcher2.network.CaptureCallback
 import com.pda.screenshotmatcher2.network.sendBitmapCA
 import com.pda.screenshotmatcher2.utils.createDeviceID
 import com.pda.screenshotmatcher2.utils.rescale
@@ -66,9 +66,9 @@ import com.pda.screenshotmatcher2.views.activities.interfaces.CameraInstance
  * @property cameraActivityFragmentHandler Instance of [CameraActivityFragmentHandler], manages fragments
  */
 class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance {
-    private lateinit var mAccelerometer : Sensor
-    private lateinit var mSensorManager : SensorManager
-    var phoneOrientation : Int = 0
+    private lateinit var mAccelerometer: Sensor
+    private lateinit var mSensorManager: SensorManager
+    var phoneOrientation: Int = 0
 
     private lateinit var mSelectDeviceButton: ImageButton
     private lateinit var mCaptureButton: ImageButton
@@ -100,7 +100,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
         setupSharedPref()
         checkForFirstRun(this)
         setContentView(R.layout.activity_camera)
-        if(verifyPermissions(this)) cameraProvider.start()
+        if (verifyPermissions(this)) cameraProvider.start()
         createDeviceID(this)
         initViews()
         setViewListeners()
@@ -125,11 +125,11 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
     private fun startBackgroundService() {
         Intent(this, NewPhotoService::class.java).also {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                Log.d("CA","Starting the service in >=26 Mode")
+                Log.d("CA", "Starting the service in >=26 Mode")
                 startForegroundService(it)
                 return
             }
-            Log.d("CA","Starting the service in < 26 Mode")
+            Log.d("CA", "Starting the service in < 26 Mode")
             startService(it)
         }
     }
@@ -139,7 +139,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
      */
     private fun stopBackgroundService() {
         Intent(this, NewPhotoService::class.java).also {
-            Log.d("CA","Stopping service")
+            Log.d("CA", "Stopping service")
             stopService(it)
         }
     }
@@ -152,24 +152,31 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
      */
     private fun initViewModels() {
         val context = this
-        galleryViewModel = ViewModelProvider(this, GalleryViewModel.Factory(application)).get(GalleryViewModel::class.java).apply {
-            getImages().observe(context, Observer {
-                    images ->
+        galleryViewModel = ViewModelProvider(
+            this,
+            GalleryViewModel.Factory(application)
+        ).get(GalleryViewModel::class.java).apply {
+            getImages().observe(context, Observer { images ->
                 Log.d("CA", "images updated, new size: ${images.size}")
             })
         }
-        serverConnectionViewModel = ViewModelProvider(this, ServerConnectionViewModel.Factory(application)).get(ServerConnectionViewModel::class.java).apply {
-            getServerUrlLiveData().observe(context, Observer {
-                url ->
-                run {
-                    Log.d("CA", "New URL: $url")
-                }
-            })
-            isConnectedToServer.observe(context, Observer {
-                isConnected -> updateConnectionStatus(isConnected)
-            })
-        }
-        captureViewModel = ViewModelProvider(this, CaptureViewModel.Factory(application)).get(CaptureViewModel::class.java)
+        serverConnectionViewModel =
+            ViewModelProvider(this, ServerConnectionViewModel.Factory(application)).get(
+                ServerConnectionViewModel::class.java
+            ).apply {
+                getServerUrlLiveData().observe(context, Observer { url ->
+                    run {
+                        Log.d("CA", "New URL: $url")
+                    }
+                })
+                isConnectedToServer.observe(context, Observer { isConnected ->
+                    updateConnectionStatus(isConnected)
+                })
+            }
+        captureViewModel = ViewModelProvider(
+            this,
+            CaptureViewModel.Factory(application)
+        ).get(CaptureViewModel::class.java)
     }
 
     /**
@@ -177,14 +184,14 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
      *
      * Called in [onCreate]
      *
-	 * @param context Application context
-	 */
+     * @param context Application context
+     */
     private fun checkForFirstRun(context: Context) {
         val FIRST_RUN_KEY = getString(R.string.FIRST_RUN_KEY)
         // debug: val FIRST_RUN_KEY = "d"
         val isFirstRun: Boolean = sp.getBoolean(FIRST_RUN_KEY, true)
-        if(isFirstRun) {
-        // debug: if(true){
+        if (isFirstRun) {
+            // debug: if(true){
             val intent = Intent(context, AppTutorial::class.java)
             startActivity(intent)
             finish()
@@ -193,11 +200,13 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
 
     /**
      * Resumes state when an instance gets restored
-	 * @param savedInstanceState
-	 */
+     * @param savedInstanceState
+     */
     private fun restoreFromSavedInstance(savedInstanceState: Bundle) {
-        val urlList = savedInstanceState.getStringArrayList(getString(R.string.ca_saved_instance_url_list_key))
-        val hostList = savedInstanceState.getStringArrayList(getString(R.string.ca_saved_instance_host_list_key))
+        val urlList =
+            savedInstanceState.getStringArrayList(getString(R.string.ca_saved_instance_url_list_key))
+        val hostList =
+            savedInstanceState.getStringArrayList(getString(R.string.ca_saved_instance_host_list_key))
         val l = mutableListOf<Pair<String, String>>()
         for (i in 0 until urlList?.size!!) {
             l.add(Pair(urlList[i], hostList?.get(i)) as Pair<String, String>)
@@ -206,8 +215,8 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
 
     /**
      * Saves state of an instance when it gets finished
-	 * @param outState
-	 */
+     * @param outState
+     */
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
 
@@ -234,9 +243,12 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
             mAccelerometer.also { accel ->
                 mSensorManager.registerListener(this, accel, SensorManager.SENSOR_DELAY_UI)
             }
-        }
-        else {
-            Toast.makeText(this, "Failed to get sensor data. Please restart your phone.", Toast.LENGTH_LONG).show()
+        } else {
+            Toast.makeText(
+                this,
+                "Failed to get sensor data. Please restart your phone.",
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 
@@ -280,9 +292,9 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
      */
     private fun setViewListeners() {
         mCaptureButton.apply {
-            if (!hasOnClickListeners()){
+            if (!hasOnClickListeners()) {
                 mCaptureButtonListener = View.OnClickListener {
-                    if (!isCapturing){
+                    if (!isCapturing) {
                         StudyLogger.hashMap["tc_button_pressed"] = System.currentTimeMillis()
                         capturePhoto()
                     }
@@ -292,12 +304,12 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
         }
 
         mSelectDeviceButton.apply {
-           if (!hasOnClickListeners()) {
-               mSelectDeviceButtonListener = View.OnClickListener {
-                   cameraActivityFragmentHandler.openSelectDeviceFragment()
-               }
-               setOnClickListener(mSelectDeviceButtonListener)
-           }
+            if (!hasOnClickListeners()) {
+                mSelectDeviceButtonListener = View.OnClickListener {
+                    cameraActivityFragmentHandler.openSelectDeviceFragment()
+                }
+                setOnClickListener(mSelectDeviceButtonListener)
+            }
         }
     }
 
@@ -320,7 +332,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
      *
      * Called in [mCaptureButtonListener].
      */
-    private fun capturePhoto(){
+    private fun capturePhoto() {
         isCapturing = true
         window.decorView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
 
@@ -328,8 +340,9 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
         val mServerURL = serverConnectionViewModel.getServerUrl()
         Log.d("CA", "Setting model url: $mServerURL")
         captureViewModel.setCaptureRequestData(mServerURL, mBitmap!!)
-        if (mServerURL != ""){
-            StudyLogger.hashMap["tc_image_captured"] = System.currentTimeMillis()   // image is in memory
+        if (mServerURL != "") {
+            StudyLogger.hashMap["tc_image_captured"] =
+                System.currentTimeMillis()   // image is in memory
             StudyLogger.hashMap["long_side"] = CameraProvider.IMG_TARGET_SIZE
             val greyImg =
                 rescale(
@@ -342,9 +355,28 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
                 mServerURL,
                 this,
                 matchingOptions,
+                captureCallback = captureCallback
             )
         } else {
             onMatchRequestError()
+        }
+    }
+
+    private val captureCallback = object : CaptureCallback {
+        override fun onPermissionDenied() {
+            this@CameraActivity.onPermissionDenied()
+        }
+
+        override fun onMatchResult(matchID: String, img: ByteArray){
+            this@CameraActivity.onMatchResult(matchID, img)
+        }
+
+        override fun onMatchFailure(uid: String) {
+            cameraActivityFragmentHandler.openErrorFragment(uid)
+        }
+
+        override fun onMatchRequestError() {
+            this@CameraActivity.onMatchRequestError()
         }
     }
 
@@ -353,15 +385,16 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
      *
      * Called when [serverConnectionViewModel] updates or [onSensorChanged] detects a change in orientation.
      *
-	 * @param isConnected Whether or a server is currently connected
-	 */
+     * @param isConnected Whether or a server is currently connected
+     */
     private fun updateConnectionStatus(isConnected: Boolean) {
-        when (isConnected){
+        when (isConnected) {
             true -> {
                 mSelectDeviceButton.background =
                     resources.getDrawable(R.drawable.select_device_connected)
                 if (phoneOrientation == Surface.ROTATION_0) {
-                    mSelectDeviceButtonText.text = serverConnectionViewModel.getConnectedServerName()
+                    mSelectDeviceButtonText.text =
+                        serverConnectionViewModel.getConnectedServerName()
                 }
             }
             false -> {
@@ -378,10 +411,11 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
 
     /**
      * Starts [ResultsActivity].
-	 */
+     */
     private fun startResultsActivity(matchID: String, img: ByteArray) {
         val intent = Intent(this, ResultsActivity::class.java)
-        startActivityForResult(intent,
+        startActivityForResult(
+            intent,
             RESULT_ACTIVITY_REQUEST_CODE
         )
     }
@@ -392,45 +426,45 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
      * Called when [onSensorChanged] detects change in orientation.
      */
     private fun onOrientationChanged() {
-            when (phoneOrientation) {
-                Surface.ROTATION_0 -> {
-                    mSelectDeviceButton.setImageResource(android.R.color.transparent)
-                    mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24))
-                    updateConnectionStatus(serverConnectionViewModel.getConnectionStatus())
-                    mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24))
+        when (phoneOrientation) {
+            Surface.ROTATION_0 -> {
+                mSelectDeviceButton.setImageResource(android.R.color.transparent)
+                mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24))
+                updateConnectionStatus(serverConnectionViewModel.getConnectionStatus())
+                mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24))
 
-                }
-                Surface.ROTATION_90 -> {
-                    mSelectDeviceButtonText.text = ""
-                    mSelectDeviceButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_link_24_landscape))
-                    mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24_landscape))
-                    mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24_landscape))
-                }
-                Surface.ROTATION_180 -> {
-                    //same as normal portrait
-                    mSelectDeviceButton.setImageResource(android.R.color.transparent)
-                    mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24))
-                    updateConnectionStatus(serverConnectionViewModel.getConnectionStatus())
-                    mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24))
-                }
-                Surface.ROTATION_270 -> {
-                    mSelectDeviceButtonText.text = ""
-                    mSelectDeviceButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_link_24_landscape))
-                    mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24_landscape2))
-                    mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24_landscape2))
-                }
             }
-            cameraActivityFragmentHandler.rotateAllRotatableFragments()
+            Surface.ROTATION_90 -> {
+                mSelectDeviceButtonText.text = ""
+                mSelectDeviceButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_link_24_landscape))
+                mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24_landscape))
+                mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24_landscape))
+            }
+            Surface.ROTATION_180 -> {
+                //same as normal portrait
+                mSelectDeviceButton.setImageResource(android.R.color.transparent)
+                mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24))
+                updateConnectionStatus(serverConnectionViewModel.getConnectionStatus())
+                mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24))
+            }
+            Surface.ROTATION_270 -> {
+                mSelectDeviceButtonText.text = ""
+                mSelectDeviceButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_link_24_landscape))
+                mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24_landscape2))
+                mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24_landscape2))
+            }
+        }
+        cameraActivityFragmentHandler.rotateAllRotatableFragments()
 
     }
 
     /**
      * Callback for permission request results. Calls [verifyPermissions] if a permission has not been granted.
      *
-	 * @param requestCode Request code of the permission(s)
-	 * @param permissions The permission(s) requested
-	 * @param grantResults Whether or not the permission(s) have been granted
-	 */
+     * @param requestCode Request code of the permission(s)
+     * @param permissions The permission(s) requested
+     * @param grantResults Whether or not the permission(s) have been granted
+     */
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -444,7 +478,11 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
                 ) {
                     cameraProvider.start()
                 } else {
-                    Toast.makeText(this,getString(R.string.permission_request_en), Toast.LENGTH_LONG).show()
+                    Toast.makeText(
+                        this,
+                        getString(R.string.permission_request_en),
+                        Toast.LENGTH_LONG
+                    ).show()
                     verifyPermissions(this)
                 }
             }
@@ -456,10 +494,10 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
      *
      * Calls [capturePhoto] if the volume down button has been pressed.
      *
-	 * @param keyCode The key code of the pressed key
-	 * @param event
-	 * @return
-	 */
+     * @param keyCode The key code of the pressed key
+     * @param event
+     * @return
+     */
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
             StudyLogger.hashMap["tc_button_pressed"] = System.currentTimeMillis()
@@ -476,13 +514,16 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
      *
      * Updates [captureViewModel] with [matchID] and [matchName], then starts the [ResultsActivity]
      *
-	 * @param matchID The ID of the match
-	 * @param img The cropped image of the match
-	 */
+     * @param matchID The ID of the match
+     * @param img The cropped image of the match
+     */
     fun onMatchResult(matchID: String, img: ByteArray) {
         isCapturing = false
         window.decorView.performHapticFeedback(HapticFeedbackConstants.REJECT)
-        captureViewModel.setCaptureResultData(matchID, BitmapFactory.decodeByteArray(img, 0, img.size))
+        captureViewModel.setCaptureResultData(
+            matchID,
+            BitmapFactory.decodeByteArray(img, 0, img.size)
+        )
         startResultsActivity(matchID, img)
     }
 
@@ -504,7 +545,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
      *
      * Displays a toast with the error message.
      */
-    fun onMatchRequestError(){
+    fun onMatchRequestError() {
         isCapturing = false
         window.decorView.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
         Toast.makeText(this, getString(R.string.match_request_error_en), Toast.LENGTH_LONG).show()
@@ -526,7 +567,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
      *
      * Changes the drawable and onClickListener of [mSelectDeviceButton] and hides [mSettingsButton]
      */
-    fun onOpenSelectDeviceFragment(){
+    fun onOpenSelectDeviceFragment() {
         mSettingsButton.visibility = View.INVISIBLE
         mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_close_48))
         mCaptureButton.setOnClickListener {
@@ -542,7 +583,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
     fun onCloseSelectDeviceFragment() {
         mCaptureButton.setImageResource(R.drawable.ic_baseline_photo_camera_24)
         mCaptureButton.setOnClickListener {
-            if (!isCapturing){
+            if (!isCapturing) {
                 StudyLogger.hashMap["tc_button_pressed"] = System.currentTimeMillis()
                 capturePhoto()
             }
@@ -559,27 +600,21 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
      */
     override fun onSensorChanged(event: SensorEvent?) {
         if (event!!.values[1] > 0 && event.values[0].toInt() == 0) {
-            if (phoneOrientation != Surface.ROTATION_0){
+            if (phoneOrientation != Surface.ROTATION_0) {
                 phoneOrientation = Surface.ROTATION_0 //portrait
                 onOrientationChanged()
             }
-        }
-
-        else if (event.values[1] < 0 && event.values[0].toInt() == 0) {
+        } else if (event.values[1] < 0 && event.values[0].toInt() == 0) {
             if (phoneOrientation != Surface.ROTATION_180) {
                 phoneOrientation = Surface.ROTATION_180 //landscape
                 onOrientationChanged()
             }
-        }
-
-        else if (event.values[0] > 0 && event.values[1].toInt() == 0) {
+        } else if (event.values[0] > 0 && event.values[1].toInt() == 0) {
             if (phoneOrientation != Surface.ROTATION_90) {
                 phoneOrientation = Surface.ROTATION_90 //landscape
                 onOrientationChanged()
             }
-        }
-
-        else if (event.values[0] < 0 && event.values[1].toInt() == 0) {
+        } else if (event.values[0] < 0 && event.values[1].toInt() == 0) {
             if (phoneOrientation != Surface.ROTATION_270) {
                 phoneOrientation = Surface.ROTATION_270 //landscape
                 onOrientationChanged()
@@ -593,7 +628,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
      * Removes all fragments from the backstack and prevents the back button from closing the app.
      */
     override fun onBackPressed() {
-        if (cameraActivityFragmentHandler.removeAllFragments() == 0){
+        if (cameraActivityFragmentHandler.removeAllFragments() == 0) {
             super.onBackPressed()
         }
     }
