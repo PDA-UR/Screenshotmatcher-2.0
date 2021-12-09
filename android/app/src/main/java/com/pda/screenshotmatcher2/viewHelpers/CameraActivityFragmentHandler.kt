@@ -85,7 +85,7 @@ class CameraActivityFragmentHandler(a: Activity) {
      * @param uid The user id of the user
      * @param extractedImage The image that was taken with the camera
      */
-    fun openErrorFragment(uid: String, extractedImage: Bitmap) {
+    fun openErrorFragment(uid: String) {
         activity.onOpenErrorFragment(uid)
         openFragment(
             ErrorFragment(),

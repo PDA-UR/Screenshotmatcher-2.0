@@ -27,6 +27,7 @@ import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.background.NewPhotoService
 import com.pda.screenshotmatcher2.logger.StudyLogger
 import com.pda.screenshotmatcher2.network.sendBitmap
+import com.pda.screenshotmatcher2.network.sendBitmapCA
 import com.pda.screenshotmatcher2.utils.createDeviceID
 import com.pda.screenshotmatcher2.utils.rescale
 import com.pda.screenshotmatcher2.utils.verifyPermissions
@@ -336,7 +337,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
                     CameraProvider.IMG_TARGET_SIZE
                 )
             val matchingOptions: java.util.HashMap<Any?, Any?>? = getMatchingOptionsFromPref()
-            sendBitmap(
+            sendBitmapCA(
                 greyImg,
                 mServerURL,
                 this,

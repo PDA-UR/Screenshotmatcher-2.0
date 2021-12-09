@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import com.android.volley.DefaultRetryPolicy
 import com.android.volley.Request
+import com.android.volley.RequestQueue
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
@@ -39,14 +40,14 @@ fun sendBitmap(
     matchingOptions: HashMap<Any?, Any?>? = null,
     permissionToken: String = "",
     matchID: String = ""
-    ){
+) {
     val baos = ByteArrayOutputStream()
     bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
     val b64Image = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT)
 
     val queue = Volley.newRequestQueue(activity.applicationContext)
     val json = JSONObject()
-    matchingOptions?.forEach{ (key, value) ->
+    matchingOptions?.forEach { (key, value) ->
         json.put(key.toString(), value.toString())
     }
     // keys: "algorithm", "ORB_nfeatures", "SURF_hessian_threshold"
@@ -59,10 +60,10 @@ fun sendBitmap(
         getDeviceID(activity.applicationContext)
     json.put("device_id", id)
 
-    if(permissionToken.isNotEmpty()) {
+    if (permissionToken.isNotEmpty()) {
         json.put("permission_token", permissionToken)
     }
-    if(matchID.isNotEmpty()) {
+    if (matchID.isNotEmpty()) {
         json.put("match_id", matchID)
     }
 
@@ -73,27 +74,25 @@ fun sendBitmap(
         Request.Method.POST, serverURL + MATCH_DEST, json,
         { response ->
             StudyLogger.hashMap["tc_http_response"] = System.currentTimeMillis()
-            try{
+            try {
                 StudyLogger.hashMap["match_id"] = response.get("uid").toString()
             } catch (e: Exception) {
                 Log.d("HTTP", e.toString())
                 Log.d("HTTP", response.toString())
             }
-            if (response.has("error")){
-                if(activity is CameraActivity && response.getString("error") == "permission_error") {
+            if (response.has("error")) {
+                if (activity is CameraActivity && response.getString("error") == "permission_error") {
                     activity.onPermissionDenied()
-                }
-                else if(response.getString("error") == "permission_required") {
-                    requestPermission(
+                } else if (response.getString("error") == "permission_required") {
+                    /*requestPermission(
                         bitmap,
                         serverURL,
                         activity,
                         matchingOptions,
                         response.get("uid").toString()
-                    )
+                    )*/
                 }
-            }
-            else if (response.get("hasResult").toString() != "false") {
+            } else if (response.get("hasResult").toString() != "false") {
                 try {
                     val b64ImageString = response.get("b64").toString()
                     if (b64ImageString.isNotEmpty()) {
@@ -109,10 +108,9 @@ fun sendBitmap(
                 } catch (e: InvocationTargetException) {
                     Log.e("HTTP", "b64 string error")
                 }
-            }
-            else if (activity is CameraActivity) {
+            } else if (activity is CameraActivity) {
                 val fm: CameraActivityFragmentHandler = activity.cameraActivityFragmentHandler
-                fm.openErrorFragment(response.get("uid").toString(), bitmap)
+                //fm.openErrorFragment(response.get("uid").toString(), bitmap)
             }
         },
         { error ->
@@ -126,6 +124,253 @@ fun sendBitmap(
     queue.add(jsonOR)
 
 }
+
+var queue: RequestQueue? = null
+
+fun sendBitmapCA(
+    bitmap: Bitmap,
+    serverURL: String,
+    activity: Activity,
+    matchingOptions: HashMap<Any?, Any?>? = null,
+    permissionToken: String = "",
+    matchID: String = ""
+) {
+    if (queue === null) queue = Volley.newRequestQueue(activity.applicationContext)
+
+    val baos = ByteArrayOutputStream()
+    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
+    val b64Image = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT)
+
+    val json = JSONObject()
+    matchingOptions?.forEach { (key, value) ->
+        json.put(key.toString(), value.toString())
+    }
+    // keys: "algorithm", "ORB_nfeatures", "SURF_hessian_threshold"
+
+    // add the device name
+    json.put("device_name", getDeviceName())
+
+    // add device ID for verification
+    val id =
+        getDeviceID(activity.applicationContext)
+    json.put("device_id", id)
+
+    if (permissionToken.isNotEmpty()) {
+        json.put("permission_token", permissionToken)
+    }
+    if (matchID.isNotEmpty()) {
+        json.put("match_id", matchID)
+    }
+
+    // add the image
+    json.put("b64", b64Image)
+    // create an object that implements CaptureRequestCallback
+    val cb = object : CaptureRequestCallback {
+        override fun onPermissionDenied() {
+            // TODO: Remove cast
+            if (activity is CameraActivity) activity.onPermissionDenied()
+        }
+
+        override fun onPermissionRequired(uid: String) {
+            val permissionRequestCallback = object : PermissionRequestCallback {
+                override fun onPermissionGranted(matchID: String?, permissionToken: String?) {
+                    if (permissionToken != null && matchID != null) {
+                        sendBitmapCA(
+                            bitmap,
+                            serverURL,
+                            activity,
+                            matchingOptions,
+                            permissionToken,
+                            matchID
+                        )
+                    } else {
+                        sendBitmapCA(
+                            bitmap,
+                            serverURL,
+                            activity,
+                            matchingOptions,
+                        )
+                    }
+                }
+
+                override fun onPermissionDenied() {
+                    Log.d("HTTP", "Permission denied")
+                    if (activity is CameraActivity) activity.onPermissionDenied()
+                }
+            }
+            requestPermission(
+                bitmap,
+                serverURL,
+                activity,
+                matchingOptions,
+                uid,
+                permissionRequestCallback
+            )
+        }
+
+        override fun onMatchResult(matchID: String, img: ByteArray) {
+            if (activity is CameraActivity) {
+                activity.onMatchResult(
+                    matchID = matchID,
+                    img = img
+                )
+            }
+        }
+
+        override fun onMatchFailure(uid: String) {
+            if (activity is CameraActivity) {
+                val fm: CameraActivityFragmentHandler = activity.cameraActivityFragmentHandler
+                fm.openErrorFragment(uid)
+            }
+        }
+
+        override fun onMatchRequestError() {
+            if (activity is CameraActivity) {
+                activity.onMatchRequestError()
+            }
+        }
+    }
+
+    val jsonOR = captureJsonObjectRequest(serverURL, json, cb)
+
+    StudyLogger.hashMap["tc_http_request"] = System.currentTimeMillis()
+    queue!!.add(jsonOR)
+
+}
+
+interface CaptureRequestCallback {
+    fun onPermissionDenied()
+    fun onPermissionRequired(uid: String)
+    fun onMatchResult(matchID: String, img: ByteArray)
+    fun onMatchFailure(uid: String)
+    fun onMatchRequestError()
+}
+
+interface PermissionRequestCallback {
+    fun onPermissionDenied()
+    fun onPermissionGranted(matchID: String?, permissionToken: String?)
+}
+
+private fun captureJsonObjectRequest(
+    serverURL: String,
+    json: JSONObject,
+    cb: CaptureRequestCallback
+): JsonObjectRequest {
+    return JsonObjectRequest(
+        Request.Method.POST, serverURL + MATCH_DEST, json,
+        { response ->
+            logMatchResponse(response)
+            when {
+                response.has("hasResult") -> {
+                    when (response.getBoolean("hasResult")){
+                        true -> {
+                            val byteArray = decodeBase64(response.get("b64").toString())
+                            if (byteArray != null) cb.onMatchResult(response.get("uid").toString(), byteArray)
+                            else cb.onMatchFailure(response.get("uid").toString())
+                        }
+                        false ->  cb.onMatchFailure(response.get("uid").toString())
+                    }
+
+                }
+                response.has("error") -> {
+                    when (response.getString("error")){
+                        "permission_denied" -> cb.onPermissionDenied()
+                        "permission_required" -> cb.onPermissionRequired(response.get("uid").toString())
+                        else -> throw Exception("Unknown error")
+                    }
+                }
+                else -> throw Exception("Unknown response")
+            }
+        },
+        { error ->
+            cb.onMatchRequestError()
+        })
+}
+private fun decodeBase64(input: String): ByteArray? {
+    return if (input.isNotEmpty()) {
+        Base64.decode(input, Base64.DEFAULT)
+    } else {
+        Log.e("HTTP", "Empty base64 string")
+        null
+    }
+}
+
+private fun logMatchResponse(response: JSONObject) {
+    StudyLogger.hashMap["tc_http_response"] = System.currentTimeMillis()
+    try {
+        StudyLogger.hashMap["match_id"] = response.get("uid").toString()
+    } catch (e: Exception) {
+        Log.d("HTTP", e.toString())
+    }
+}
+
+fun requestPermission(
+    bitmap: Bitmap,
+    serverURL: String,
+    activity: Activity,
+    matchingOptions: HashMap<Any?, Any?>? = null,
+    matchID: String,
+    cb: PermissionRequestCallback
+) {
+    // Instantiate the RequestQueue.
+    if (queue === null) queue = Volley.newRequestQueue(activity.applicationContext)
+    val json = JSONObject()
+    json.put(
+        "device_id",
+        getDeviceID(activity.applicationContext)
+    )
+    json.put("device_name", getDeviceName())
+    json.put("match_id", matchID)
+
+    val jsonObjectRequest =
+        JsonObjectRequest(Request.Method.POST, serverURL + PERMISSION_DEST, json,
+            { response ->
+                Log.d("HTTP", "got response for permission")
+                if (response.get("response") == "permission_granted") {
+                    if (response.has("permission_token")) {
+                        sendBitmap(
+                            bitmap,
+                            serverURL,
+                            activity,
+                            matchingOptions,
+                            permissionToken = response.getString("permission_token"),
+                            matchID = matchID
+                        )
+                    } else {
+                        sendBitmap(
+                            bitmap,
+                            serverURL,
+                            activity,
+                            matchingOptions
+                        )
+                    }
+                } else if (response.get("response") == "permission_denied") {
+                    cb.onPermissionDenied()
+                }
+            },
+            { error ->
+                if (error.networkResponse == null) {
+                    Toast.makeText(
+                        activity.applicationContext,
+                        "Permission request timeout",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    val ca = activity as CameraActivity
+                    ca.isCapturing = false
+                } else {
+                    error.printStackTrace()
+                }
+            }
+        )
+    jsonObjectRequest.retryPolicy = DefaultRetryPolicy(
+        20000,
+        1,
+        2.0F
+    )
+    // Add the request to the RequestQueue.
+    queue!!.add(jsonObjectRequest)
+}
+
 fun sendBitmap2(
     bitmap: Bitmap,
     serverURL: String,
@@ -134,14 +379,14 @@ fun sendBitmap2(
     permissionToken: String? = "",
     matchID: String? = "",
     cb: (String?, ByteArray?, Bitmap) -> Unit
-){
+) {
     val baos = ByteArrayOutputStream()
     bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
     val b64Image = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT)
 
     val queue = Volley.newRequestQueue(context)
     val json = JSONObject()
-    matchingOptions?.forEach{ (key, value) ->
+    matchingOptions?.forEach { (key, value) ->
         json.put(key.toString(), value.toString())
     }
     // keys: "algorithm", "ORB_nfeatures", "SURF_hessian_threshold"
@@ -155,12 +400,12 @@ fun sendBitmap2(
     json.put("device_id", id)
 
     if (permissionToken != null) {
-        if(permissionToken.isNotEmpty()) {
+        if (permissionToken.isNotEmpty()) {
             json.put("permission_token", permissionToken)
         }
     }
     if (matchID != null) {
-        if(matchID.isNotEmpty()) {
+        if (matchID.isNotEmpty()) {
             json.put("match_id", matchID)
         }
     }
@@ -173,17 +418,16 @@ fun sendBitmap2(
         { response ->
             StudyLogger.hashMap["tc_http_response"] = System.currentTimeMillis()
             Log.d("HTTP", response.toString())
-            try{
+            try {
                 StudyLogger.hashMap["match_id"] = response.get("uid").toString()
             } catch (e: Exception) {
                 Log.d("HTTP", e.toString())
                 Log.d("HTTP", response.toString())
             }
-            if (response.has("error")){
-                if(response.getString("error") == "permission_error") {
+            if (response.has("error")) {
+                if (response.getString("error") == "permission_error") {
                     cb(null, null, bitmap)
-                }
-                else if(response.getString("error") == "permission_required") {
+                } else if (response.getString("error") == "permission_required") {
                     /* TODO: Request
                     requestPermission(
                         bitmap,
@@ -196,8 +440,7 @@ fun sendBitmap2(
                      */
                     Log.d("HTTP", "TODO: IMPLEMENT")
                 }
-            }
-            else if (response.get("hasResult").toString() != "false") {
+            } else if (response.get("hasResult").toString() != "false") {
                 Log.d("HTTP", "Has result: ${response.get("hasResult").toString()}")
                 try {
                     val b64ImageString = response.get("b64").toString()
@@ -217,7 +460,7 @@ fun sendBitmap2(
 
         },
         { error ->
-                cb(null, null, bitmap)
+            cb(null, null, bitmap)
 
         })
 
@@ -225,19 +468,24 @@ fun sendBitmap2(
     queue.add(jsonOR)
 
 }
-fun requestFullScreenshot(matchID: String, serverURL: String, context: Context, onDownload: (bitmap: Bitmap?) -> Unit) {
+
+fun requestFullScreenshot(
+    matchID: String,
+    serverURL: String,
+    context: Context,
+    onDownload: (bitmap: Bitmap?) -> Unit
+) {
     val queue = Volley.newRequestQueue(context)
     val json = JSONObject()
     json.put("match_id", matchID)
     val jsonOR = JsonObjectRequest(
         Request.Method.POST, serverURL + SCREENSHOT_DEST, json,
         { response ->
-            if(response.has("error")) {
-                if(response.getString("error") == "disabled_by_host_error") {
+            if (response.has("error")) {
+                if (response.getString("error") == "disabled_by_host_error") {
                     onDownload(null)
                 }
-            }
-            else {
+            } else {
                 val b64String: String = response.get("result").toString()
                 onDownload(base64ToBitmap(b64String))
             }
@@ -249,7 +497,7 @@ fun requestFullScreenshot(matchID: String, serverURL: String, context: Context, 
 }
 
 
-fun sendHeartbeatRequest(serverURL: String?, context: Context, onFail: () -> Unit){
+fun sendHeartbeatRequest(serverURL: String?, context: Context, onFail: () -> Unit) {
     if ((serverURL == null || serverURL.isEmpty())) {
         onFail()
     }
@@ -266,20 +514,18 @@ fun sendHeartbeatRequest(serverURL: String?, context: Context, onFail: () -> Uni
 }
 
 
-
-fun sendLog(serverURL: String, context: Context){
+fun sendLog(serverURL: String, context: Context) {
     // Only send log if preference is set to true
     // otherwise send the match_id only, so the server can delete the corresponding object for the request
     val MATCHING_MODE_PREF_KEY = context.getString(R.string.settings_logging_key)
     val sp = PreferenceManager.getDefaultSharedPreferences(context)
-    val sendLog = sp.getBoolean(MATCHING_MODE_PREF_KEY,false)
-    
+    val sendLog = sp.getBoolean(MATCHING_MODE_PREF_KEY, false)
+
     val queue = Volley.newRequestQueue(context)
-    var json : JSONObject = JSONObject()
-    if(sendLog) {
+    var json: JSONObject = JSONObject()
+    if (sendLog) {
         json = JSONObject(StudyLogger.hashMap)
-    }
-    else {
+    } else {
         val map = HashMap<Any?, Any?>()
         map["match_id"] = StudyLogger.hashMap["match_id"]
         map["logging_disabled"] = true
@@ -305,7 +551,7 @@ fun sendFeedbackToServer(
     hasResult: Boolean,
     hasScreenshot: Boolean,
     comment: String
-){
+) {
     val queue = Volley.newRequestQueue(context)
     val json = JSONObject()
     json.put("uid", uid)
@@ -334,64 +580,3 @@ fun sendFeedbackToServer(
     queue.add(jsonObjectRequest)
 }
 
-fun requestPermission(
-    bitmap: Bitmap,
-    serverURL: String,
-    activity: Activity,
-    matchingOptions: HashMap<Any?, Any?>? = null,
-    matchID: String
-){
-    // Instantiate the RequestQueue.
-    val queue = Volley.newRequestQueue(activity.applicationContext)
-    val json = JSONObject()
-    json.put("device_id",
-        getDeviceID(activity.applicationContext)
-    )
-    json.put("device_name", getDeviceName())
-    json.put("match_id", matchID)
-
-    val jsonObjectRequest = JsonObjectRequest(Request.Method.POST, serverURL + PERMISSION_DEST, json,
-        { response ->
-            if (response.get("response") == "permission_granted") {
-                if(response.has("permission_token")) {
-                    sendBitmap(
-                        bitmap,
-                        serverURL,
-                        activity,
-                        matchingOptions,
-                        permissionToken = response.getString("permission_token"),
-                        matchID = matchID
-                    )
-                }
-                else {
-                    sendBitmap(
-                        bitmap,
-                        serverURL,
-                        activity,
-                        matchingOptions
-                    )
-                }
-            }
-            else if(response.get("response") == "permission_denied" && activity is CameraActivity) {
-                activity.onPermissionDenied()
-            }
-        },
-        { error ->
-            if(error.networkResponse == null) {
-                Toast.makeText(activity.applicationContext, "Permission request timeout", Toast.LENGTH_LONG).show()
-                val ca = activity as CameraActivity
-                ca.isCapturing = false
-            }
-            else{
-                error.printStackTrace()
-            }
-        }
-    )
-    jsonObjectRequest.retryPolicy = DefaultRetryPolicy(
-        20000,
-        1,
-        2.0F
-    )
-    // Add the request to the RequestQueue.
-    queue.add(jsonObjectRequest)
-}
