@@ -86,6 +86,12 @@ fun base64ToBitmap(b64String: String) : Bitmap{
     return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
 }
 
+/**
+ * Decodes a b64String to a [Bitmap] and returns it.
+ *
+ * @param input The b64String to decode
+ * @return The decoded [Bitmap]
+ */
 fun decodeBase64(input: String): ByteArray? {
     return if (input.isNotEmpty()) {
         Base64.decode(input, Base64.DEFAULT)
@@ -94,6 +100,7 @@ fun decodeBase64(input: String): ByteArray? {
         null
     }
 }
+
 /**
  * Saves [bitmap] to [filename].
  */
