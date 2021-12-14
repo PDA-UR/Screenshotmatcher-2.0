@@ -21,6 +21,7 @@ import androidx.core.content.FileProvider.getUriForFile
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.pda.screenshotmatcher2.*
+import com.pda.screenshotmatcher2.background.BackgroundMatchingService
 import com.pda.screenshotmatcher2.utils.getDateString
 import com.pda.screenshotmatcher2.utils.saveBitmapToFile
 import com.pda.screenshotmatcher2.logger.StudyLogger
@@ -83,6 +84,7 @@ class ResultsActivity : AppCompatActivity() {
 
     private var displayFullScreenshotOnly: Boolean = false
     private var hasSharedImage: Boolean = false
+    private var isReturningToCameraActivity: Boolean = false
 
     private var fullScreenshotDownloaded = false
     private var croppedScreenshotDownloaded = false
@@ -519,6 +521,7 @@ class ResultsActivity : AppCompatActivity() {
      */
     private fun goBackToCameraActivity() {
         val intent = Intent()
+        isReturningToCameraActivity = true
         if (!hasSharedImage) {
             setResult(Activity.RESULT_CANCELED, intent)
         } else {
@@ -533,10 +536,15 @@ class ResultsActivity : AppCompatActivity() {
      */
     override fun onStop() {
         super.onStop()
-
+        if (!isReturningToCameraActivity) BackgroundMatchingService.startBackgroundService(this)
         captureViewModel.getServerUrl()?.let {
             sendLog(it, this)
         }
         StudyLogger.hashMap.clear()
+    }
+
+    override fun onResume() {
+        BackgroundMatchingService.stopBackgroundService(this)
+        super.onResume()
     }
 }

@@ -45,7 +45,7 @@
             </intent-filter>
         </activity>
         <service
-            android:name=".background.NewPhotoService"
+            android:name=".background.BackgroundMatchingService"
             android:enabled="true"
             android:exported="false">
         </service>

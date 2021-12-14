@@ -47,7 +47,9 @@
     <string name="ff_submit_success_en">Feedback abgesendet</string>
     <string name="ff_submit_failed_en">Feedback konnte nicht gesendet werden</string>
     <string name="http_download_full_error_en">Der volle Screenshot konnte nicht geladen werden</string>
-    <string name="settings_algorithm_header_en">Matching Modus</string>
+    <string name="settings_algorithm_header_en">Matching</string>
     <string name="settings_algorithm_toggle">Schneller Modus</string>
     <string name="settings_algorithm_summary">Ist diese Option aktiviert wird das Matching schneller aber jedoch auch ungenauer sein</string>
+    <string name="settings_bgMode_toggle">Hintergrund matching (beta)</string>
+    <string name="settings_bgMode_summary">Aktiviert Matching im Hintergrund, sodass Sie die Stock-Kamera-App verwenden können um Screenshots aufzunehmen</string>
 </resources>
