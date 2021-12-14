@@ -1,6 +1,7 @@
 package com.pda.screenshotmatcher2.views.activities
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
@@ -20,6 +21,7 @@ import androidx.core.app.ShareCompat
 import androidx.core.content.FileProvider.getUriForFile
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.preference.PreferenceManager
 import com.pda.screenshotmatcher2.*
 import com.pda.screenshotmatcher2.background.BackgroundMatchingService
 import com.pda.screenshotmatcher2.utils.getDateString
@@ -28,8 +30,6 @@ import com.pda.screenshotmatcher2.logger.StudyLogger
 import com.pda.screenshotmatcher2.network.sendLog
 import com.pda.screenshotmatcher2.viewModels.CaptureViewModel
 import java.io.File
-
-const val RESULT_ACTIVITY_REQUEST_CODE = 20
 
 /**
  * Activity for displaying the results of a capture request.
@@ -62,8 +62,19 @@ const val RESULT_ACTIVITY_REQUEST_CODE = 20
  *
  * @property mPillNavigationState The current state of the pill navigation buttons, used to determine which pill navigation button is currently highlighted (0 = pill 1 = cropped screenshot, 1 = pill 2 = full screenshot)
  * @property StudyLogger The [StudyLogger] used to log the events of this activity
+ *
+ * @property isReturningToCameraActivity Whether this activity is returning to the camera activity or not, set to true in [goBackToCameraActivity]
+ * @property wasStartedFromCameraActivity Whether this activity was started from the camera activity or not
+ *
+ * @property Const Constants relevant to this activity
  */
 class ResultsActivity : AppCompatActivity() {
+
+    companion object Const {
+        const val RESULT_ACTIVITY_REQUEST_CODE = 20
+        const val EXTRA_STARTED_FROM_CAMERA_ACTIVITY = "extra_started_from_camera_activity"
+    }
+
     //Views
     private lateinit var mBackButton: AppCompatImageButton
     private lateinit var mPillNavigationButton1: AppCompatButton
@@ -85,6 +96,7 @@ class ResultsActivity : AppCompatActivity() {
     private var displayFullScreenshotOnly: Boolean = false
     private var hasSharedImage: Boolean = false
     private var isReturningToCameraActivity: Boolean = false
+    private var wasStartedFromCameraActivity: Boolean = false
 
     private var fullScreenshotDownloaded = false
     private var croppedScreenshotDownloaded = false
@@ -105,6 +117,7 @@ class ResultsActivity : AppCompatActivity() {
         setContentView(R.layout.activity_results)
         initViews()
         setViewListeners()
+        wasStartedFromCameraActivity = intent.getBooleanExtra(EXTRA_STARTED_FROM_CAMERA_ACTIVITY, false)
 
         StudyLogger.hashMap["tc_result_shown"] = System.currentTimeMillis()
         lastDateTime = getDateString()
@@ -520,13 +533,15 @@ class ResultsActivity : AppCompatActivity() {
      * Otherwise sets the result code to [Activity.RESULT_CANCELED].
      */
     private fun goBackToCameraActivity() {
-        val intent = Intent()
-        isReturningToCameraActivity = true
-        if (!hasSharedImage) {
-            setResult(Activity.RESULT_CANCELED, intent)
-        } else {
-            if (hasSharedImage) saveToAppDir(captureViewModel.getCroppedScreenshot(), captureViewModel.getFullScreenshot())
-            setResult(Activity.RESULT_OK, intent)
+        if (wasStartedFromCameraActivity) {
+            val intent = Intent()
+            isReturningToCameraActivity = true
+            if (!hasSharedImage) {
+                setResult(Activity.RESULT_CANCELED, intent)
+            } else {
+                if (hasSharedImage) saveToAppDir(captureViewModel.getCroppedScreenshot(), captureViewModel.getFullScreenshot())
+                setResult(Activity.RESULT_OK, intent)
+            }
         }
         finish()
     }
@@ -536,7 +551,8 @@ class ResultsActivity : AppCompatActivity() {
      */
     override fun onStop() {
         super.onStop()
-        if (!isReturningToCameraActivity) BackgroundMatchingService.startBackgroundService(this)
+        val doStartBackgroundService  = PreferenceManager.getDefaultSharedPreferences(this).getBoolean(getString(R.string.settings_bgMode_key), false)
+        if (!isReturningToCameraActivity && doStartBackgroundService) BackgroundMatchingService.startBackgroundService(this)
         captureViewModel.getServerUrl()?.let {
             sendLog(it, this)
         }
@@ -544,6 +560,7 @@ class ResultsActivity : AppCompatActivity() {
     }
 
     override fun onResume() {
+
         BackgroundMatchingService.stopBackgroundService(this)
         super.onResume()
     }

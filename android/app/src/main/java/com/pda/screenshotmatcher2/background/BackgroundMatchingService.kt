@@ -15,8 +15,6 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.content.ContextCompat.startForegroundService
-import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
 import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.models.CaptureModel
@@ -26,6 +24,7 @@ import com.pda.screenshotmatcher2.network.sendCaptureRequest
 import com.pda.screenshotmatcher2.utils.rescale
 import com.pda.screenshotmatcher2.viewModels.CaptureViewModel
 import com.pda.screenshotmatcher2.views.activities.CameraActivity
+import com.pda.screenshotmatcher2.views.activities.ResultsActivity
 import java.io.File
 import java.util.*
 import kotlin.collections.HashMap
@@ -46,8 +45,6 @@ class BackgroundMatchingService : Service() {
     private lateinit var MATCHING_MODE_PREF_KEY: String
     private var timestamp: Long = 0
     private val notificationChannelId = "SM"
-
-    private lateinit var captureViewModel : CaptureViewModel
 
     /**
      * Stores the last 10 files dispatched by [contentObserver] in the variable [lastPaths]. This is done to avoid double processing, because [contentObserver] sometimes fires multiple identical events per file.
@@ -321,6 +318,12 @@ class BackgroundMatchingService : Service() {
     }
 
     private fun sendMatchNotification(bmp: Bitmap, didMatch: Boolean) {
+        val startIntent: Intent = Intent(this, ResultsActivity::class.java)
+        startIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        val pendingIntent: PendingIntent =
+            PendingIntent.getActivity(this@BackgroundMatchingService, 0, startIntent, 0)
+
+
         val notification =
             NotificationCompat.Builder(this@BackgroundMatchingService, notificationChannelId)
                 .setSmallIcon(R.drawable.ic_baseline_close_48)
@@ -329,6 +332,7 @@ class BackgroundMatchingService : Service() {
                     NotificationCompat.BigPictureStyle()
                         .bigPicture(bmp)
                 )
+                .setContentIntent(pendingIntent)
                 .apply {
                     if (didMatch) this.setContentText("match success") else this.setContentText("NO SCREENSHOT")
                 }
