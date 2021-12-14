@@ -16,7 +16,7 @@ Data models, which store the data of views. Implemented as part of the MVVM arch
 
 # Package com.pda.screenshotmatcher2.network
 
-Classes used by the app to make network requests.
+Functions used by the app to make network requests.
 
 # Package com.pda.screenshotmatcher2.utils
 

@@ -26,9 +26,9 @@
     <string name="ff_submit_success_en">Feedback sent</string>
     <string name="ff_submit_failed_en">Failed to send feedback</string>
     <string name="http_download_full_error_en">Downloading full screenshot from server failed</string>
-    <string name="settings_algorithm_header_en">Matching mode</string>
+    <string name="settings_algorithm_header_en">Matching</string>
     <string name="settings_algorithm_toggle">Fast mode</string>
-    <string name="settings_algorithm_summary">If this option is enabled matching will be faster but less accurate</string>
+    <string name="settings_algorithm_summary">If this option is enabled, matching will be faster but less accurate</string>
     <string name="settings_algorithm_key" translatable="false">ALG_MODE_KEY</string>
     <string name="algorithm_key_server" translatable="false">algorithm</string>
     <string name="algorithm_fast_mode_name_server" translatable="false">ORB</string>
@@ -64,4 +64,7 @@
     <string name="settings_about_description">Version 1.2 \nLicensed under the MIT License \nCopyright (c) 2021 Physical-Digital Affordances \n\n🔗 Click to find out more</string>
     <string name="app_intro_header_5">How-To: Capture 📸</string>
     <string name="app_intro_description_5">Now take a photo of any area on your computer screen, \nScreenshotMatcher will return a screenshot of it \n\nMagic 🪄!</string>
+    <string name="settings_bgMode_toggle">Background matching (beta)</string>
+    <string name="settings_bgMode_summary">Activates matching in the background, so you can use the stock camera app to take screenshots</string>
+    <string name="settings_bgMode_key" translatable="false">BG_MODE_KEY</string>
 </resources>

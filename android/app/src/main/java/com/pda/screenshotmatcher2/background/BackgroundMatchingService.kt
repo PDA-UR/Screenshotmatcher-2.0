@@ -15,10 +15,16 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat.startForegroundService
+import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
 import com.pda.screenshotmatcher2.R
+import com.pda.screenshotmatcher2.models.CaptureModel
 import com.pda.screenshotmatcher2.models.ServerConnectionModel
+import com.pda.screenshotmatcher2.network.CaptureCallback
+import com.pda.screenshotmatcher2.network.sendCaptureRequest
 import com.pda.screenshotmatcher2.utils.rescale
+import com.pda.screenshotmatcher2.viewModels.CaptureViewModel
 import com.pda.screenshotmatcher2.views.activities.CameraActivity
 import java.io.File
 import java.util.*
@@ -33,13 +39,15 @@ import kotlin.collections.HashMap
  * @property sp [SharedPreferences] instance, stores matching options
  * @property notificationChannelId The channel id used to send notification
  */
-class NewPhotoService : Service() {
+class BackgroundMatchingService : Service() {
     private var isServiceStarted = false
     private lateinit var contentObserver: ContentObserver
     private lateinit var sp: SharedPreferences
     private lateinit var MATCHING_MODE_PREF_KEY: String
     private var timestamp: Long = 0
     private val notificationChannelId = "SM"
+
+    private lateinit var captureViewModel : CaptureViewModel
 
     /**
      * Stores the last 10 files dispatched by [contentObserver] in the variable [lastPaths]. This is done to avoid double processing, because [contentObserver] sometimes fires multiple identical events per file.
@@ -50,6 +58,24 @@ class NewPhotoService : Service() {
             override fun push(e: String?) {
                 if (size > 10) removeAt(10)
                 super.push(e)
+            }
+        }
+        fun startBackgroundService(context: Context) {
+            Intent(context, BackgroundMatchingService::class.java).also {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    Log.d("BG", "Starting the service in >=26 Mode")
+                    context.startForegroundService(it)
+                    return
+                }
+                Log.d("BG", "Starting the service in < 26 Mode")
+                context.startService(it)
+            }
+        }
+
+        fun stopBackgroundService(context: Context) {
+            Intent(context, BackgroundMatchingService::class.java).also {
+                Log.d("CA", "Stopping service")
+                context.stopService(it)
             }
         }
     }
@@ -172,6 +198,8 @@ class NewPhotoService : Service() {
 
     private fun rescaleAndSendToServer(image: Bitmap) {
         timestamp = System.currentTimeMillis()
+
+
         Log.d("NPS", "Bitmap width: ${image.width}")
         val greyImg = rescale(
             image,
@@ -184,6 +212,10 @@ class NewPhotoService : Service() {
         timestamp = System.currentTimeMillis()
         val serverUrl = ServerConnectionModel.serverUrl.value
         if (serverUrl != null && serverUrl != "") {
+            CaptureModel.clear()
+            CaptureModel.setCameraImage(image)
+            CaptureModel.setServerURL(serverUrl)
+
             Log.d("NPS", serverUrl)
             val matchingOptions: java.util.HashMap<Any?, Any?> =
                 getMatchingOptionsFromPref()
@@ -192,18 +224,32 @@ class NewPhotoService : Service() {
                 "Sending bitmap after: " + (System.currentTimeMillis() - timestamp).toString()
             )
             timestamp = System.currentTimeMillis()
-            //TODO: implement sendCaptureRequest
-            /*sendBitmap2(
+
+            sendCaptureRequest(
                 greyImg,
                 serverUrl,
-                this@NewPhotoService,
+                this@BackgroundMatchingService,
                 matchingOptions,
-                null,
-                null,
-                ::onMatch
-            )*/
+                captureCallback = captureCallback
+            )
         } else {
             Log.d("NPS", "invalid serverURL")
+        }
+    }
+
+    private val captureCallback = object : CaptureCallback {
+        override fun onPermissionDenied() {
+            Log.d("CA", "Permission denied")
+        }
+
+        override fun onMatchResult(matchID: String, img: ByteArray){
+            onMatch(matchID, img, CaptureModel.getCameraImage())
+        }
+
+        override fun onMatchFailure(uid: String) {
+        }
+
+        override fun onMatchRequestError() {
         }
     }
 
@@ -253,13 +299,15 @@ class NewPhotoService : Service() {
     }
 
 
-    private fun onMatch(matchId: String?, ba: ByteArray?, original: Bitmap?) {
+    private fun onMatch(matchId: String, ba: ByteArray?, original: Bitmap?) {
+        CaptureModel.setMatchID(matchId)
         Log.d("NPS_TS", "got response after:" + (System.currentTimeMillis() - timestamp).toString())
         Log.d("NPS", "matchid: $matchId, url: ${ServerConnectionModel.serverUrl.value}")
         Log.d("NPS", "Byte array: ${ba}")
         timestamp = System.currentTimeMillis()
         if (ba != null) {
             val image = BitmapFactory.decodeByteArray(ba, 0, ba.size)
+            CaptureModel.setCroppedScreenshot(image)
             sendMatchNotification(image, true)
             Log.d(
                 "NPS_TS",
@@ -270,12 +318,11 @@ class NewPhotoService : Service() {
             if (original != null) sendMatchNotification(original, false)
 
         }
-
     }
 
     private fun sendMatchNotification(bmp: Bitmap, didMatch: Boolean) {
         val notification =
-            NotificationCompat.Builder(this@NewPhotoService, notificationChannelId)
+            NotificationCompat.Builder(this@BackgroundMatchingService, notificationChannelId)
                 .setSmallIcon(R.drawable.ic_baseline_close_48)
                 .setContentTitle("ScreenshotMatcher")
                 .setStyle(
@@ -286,7 +333,7 @@ class NewPhotoService : Service() {
                     if (didMatch) this.setContentText("match success") else this.setContentText("NO SCREENSHOT")
                 }
 
-        with(NotificationManagerCompat.from(this@NewPhotoService)) {
+        with(NotificationManagerCompat.from(this@BackgroundMatchingService)) {
             // notificationId is a unique int for each notification that you must define
             notify(1, notification.build())
         }
@@ -374,5 +421,4 @@ class NewPhotoService : Service() {
         }
         return returnPath
     }
-
 }

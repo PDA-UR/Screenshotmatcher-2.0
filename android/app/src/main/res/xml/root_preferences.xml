@@ -11,6 +11,13 @@
             android:defaultValue="true"
             app:iconSpaceReserved="false"
             />
+        <SwitchPreferenceCompat
+            app:title="@string/settings_bgMode_toggle"
+            android:summary="@string/settings_bgMode_summary"
+            android:key="@string/settings_bgMode_key"
+            android:defaultValue="false"
+            app:iconSpaceReserved="false"
+            />
     </PreferenceCategory>
     <PreferenceCategory app:title="@string/settings_logging_header_en" app:iconSpaceReserved="false"
         >

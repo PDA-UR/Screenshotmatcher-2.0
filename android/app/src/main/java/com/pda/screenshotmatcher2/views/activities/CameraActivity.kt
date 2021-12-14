@@ -24,7 +24,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
 import com.pda.screenshotmatcher2.R
-import com.pda.screenshotmatcher2.background.NewPhotoService
+import com.pda.screenshotmatcher2.background.BackgroundMatchingService
 import com.pda.screenshotmatcher2.logger.StudyLogger
 import com.pda.screenshotmatcher2.network.CaptureCallback
 import com.pda.screenshotmatcher2.network.sendCaptureRequest
@@ -80,9 +80,11 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
     private lateinit var mGalleryButton: ImageButton
 
     var isCapturing: Boolean = false
+    var didStartResultsActivity: Boolean = false
 
     private lateinit var sp: SharedPreferences
     private lateinit var MATCHING_MODE_PREF_KEY: String
+    private lateinit var BG_MODE_PREF_KEY: String
 
     private lateinit var galleryViewModel: GalleryViewModel
     private lateinit var serverConnectionViewModel: ServerConnectionViewModel
@@ -116,32 +118,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
         savedInstanceState?.let { restoreFromSavedInstance(it) }
 
         initViewModels()
-    }
-
-    /**
-     * Function to launch the background service via [Intent]
-     * TODO: Implement fully
-     */
-    private fun startBackgroundService() {
-        Intent(this, NewPhotoService::class.java).also {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                Log.d("CA", "Starting the service in >=26 Mode")
-                startForegroundService(it)
-                return
-            }
-            Log.d("CA", "Starting the service in < 26 Mode")
-            startService(it)
-        }
-    }
-
-    /**
-     * TODO: Implement fully
-     */
-    private fun stopBackgroundService() {
-        Intent(this, NewPhotoService::class.java).also {
-            Log.d("CA", "Stopping service")
-            //stopService(it)
-        }
     }
 
 
@@ -236,7 +212,9 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
     override fun onResume() {
         super.onResume()
         Log.d("CA", "onResume")
-        stopBackgroundService()
+        val useBackgroundMatchingService: Boolean = sp.getBoolean(BG_MODE_PREF_KEY, false)
+        if (useBackgroundMatchingService) BackgroundMatchingService.stopBackgroundService(this)
+
         // due to a bug in Android, the list of sensors returned by the SensorManager can be empty
         // it will stay that way until reboot.
         // make sure we tell the user about it.
@@ -260,7 +238,8 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
     override fun onPause() {
         super.onPause()
         //TODO: Enable this when background service is implemented
-        //startBackgroundService()
+        val useBackgroundMatchingService: Boolean = sp.getBoolean(BG_MODE_PREF_KEY, false)
+        if (useBackgroundMatchingService && !didStartResultsActivity) BackgroundMatchingService.startBackgroundService(this)
         mSensorManager.unregisterListener(this)
     }
 
@@ -415,6 +394,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
      * Starts [ResultsActivity].
      */
     private fun startResultsActivity(matchID: String, img: ByteArray) {
+        didStartResultsActivity = true
         val intent = Intent(this, ResultsActivity::class.java)
         startActivityForResult(
             intent,
@@ -651,6 +631,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
             RESULT_ACTIVITY_REQUEST_CODE -> {
+                didStartResultsActivity = false
                 when (resultCode) {
                     Activity.RESULT_OK -> {
                         galleryViewModel.reloadImages()
@@ -664,12 +645,13 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
      * Initiates the shared preferences.
      *
      * Initiates [sp] if it is null.
-     * Retrieves [MATCHING_MODE_PREF_KEY] from [R.string.matching_mode_pref_key]
+     * Retrieves [MATCHING_MODE_PREF_KEY] and [BG_MODE_PREF_KEY] from [R.string.matching_mode_pref_key]
      */
     private fun setupSharedPref() {
         if (!::sp.isInitialized) {
             sp = PreferenceManager.getDefaultSharedPreferences(this)
             MATCHING_MODE_PREF_KEY = getString(R.string.settings_algorithm_key)
+            BG_MODE_PREF_KEY = getString(R.string.settings_bgMode_key)
         }
     }
 
