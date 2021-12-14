@@ -21,6 +21,7 @@ import com.pda.screenshotmatcher2.utils.getDeviceID
 import com.pda.screenshotmatcher2.utils.getDeviceName
 import com.pda.screenshotmatcher2.logger.StudyLogger
 import com.pda.screenshotmatcher2.utils.base64ToBitmap
+import com.pda.screenshotmatcher2.utils.decodeBase64
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.lang.reflect.InvocationTargetException
@@ -35,44 +36,61 @@ private const val PERMISSION_DEST = "/permission"
 
 var queue: RequestQueue? = null
 
-fun sendBitmapCA(
+// used by outside classes
+interface CaptureCallback {
+    fun onPermissionDenied()
+    fun onMatchResult(matchID: String, img: ByteArray)
+    fun onMatchFailure(uid: String)
+    fun onMatchRequestError()
+}
+
+// used for making the request
+private interface CaptureRequestCallback : CaptureCallback {
+    fun onPermissionRequired(uid: String)
+}
+
+// used for handling the request permission response
+interface PermissionRequestCallback {
+    fun onPermissionDenied()
+    fun onPermissionGranted(matchID: String?, permissionToken: String?)
+}
+
+fun sendCaptureRequest(
     bitmap: Bitmap,
     serverURL: String,
-    activity: Activity,
+    context: Context,
     matchingOptions: HashMap<Any?, Any?>? = null,
     permissionToken: String? = "",
     matchID: String? = "",
     captureCallback: CaptureCallback
 ) {
-    if (queue === null) queue = Volley.newRequestQueue(activity.applicationContext)
-
+    if (queue === null) queue = Volley.newRequestQueue(context)
     val baos = ByteArrayOutputStream()
     bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
     val b64Image = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT)
 
     val json = JSONObject()
+    // keys: "algorithm", "ORB_nfeatures", "SURF_hessian_threshold"
     matchingOptions?.forEach { (key, value) ->
         json.put(key.toString(), value.toString())
     }
-    // keys: "algorithm", "ORB_nfeatures", "SURF_hessian_threshold"
-
     // add the device name
     json.put("device_name", getDeviceName())
 
     // add device ID for verification
-    val id =
-        getDeviceID(activity.applicationContext)
+    val id = getDeviceID(context)
     json.put("device_id", id)
 
+    // add the image
+    json.put("b64", b64Image)
+
+    // if a permission token or matchID exists, add it to the request
     if (permissionToken !== null && permissionToken.isNotEmpty()) {
         json.put("permission_token", permissionToken)
     }
     if (matchID !== null && matchID.isNotEmpty()) {
         json.put("match_id", matchID)
     }
-
-    // add the image
-    json.put("b64", b64Image)
 
     val captureRequestCallback = object : CaptureRequestCallback {
         override fun onPermissionDenied() {
@@ -93,14 +111,14 @@ fun sendBitmapCA(
         override fun onPermissionRequired(uid: String) {
             requestPermission(
                 serverURL,
-                activity,
+                context,
                 uid,
                 object : PermissionRequestCallback {
                     override fun onPermissionGranted(matchID: String?, permissionToken: String?) {
-                        sendBitmapCA(
+                        sendCaptureRequest(
                             bitmap,
                             serverURL,
-                            activity,
+                            context,
                             matchingOptions,
                             permissionToken,
                             matchID,
@@ -113,35 +131,13 @@ fun sendBitmapCA(
                 }
             )
         }
-
-
     }
 
     val jsonOR = captureJsonObjectRequest(serverURL, json, captureRequestCallback)
-
     StudyLogger.hashMap["tc_http_request"] = System.currentTimeMillis()
     queue!!.add(jsonOR)
-
 }
 
-// used by outside classes
-interface CaptureCallback {
-    fun onPermissionDenied()
-    fun onMatchResult(matchID: String, img: ByteArray)
-    fun onMatchFailure(uid: String)
-    fun onMatchRequestError()
-}
-
-// used for making the request
-private interface CaptureRequestCallback : CaptureCallback {
-    fun onPermissionRequired(uid: String)
-}
-
-// used for handling the permission response
-interface PermissionRequestCallback {
-    fun onPermissionDenied()
-    fun onPermissionGranted(matchID: String?, permissionToken: String?)
-}
 
 private fun captureJsonObjectRequest(
     serverURL: String,
@@ -184,36 +180,19 @@ private fun captureJsonObjectRequest(
         })
 }
 
-private fun decodeBase64(input: String): ByteArray? {
-    return if (input.isNotEmpty()) {
-        Base64.decode(input, Base64.DEFAULT)
-    } else {
-        Log.e("HTTP", "Empty base64 string")
-        null
-    }
-}
-
-private fun logMatchResponse(response: JSONObject) {
-    StudyLogger.hashMap["tc_http_response"] = System.currentTimeMillis()
-    try {
-        StudyLogger.hashMap["match_id"] = response.get("uid").toString()
-    } catch (e: Exception) {
-        Log.d("HTTP", e.toString())
-    }
-}
-
 fun requestPermission(
     serverURL: String,
-    activity: Activity,
+    context: Context,
     matchID: String,
     cb: PermissionRequestCallback
 ) {
-    // Instantiate the RequestQueue.
-    if (queue === null) queue = Volley.newRequestQueue(activity.applicationContext)
+    // Instantiate the RequestQueue if it is not already instantiated
+    if (queue === null) queue = Volley.newRequestQueue(context)
+    Toast.makeText(context, "Requesting permission...", Toast.LENGTH_LONG).show()
     val json = JSONObject()
     json.put(
         "device_id",
-        getDeviceID(activity.applicationContext)
+        getDeviceID(context)
     )
     json.put("device_name", getDeviceName())
     json.put("match_id", matchID)
@@ -235,11 +214,11 @@ fun requestPermission(
             { error ->
                 if (error.networkResponse == null) {
                     Toast.makeText(
-                        activity.applicationContext,
+                        context.applicationContext,
                         "Permission request timeout",
                         Toast.LENGTH_LONG
                     ).show()
-                    val ca = activity as CameraActivity
+                    val ca = context as CameraActivity
                     ca.isCapturing = false
                 } else {
                     error.printStackTrace()
@@ -255,111 +234,13 @@ fun requestPermission(
     queue!!.add(jsonObjectRequest)
 }
 
-fun sendBitmap2(
-    bitmap: Bitmap,
-    serverURL: String,
-    context: Context,
-    matchingOptions: HashMap<Any?, Any?>? = null,
-    permissionToken: String? = "",
-    matchID: String? = "",
-    cb: (String?, ByteArray?, Bitmap) -> Unit
-) {
-    val baos = ByteArrayOutputStream()
-    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
-    val b64Image = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT)
-
-    val queue = Volley.newRequestQueue(context)
-    val json = JSONObject()
-    matchingOptions?.forEach { (key, value) ->
-        json.put(key.toString(), value.toString())
-    }
-    // keys: "algorithm", "ORB_nfeatures", "SURF_hessian_threshold"
-
-    // add the device name
-    json.put("device_name", getDeviceName())
-
-    // add device ID for verification
-    val id =
-        getDeviceID(context)
-    json.put("device_id", id)
-
-    if (permissionToken != null) {
-        if (permissionToken.isNotEmpty()) {
-            json.put("permission_token", permissionToken)
-        }
-    }
-    if (matchID != null) {
-        if (matchID.isNotEmpty()) {
-            json.put("match_id", matchID)
-        }
-    }
-
-    // add the image
-    json.put("b64", b64Image)
-
-    val jsonOR = JsonObjectRequest(
-        Request.Method.POST, serverURL + MATCH_DEST, json,
-        { response ->
-            StudyLogger.hashMap["tc_http_response"] = System.currentTimeMillis()
-            Log.d("HTTP", response.toString())
-            try {
-                StudyLogger.hashMap["match_id"] = response.get("uid").toString()
-            } catch (e: Exception) {
-                Log.d("HTTP", e.toString())
-                Log.d("HTTP", response.toString())
-            }
-            if (response.has("error")) {
-                if (response.getString("error") == "permission_error") {
-                    cb(null, null, bitmap)
-                } else if (response.getString("error") == "permission_required") {
-                    /* TODO: Request
-                    requestPermission(
-                        bitmap,
-                        serverURL,
-                        activity,
-                        matchingOptions,
-                        response.get("uid").toString()
-                    )
-
-                     */
-                    Log.d("HTTP", "TODO: IMPLEMENT")
-                }
-            } else if (response.get("hasResult").toString() != "false") {
-                Log.d("HTTP", "Has result: ${response.get("hasResult").toString()}")
-                try {
-                    val b64ImageString = response.get("b64").toString()
-                    if (b64ImageString.isNotEmpty()) {
-                        val byteArray = Base64.decode(b64ImageString, Base64.DEFAULT)
-
-                        //downloadFullScreenshot(response.get("uid").toString(), "screenshot.png", serverURL, context)
-                        cb(response.get("uid").toString(), byteArray, bitmap)
-
-                    }
-                } catch (e: InvocationTargetException) {
-                    Log.e("HTTP", "b64 string error")
-                }
-            } else {
-                cb(response.get("uid").toString(), null, bitmap)
-            }
-
-        },
-        { error ->
-            cb(null, null, bitmap)
-
-        })
-
-    StudyLogger.hashMap["tc_http_request"] = System.currentTimeMillis()
-    queue.add(jsonOR)
-
-}
-
 fun requestFullScreenshot(
     matchID: String,
     serverURL: String,
     context: Context,
     onDownload: (bitmap: Bitmap?) -> Unit
 ) {
-    val queue = Volley.newRequestQueue(context)
+    if (queue === null) queue = Volley.newRequestQueue(context)
     val json = JSONObject()
     json.put("match_id", matchID)
     val jsonOR = JsonObjectRequest(
@@ -377,7 +258,7 @@ fun requestFullScreenshot(
         { error ->
             error.printStackTrace()
         })
-    queue.add(jsonOR)
+    queue!!.add(jsonOR)
 }
 
 
@@ -392,11 +273,18 @@ fun sendHeartbeatRequest(serverURL: String?, context: Context, onFail: () -> Uni
             onFail()
         })
 
-    //TODO: declare outside of function, and use it here
-    val queue = Volley.newRequestQueue(context)
-    queue.add(request)
+    queue = Volley.newRequestQueue(context)
+    queue!!.add(request)
 }
 
+private fun logMatchResponse(response: JSONObject) {
+    StudyLogger.hashMap["tc_http_response"] = System.currentTimeMillis()
+    try {
+        StudyLogger.hashMap["match_id"] = response.get("uid").toString()
+    } catch (e: Exception) {
+        Log.e("HTTP", e.toString())
+    }
+}
 
 fun sendLog(serverURL: String, context: Context) {
     // Only send log if preference is set to true
@@ -406,7 +294,7 @@ fun sendLog(serverURL: String, context: Context) {
     val sendLog = sp.getBoolean(MATCHING_MODE_PREF_KEY, false)
 
     val queue = Volley.newRequestQueue(context)
-    var json: JSONObject = JSONObject()
+    val json: JSONObject
     if (sendLog) {
         json = JSONObject(StudyLogger.hashMap)
     } else {
@@ -436,7 +324,7 @@ fun sendFeedbackToServer(
     hasScreenshot: Boolean,
     comment: String
 ) {
-    val queue = Volley.newRequestQueue(context)
+    if (queue === null) queue = Volley.newRequestQueue(context)
     val json = JSONObject()
     json.put("uid", uid)
     json.put("hasResult", hasResult)
@@ -461,6 +349,6 @@ fun sendFeedbackToServer(
             error.printStackTrace()
         }
     )
-    queue.add(jsonObjectRequest)
+    queue!!.add(jsonObjectRequest)
 }
 
