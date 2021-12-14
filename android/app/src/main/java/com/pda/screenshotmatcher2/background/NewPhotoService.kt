@@ -18,7 +18,6 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.preference.PreferenceManager
 import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.models.ServerConnectionModel
-import com.pda.screenshotmatcher2.network.sendBitmap2
 import com.pda.screenshotmatcher2.utils.rescale
 import com.pda.screenshotmatcher2.views.activities.CameraActivity
 import java.io.File
@@ -193,7 +192,8 @@ class NewPhotoService : Service() {
                 "Sending bitmap after: " + (System.currentTimeMillis() - timestamp).toString()
             )
             timestamp = System.currentTimeMillis()
-            sendBitmap2(
+            //TODO: implement sendCaptureRequest
+            /*sendBitmap2(
                 greyImg,
                 serverUrl,
                 this@NewPhotoService,
@@ -201,7 +201,7 @@ class NewPhotoService : Service() {
                 null,
                 null,
                 ::onMatch
-            )
+            )*/
         } else {
             Log.d("NPS", "invalid serverURL")
         }

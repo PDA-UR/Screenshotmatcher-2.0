@@ -66,7 +66,7 @@ fun verifyPermissions(activity: Activity): Boolean {
                 permission
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            Log.d("INTRO", "Permission not granted: $permission")
+            Log.d("UTILS", "Permission not granted: $permission")
             ActivityCompat.requestPermissions(
                 activity,
                 PERMISSIONS,
@@ -86,6 +86,14 @@ fun base64ToBitmap(b64String: String) : Bitmap{
     return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
 }
 
+fun decodeBase64(input: String): ByteArray? {
+    return if (input.isNotEmpty()) {
+        Base64.decode(input, Base64.DEFAULT)
+    } else {
+        Log.e("HTTP", "Empty base64 string")
+        null
+    }
+}
 /**
  * Saves [bitmap] to [filename].
  */

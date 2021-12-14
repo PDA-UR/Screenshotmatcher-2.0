@@ -27,7 +27,7 @@ import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.background.NewPhotoService
 import com.pda.screenshotmatcher2.logger.StudyLogger
 import com.pda.screenshotmatcher2.network.CaptureCallback
-import com.pda.screenshotmatcher2.network.sendBitmapCA
+import com.pda.screenshotmatcher2.network.sendCaptureRequest
 import com.pda.screenshotmatcher2.utils.createDeviceID
 import com.pda.screenshotmatcher2.utils.rescale
 import com.pda.screenshotmatcher2.utils.verifyPermissions
@@ -140,7 +140,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
     private fun stopBackgroundService() {
         Intent(this, NewPhotoService::class.java).also {
             Log.d("CA", "Stopping service")
-            stopService(it)
+            //stopService(it)
         }
     }
 
@@ -235,6 +235,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
      */
     override fun onResume() {
         super.onResume()
+        Log.d("CA", "onResume")
         stopBackgroundService()
         // due to a bug in Android, the list of sensors returned by the SensorManager can be empty
         // it will stay that way until reboot.
@@ -350,7 +351,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
                     CameraProvider.IMG_TARGET_SIZE
                 )
             val matchingOptions: java.util.HashMap<Any?, Any?>? = getMatchingOptionsFromPref()
-            sendBitmapCA(
+            sendCaptureRequest(
                 greyImg,
                 mServerURL,
                 this,
@@ -364,6 +365,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
 
     private val captureCallback = object : CaptureCallback {
         override fun onPermissionDenied() {
+            Log.d("CA", "Permission denied")
             this@CameraActivity.onPermissionDenied()
         }
 
@@ -559,7 +561,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
     fun onPermissionDenied() {
         isCapturing = false
         Toast.makeText(this, "Permission denied from server.", Toast.LENGTH_LONG).show()
-        verifyPermissions(this)
     }
 
     /**
