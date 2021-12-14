@@ -9,10 +9,25 @@ import java.lang.Exception
 import java.net.*
 import kotlin.jvm.Throws
 
+/**
+ * The protocol used for the connection between the app and the server.
+ */
 const val PROTOCOL = "http://"
+
+/**
+ * The maximum number of servers that can be discovered.
+ */
 const val MAX_SERVERS = 5
 
-
+/**
+ * Discovers and returns available servers on the network.
+ *
+ * @param context The context of the calling Activity or Service to use for the request.
+ * @param port The port to use send the request to.
+ * @param message The message to send to the servers on the network.
+ * @param onGet The function to call when the request is complete.
+ * @return A list of available servers.
+ */
 fun discoverServersOnNetwork(context: Context, port: Int = 49050, message: String = "screenshot matcher client LF server", onGet : (servers: List<Pair<String, String>>) -> Unit) : List<Pair<String, String>> {
     val s = DatagramSocket().also {
         it.broadcast = true
@@ -58,6 +73,12 @@ fun discoverServersOnNetwork(context: Context, port: Int = 49050, message: Strin
     return serverList
 }
 
+/**
+ * Gets the broadcast address of the network.
+ *
+ * @param context The context of the calling Activity or Service to use for the request.
+ * @return
+ */
 @Throws(IOException::class)
 private fun getBroadcastAddress(context : Context): InetAddress? {
     val wifi: WifiManager = context.applicationContext.getSystemService(AppCompatActivity.WIFI_SERVICE) as WifiManager
