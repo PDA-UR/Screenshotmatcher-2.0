@@ -17,7 +17,6 @@ import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.logger.StudyLogger
-import com.pda.screenshotmatcher2.views.activities.RESULT_ACTIVITY_REQUEST_CODE
 import com.pda.screenshotmatcher2.views.activities.ResultsActivity
 import com.pda.screenshotmatcher2.network.sendLog
 import com.pda.screenshotmatcher2.viewModels.CaptureViewModel
@@ -105,7 +104,7 @@ class ErrorFragment : Fragment() {
         val intent = Intent(activity, ResultsActivity::class.java)
         resultsOpened = true
         activity?.startActivityForResult(intent,
-            RESULT_ACTIVITY_REQUEST_CODE
+            ResultsActivity.RESULT_ACTIVITY_REQUEST_CODE
         )
         removeThisFragment()
     }

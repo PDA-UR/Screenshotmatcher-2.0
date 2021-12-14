@@ -396,9 +396,10 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
     private fun startResultsActivity(matchID: String, img: ByteArray) {
         didStartResultsActivity = true
         val intent = Intent(this, ResultsActivity::class.java)
+        intent.putExtra(ResultsActivity.EXTRA_STARTED_FROM_CAMERA_ACTIVITY, true)
         startActivityForResult(
             intent,
-            RESULT_ACTIVITY_REQUEST_CODE
+            ResultsActivity.RESULT_ACTIVITY_REQUEST_CODE
         )
     }
 
@@ -630,7 +631,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
-            RESULT_ACTIVITY_REQUEST_CODE -> {
+            ResultsActivity.RESULT_ACTIVITY_REQUEST_CODE -> {
                 didStartResultsActivity = false
                 when (resultCode) {
                     Activity.RESULT_OK -> {
