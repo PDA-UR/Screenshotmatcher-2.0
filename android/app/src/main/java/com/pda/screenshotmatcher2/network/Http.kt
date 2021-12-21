@@ -325,6 +325,7 @@ fun sendHeartbeatRequest(serverURL: String?, context: Context, onFail: () -> Uni
     if ((serverURL == null || serverURL.isEmpty())) {
         onFail()
     }
+    Log.d("HTTP", "sending heartbeat")
     val request = StringRequest(Request.Method.GET, serverURL + Routes.HEARTBEAT_DEST,
         {
         },

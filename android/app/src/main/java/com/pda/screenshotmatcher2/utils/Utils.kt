@@ -47,7 +47,8 @@ fun getPermissions (): Array<String> {
     )
     // if device sdk version is larger than 29
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        permissions.add(Manifest.permission.MANAGE_EXTERNAL_STORAGE)
+        //TODO: Re enable
+        //permissions.add(Manifest.permission.MANAGE_EXTERNAL_STORAGE)
     }
      else {
         permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)

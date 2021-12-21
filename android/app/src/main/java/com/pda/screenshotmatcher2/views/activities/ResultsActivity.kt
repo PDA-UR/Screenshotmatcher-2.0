@@ -552,7 +552,7 @@ class ResultsActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         val doStartBackgroundService  = PreferenceManager.getDefaultSharedPreferences(this).getBoolean(getString(R.string.settings_bgMode_key), false)
-        if (!isReturningToCameraActivity && doStartBackgroundService) BackgroundMatchingService.startBackgroundService(this)
+        if (!isReturningToCameraActivity && doStartBackgroundService) BackgroundMatchingService.startBackgroundService(applicationContext)
         captureViewModel.getServerUrl()?.let {
             sendLog(it, this)
         }

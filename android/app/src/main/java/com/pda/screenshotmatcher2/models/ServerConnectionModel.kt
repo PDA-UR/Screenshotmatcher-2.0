@@ -102,6 +102,7 @@ object ServerConnectionModel {
                 override fun handleMessage(msg: Message) {
                     when (msg.what) {
                         HANDLER_MESSAGES.END_ALL_THREADS -> {
+                            Log.d("SCM", "end all threads")
                             this.removeCallbacksAndMessages(null)
                         }
                         HANDLER_MESSAGES.START_DISCOVER -> {
@@ -139,6 +140,14 @@ object ServerConnectionModel {
         if (handlerThread.isAlive) {
             isDiscovering.postValue(true)
             mHandler.sendMessage(mHandler.obtainMessage(HANDLER_MESSAGES.START_DISCOVER))
+        }
+    }
+
+    fun stopThreads() {
+        if (handlerThread.isAlive) {
+            isDiscovering.postValue(false)
+            isHeartbeating.postValue(false)
+            mHandler.sendMessage(mHandler.obtainMessage(HANDLER_MESSAGES.END_ALL_THREADS))
         }
     }
 

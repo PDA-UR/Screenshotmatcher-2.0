@@ -23,10 +23,10 @@ import java.io.File
  */
 abstract class RotationFragment : Fragment() {
 
-    lateinit var containerView: FrameLayout
-    lateinit var ca: CameraActivity
+    var containerView: FrameLayout? = null
+    var ca: CameraActivity? = null
     var rotation: Int = 0
-    private lateinit var mView: View
+    var mView: View? = null
     private lateinit var subclassName: String
 
     /**
@@ -41,14 +41,14 @@ abstract class RotationFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        if (this::mView.isInitialized) return mView
+        if (mView !== null) return mView
 
         ca = activity as? CameraActivity
             ?: throw IllegalArgumentException("No CameraActivity provided")
         subclassName = this.javaClass.simpleName
 
         containerView = container as FrameLayout
-        containerView.visibility = View.VISIBLE
+        containerView?.visibility = View.VISIBLE
 
         when(subclassName){
             SelectDeviceFragment::class.simpleName -> {
@@ -59,11 +59,11 @@ abstract class RotationFragment : Fragment() {
             }
         }
 
-        rotation = ca.phoneOrientation
+        rotation = ca!!.phoneOrientation
 
         return when(rotation) {
             0, 2 -> mView
-            else -> rotateView(rotation * 90, mView)
+            else -> rotateView(rotation * 90, mView!!)
         }
     }
 
@@ -86,7 +86,7 @@ abstract class RotationFragment : Fragment() {
             translationY = ((h - w) / 2).toFloat()
         }
 
-        mView.layoutParams.apply {
+        mView!!.layoutParams.apply {
             height = w
             width = h
         }
@@ -116,6 +116,9 @@ abstract class RotationFragment : Fragment() {
     open fun removeThisFragment(removeBackground: Boolean = true) {
         activity?.supportFragmentManager?.beginTransaction()?.remove(this)
             ?.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)?.commit()
+        mView = null
+        ca = null
+        containerView = null
     }
 
 }

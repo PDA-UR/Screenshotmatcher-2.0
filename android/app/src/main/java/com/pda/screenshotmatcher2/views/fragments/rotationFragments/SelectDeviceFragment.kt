@@ -83,8 +83,8 @@ class SelectDeviceFragment : RotationFragment() {
      * Plays a short vibration & animation to indicate that the fragment is removed.
      */
     override fun removeThisFragment(removeBackground: Boolean) {
-        ca.window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
-        ca.onCloseSelectDeviceFragment()
+        ca?.window?.decorView?.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
+        ca?.onCloseSelectDeviceFragment()
         super.removeThisFragment(removeBackground)
     }
 }

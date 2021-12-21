@@ -1,17 +1,22 @@
 package com.pda.screenshotmatcher2.viewHelpers
 
+import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.ImageView
+import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.viewModels.GalleryViewModel
 import com.pda.screenshotmatcher2.views.activities.CameraActivity
+import com.pda.screenshotmatcher2.views.fragments.rotationFragments.FIRST_IMAGE_KEY
 import com.pda.screenshotmatcher2.views.fragments.rotationFragments.GalleryFragment
+import com.pda.screenshotmatcher2.views.fragments.rotationFragments.GalleryPreviewFragment
+import com.pda.screenshotmatcher2.views.fragments.rotationFragments.SECOND_IMAGE_KEY
 import java.io.File
 
 /**
@@ -24,7 +29,7 @@ import java.io.File
  */
 class GridBaseAdapter(private val context: GalleryFragment) : BaseAdapter() {
     private var imagePairs: ArrayList<ArrayList<File>> = ArrayList()
-    private val gfvm = ViewModelProvider(
+    private var gfvm : GalleryViewModel? = ViewModelProvider(
         context.requireActivity(),
         GalleryViewModel.Factory(context.requireActivity().application)
     ).get(
@@ -50,11 +55,19 @@ class GridBaseAdapter(private val context: GalleryFragment) : BaseAdapter() {
         view.setOnClickListener {
             val firstImageFile = vh.firstImageFile
             val secondImageFile = vh.secondImageFile
-            val ca: CameraActivity = context.activity as CameraActivity
-            ca.cameraActivityFragmentHandler.openGalleryPreviewFragment(
-                firstImageFile,
-                secondImageFile
-            )
+
+            val bundle = Bundle().apply {
+                putSerializable(FIRST_IMAGE_KEY, firstImageFile)
+                putSerializable(SECOND_IMAGE_KEY, secondImageFile)
+            }
+
+            val gf = GalleryPreviewFragment().apply { arguments = bundle }
+
+            context.requireActivity().supportFragmentManager.beginTransaction().add(
+                R.id.gallery_fragment_body_layout,
+                gf,
+                GalleryPreviewFragment::class.java.simpleName
+            ).commit()
         }
 
         Glide.with(context.requireActivity())
@@ -97,6 +110,11 @@ class GridBaseAdapter(private val context: GalleryFragment) : BaseAdapter() {
 	 */
     override fun getCount(): Int {
         return imagePairs.size
+    }
+
+    fun clear () {
+        gfvm = null
+
     }
 }
 

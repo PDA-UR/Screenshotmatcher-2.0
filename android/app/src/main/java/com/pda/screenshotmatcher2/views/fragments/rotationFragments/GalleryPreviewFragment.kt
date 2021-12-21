@@ -20,6 +20,7 @@ import androidx.appcompat.widget.AppCompatImageButton
 import androidx.core.app.ShareCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModelProvider
+import com.bumptech.glide.Glide
 import com.pda.screenshotmatcher2.BuildConfig
 import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.logger.StudyLogger
@@ -58,17 +59,17 @@ const val SECOND_IMAGE_KEY: String = "SECOND_IMAGE"
  */
 class GalleryPreviewFragment : RotationFragment() {
 
-    private lateinit var mPillNavigationButton1: AppCompatButton
-    private lateinit var mPillNavigationButton2: AppCompatButton
-    private lateinit var mImagePreviewPreviousButton: AppCompatImageButton
-    private lateinit var mImagePreviewNextButton: AppCompatImageButton
-    private lateinit var mScreenshotImageView: ImageView
-    private lateinit var mShareButton: AppCompatImageButton
-    private lateinit var mDeleteBoth: AppCompatImageButton
-    private lateinit var mSaveOneButton: AppCompatImageButton
-    private lateinit var mShareButtonText: TextView
-    private lateinit var mSaveOneButtonText: TextView
-    private lateinit var mFragmentBackground: FrameLayout
+    private var mPillNavigationButton1: AppCompatButton? = null
+    private var mPillNavigationButton2: AppCompatButton? = null
+    private var mImagePreviewPreviousButton: AppCompatImageButton? = null
+    private var mImagePreviewNextButton: AppCompatImageButton? = null
+    private var mScreenshotImageView: ImageView? = null
+    private var mShareButton: AppCompatImageButton? = null
+    private var mDeleteBoth: AppCompatImageButton? = null
+    private var mSaveOneButton: AppCompatImageButton? = null
+    private var mShareButtonText: TextView? = null
+    private var mSaveOneButtonText: TextView? = null
+    private var mFragmentBackground: FrameLayout? = null
 
     private var mPillNavigationState: Int = 1
 
@@ -76,7 +77,7 @@ class GalleryPreviewFragment : RotationFragment() {
     private var mCroppedImageFile: File? = null
     private var numberOfAvailableImages: Int = 0
     private lateinit var oldBundle: Bundle
-    private lateinit var galleryViewModel: GalleryViewModel
+    private var galleryViewModel: GalleryViewModel? = null
 
     /**
      * Returns an inflated [View] for this fragment.
@@ -161,34 +162,34 @@ class GalleryPreviewFragment : RotationFragment() {
         when (mPillNavigationState) {
             -1 -> {
                 //Switch to cropped screenshot
-                mPillNavigationButton2.setBackgroundColor(requireActivity().getColor(
+                mPillNavigationButton2?.setBackgroundColor(requireActivity().getColor(
                     R.color.invisible
                 ))
-                mPillNavigationButton1.background =
+                mPillNavigationButton1?.background  =
                     resources.getDrawable(R.drawable.pill_navigation_selected_item)
                 if (numberOfAvailableImages == 2) {
-                    mImagePreviewNextButton.visibility = View.VISIBLE
-                    mImagePreviewPreviousButton.visibility = View.INVISIBLE
+                    mImagePreviewNextButton?.visibility = View.VISIBLE
+                    mImagePreviewPreviousButton?.visibility = View.INVISIBLE
                 }
-                mShareButtonText.text = getString(R.string.result_activity_shareButtonText1_en)
-                mSaveOneButtonText.text =
+                mShareButtonText?.text = getString(R.string.result_activity_shareButtonText1_en)
+                mSaveOneButtonText?.text =
                     getString(R.string.result_activity_saveOneButtonText1_en)
                 setImage()
             }
             1 -> {
                 //Switch to full screenshot
-                mPillNavigationButton1.setBackgroundColor(requireActivity().getColor(
+                mPillNavigationButton1?.setBackgroundColor(requireActivity().getColor(
                     R.color.invisible
                 ))
-                mPillNavigationButton2.background =
+                mPillNavigationButton2?.background =
                     resources.getDrawable(R.drawable.pill_navigation_selected_item)
                 if (numberOfAvailableImages == 2) {
-                    mImagePreviewPreviousButton.visibility = View.VISIBLE
-                    mImagePreviewNextButton.visibility = View.INVISIBLE
+                    mImagePreviewPreviousButton?.visibility = View.VISIBLE
+                    mImagePreviewNextButton?.visibility = View.INVISIBLE
                 }
 
-                mShareButtonText.text = getString(R.string.result_activity_shareButtonText2_en)
-                mSaveOneButtonText.text = getString(R.string.result_activity_saveOneButtonText2_en)
+                mShareButtonText?.text = getString(R.string.result_activity_shareButtonText2_en)
+                mSaveOneButtonText?.text = getString(R.string.result_activity_saveOneButtonText2_en)
                 setImage()
             }
         }
@@ -200,10 +201,18 @@ class GalleryPreviewFragment : RotationFragment() {
     private fun setImage() {
         when (mPillNavigationState) {
             -1 -> {
-                mScreenshotImageView.setImageBitmap(BitmapFactory.decodeFile(mCroppedImageFile?.absolutePath))
+                mScreenshotImageView?.let {
+                    Glide.with(requireActivity())
+                        .load(mCroppedImageFile)
+                        .into(it)
+                }
             }
             1 -> {
-                mScreenshotImageView.setImageBitmap(BitmapFactory.decodeFile(mFullImageFile?.absolutePath))
+                mScreenshotImageView?.let {
+                    Glide.with(requireActivity())
+                        .load(mFullImageFile)
+                        .into(it)
+                }
             }
         }
     }
@@ -261,7 +270,7 @@ class GalleryPreviewFragment : RotationFragment() {
                 this.add(it)
             }
         }
-        galleryViewModel.deleteImagePair(images)
+        galleryViewModel?.deleteImagePair(images)
         removeThisFragment(true)
     }
 
@@ -326,8 +335,8 @@ class GalleryPreviewFragment : RotationFragment() {
      */
     private fun initViews() {
         mFragmentBackground = activity?.findViewById(R.id.gallery_fragment_preview_background)!!
-        mFragmentBackground.setOnClickListener { removeThisFragment(true) }
-        mFragmentBackground.visibility = View.VISIBLE
+        mFragmentBackground?.setOnClickListener { removeThisFragment(true) }
+        mFragmentBackground?.visibility = View.VISIBLE
         mPillNavigationButton1 = activity?.findViewById(R.id.pf_pillNavigation_button1)!!
         mPillNavigationButton2 = activity?.findViewById(R.id.pf_pillNavigation_button2)!!
         mImagePreviewPreviousButton = activity?.findViewById(R.id.pf_imagePreview_previousButton)!!
@@ -337,9 +346,9 @@ class GalleryPreviewFragment : RotationFragment() {
         mDeleteBoth = activity?.findViewById(R.id.pf_deleteImages)!!
         mSaveOneButton = activity?.findViewById(R.id.pf_saveOneButton)!!
         mShareButtonText = activity?.findViewById(R.id.pf_shareButtonText)!!
-        mShareButtonText.text = getString(R.string.result_activity_shareButtonText1_en)
+        mShareButtonText?.text = getString(R.string.result_activity_shareButtonText1_en)
         mSaveOneButtonText = activity?.findViewById(R.id.pf_saveOneButtonText)!!
-        mSaveOneButtonText.text = getString(R.string.result_activity_saveOneButtonText1_en)
+        mSaveOneButtonText?.text = getString(R.string.result_activity_saveOneButtonText1_en)
         updatePillNavigation()
     }
 
@@ -347,21 +356,21 @@ class GalleryPreviewFragment : RotationFragment() {
      * Sets all view listeners.
      */
     private fun setViewListeners() {
-        mPillNavigationButton1.setOnClickListener {
+        mPillNavigationButton1?.setOnClickListener {
             if (mPillNavigationState != -1) {
                 togglePillNavigationSelection()
             }
         }
-        mPillNavigationButton2.setOnClickListener {
+        mPillNavigationButton2?.setOnClickListener {
             if (mPillNavigationState != 1) {
                 togglePillNavigationSelection()
             }
         }
-        mImagePreviewPreviousButton.setOnClickListener { togglePillNavigationSelection() }
-        mImagePreviewNextButton.setOnClickListener { togglePillNavigationSelection() }
-        mShareButton.setOnClickListener { shareImage() }
-        mDeleteBoth.setOnClickListener { deleteBothImages() }
-        mSaveOneButton.setOnClickListener { saveCurrentPreviewImage() }
+        mImagePreviewPreviousButton?.setOnClickListener { togglePillNavigationSelection() }
+        mImagePreviewNextButton?.setOnClickListener { togglePillNavigationSelection() }
+        mShareButton?.setOnClickListener { shareImage() }
+        mDeleteBoth?.setOnClickListener { deleteBothImages() }
+        mSaveOneButton?.setOnClickListener { saveCurrentPreviewImage() }
     }
 
     /**
@@ -372,9 +381,37 @@ class GalleryPreviewFragment : RotationFragment() {
     override fun removeThisFragment(removeBackground: Boolean) {
         super.removeThisFragment(removeBackground)
         requireActivity().window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
-        if (removeBackground) mFragmentBackground.visibility = View.INVISIBLE
+        if (removeBackground) mFragmentBackground?.visibility = View.INVISIBLE
+
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        galleryViewModel = null
+        containerView = null
+        mPillNavigationButton1?.setOnClickListener(null)
+        mPillNavigationButton1 = null
+        mPillNavigationButton2?.setOnClickListener(null)
+        mPillNavigationButton2 = null
+        mImagePreviewPreviousButton?.setOnClickListener(null)
+        mImagePreviewPreviousButton = null
+        mImagePreviewNextButton?.setOnClickListener(null)
+        mImagePreviewNextButton = null
+        mSaveOneButton?.setOnClickListener(null)
+        mSaveOneButton = null
+        mShareButton?.setOnClickListener(null)
+        mShareButton = null
+        mDeleteBoth?.setOnClickListener(null)
+        mDeleteBoth = null
+        mFragmentBackground?.setOnClickListener(null)
+        mFragmentBackground = null
+
+        mSaveOneButtonText = null
+        mShareButtonText = null
+        mScreenshotImageView = null
+
+
+    }
     /**
      * Removes this fragment and returns the displayed image pair.
      *
