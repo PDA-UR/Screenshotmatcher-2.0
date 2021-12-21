@@ -23,10 +23,11 @@ import java.io.File
  */
 class GalleryFragment : RotationFragment() {
 
-    private lateinit var mFragmentBackground: FrameLayout
-    private lateinit var mBackButton: ImageButton
-    private lateinit var mGridView: GridView
-    private lateinit var adapter: GridBaseAdapter
+    private var mFragmentBackground: FrameLayout? = null
+    private var mBackButton: ImageButton? = null
+    private var mGridView: GridView? = null
+    private var adapter: GridBaseAdapter? = null
+    private var galleryViewModel: GalleryViewModel? = null
 
     /**
      * Initializes the fragment.
@@ -37,15 +38,21 @@ class GalleryFragment : RotationFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initViews()
+        initAdapter()
         // Observe Live-Data changes to refresh adapter
-        ViewModelProvider(requireActivity(), GalleryViewModel.Factory(requireActivity().application))
+        galleryViewModel = ViewModelProvider(requireActivity(), GalleryViewModel.Factory(requireActivity().application))
             .get(GalleryViewModel::class.java)
             .apply {
                 getImages().observe(viewLifecycleOwner) {
                     Log.d("GF", "Refreshing")
-                    if (::adapter.isInitialized) adapter.notifyDataSetInvalidated()
+                    if (adapter !== null) adapter!!.notifyDataSetInvalidated()
                 }
             }
+    }
+
+    private fun initAdapter() {
+        adapter = GridBaseAdapter(this)
+        mGridView?.adapter = adapter
     }
 
     /**
@@ -53,13 +60,11 @@ class GalleryFragment : RotationFragment() {
      */
     private fun initViews() {
         mFragmentBackground = activity?.findViewById(R.id.ca_dark_background)!!
-        mFragmentBackground.setOnClickListener { removeThisFragment(true) }
-        mFragmentBackground.visibility = View.VISIBLE
+        mFragmentBackground?.setOnClickListener { removeThisFragment(true) }
+        mFragmentBackground?.visibility = View.VISIBLE
         mGridView = activity?.findViewById(R.id.gallery_fragment_gridview)!!
-        adapter = GridBaseAdapter(this)
-        mGridView.adapter = adapter
         mBackButton = activity?.findViewById(R.id.gallery_fragment_back_button)!!
-        mBackButton.setOnClickListener {
+        mBackButton?.setOnClickListener {
             removeThisFragment()
         }
     }
@@ -91,12 +96,27 @@ class GalleryFragment : RotationFragment() {
      * @param removeBackground Whether to remove the dark background behind the fragment or not
      */
     override fun removeThisFragment(removeBackground: Boolean) {
-        containerView.visibility = View.INVISIBLE
-        ca.window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
+        containerView?.visibility = View.INVISIBLE
+        ca?.window?.decorView?.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
         if (removeBackground) {
             val mFragmentBackground: FrameLayout = activity?.findViewById(R.id.ca_dark_background)!!
             mFragmentBackground.visibility = View.INVISIBLE
         }
+        galleryViewModel = null
+        mBackButton?.setOnClickListener(null)
+
+        mGridView?.onItemClickListener = null
+        mGridView = null
+        mBackButton = null
+
+        mFragmentBackground?.setOnClickListener(null)
+        mFragmentBackground = null
+
+        adapter?.clear()
+        adapter = null
+
+
+
         super.removeThisFragment(removeBackground)
     }
 

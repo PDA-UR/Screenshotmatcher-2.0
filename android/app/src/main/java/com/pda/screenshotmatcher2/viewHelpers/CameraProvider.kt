@@ -44,7 +44,7 @@ import kotlin.collections.ArrayList
  */
 class CameraProvider(cameraInstance: CameraInstance) {
     private val ci = cameraInstance
-    private val ca: Activity = ci.getActivity()
+    private var ca: Activity? = ci.getActivity()
 
     /**
      * Options for the camera image.
@@ -114,24 +114,27 @@ class CameraProvider(cameraInstance: CameraInstance) {
     fun openCamera(width: Int, height: Int) {
         Log.d("CA", "CA-L cameraProvider openCamera")
         setUpCameraOutputs(width, height)
-        val manager =
-            ca.getSystemService(Context.CAMERA_SERVICE) as CameraManager
-        if (ActivityCompat.checkSelfPermission(
-                ca,
-                Manifest.permission.CAMERA
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            Log.d("CA", "CA-L cameraProvider openCamera permission not granted")
-            return
+        if (ca !== null) {
+            val manager =
+                ca?.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+            if (ActivityCompat.checkSelfPermission(
+                    ca!!,
+                    Manifest.permission.CAMERA
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                Log.d("CA", "CA-L cameraProvider openCamera permission not granted")
+                return
+            }
+            try {
+                cameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)
+                manager.openCamera(cameraId, cameraDeviceStateCallback, null)
+            } catch (e: CameraAccessException) {
+                e.printStackTrace()
+            } catch (e: InterruptedException) {
+                throw RuntimeException("Camera lock opening interrupted", e)
+            }
         }
-        try {
-            cameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)
-            manager.openCamera(cameraId, cameraDeviceStateCallback, null)
-        } catch (e: CameraAccessException) {
-            e.printStackTrace()
-        } catch (e: InterruptedException) {
-            throw RuntimeException("Camera lock opening interrupted", e)
-        }
+
     }
 
     /**
@@ -142,7 +145,7 @@ class CameraProvider(cameraInstance: CameraInstance) {
 	 */
     private fun setUpCameraOutputs(width: Int, height: Int) {
         val manager =
-            ca.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+            ca?.getSystemService(Context.CAMERA_SERVICE) as CameraManager
         try {
             for (cameraId in manager.cameraIdList) {
                 val characteristics = manager.getCameraCharacteristics(cameraId)
@@ -160,7 +163,7 @@ class CameraProvider(cameraInstance: CameraInstance) {
                 )
 
                 val displaySize = Point()
-                ca.windowManager.defaultDisplay.getSize(displaySize)
+                ca?.windowManager?.defaultDisplay?.getSize(displaySize)
                 var maxPreviewWidth: Int = displaySize.x
                 var maxPreviewHeight: Int = displaySize.y
 
@@ -199,7 +202,7 @@ class CameraProvider(cameraInstance: CameraInstance) {
         override fun onError(cameraDevice: CameraDevice, error: Int) {
             cameraOpenCloseLock.release()
             cameraDevice.close()
-            ca.finish()
+            ca?.finish()
         }
     }
 
@@ -339,5 +342,10 @@ class CameraProvider(cameraInstance: CameraInstance) {
             }
         }
         return mBitmap
+    }
+
+    fun stop() {
+        cameraDevice.close()
+        ca = null
     }
 }

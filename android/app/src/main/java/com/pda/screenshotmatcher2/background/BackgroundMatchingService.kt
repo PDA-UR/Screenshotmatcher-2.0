@@ -1,13 +1,13 @@
 package com.pda.screenshotmatcher2.background
 
+import android.annotation.SuppressLint
 import android.app.*
-import android.content.Context
-import android.content.Intent
-import android.content.SharedPreferences
+import android.content.*
 import android.database.ContentObserver
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.media.ExifInterface
 import android.net.Uri
 import android.os.*
 import android.provider.MediaStore
@@ -22,12 +22,13 @@ import com.pda.screenshotmatcher2.models.ServerConnectionModel
 import com.pda.screenshotmatcher2.network.CaptureCallback
 import com.pda.screenshotmatcher2.network.sendCaptureRequest
 import com.pda.screenshotmatcher2.utils.rescale
-import com.pda.screenshotmatcher2.viewModels.CaptureViewModel
 import com.pda.screenshotmatcher2.views.activities.CameraActivity
 import com.pda.screenshotmatcher2.views.activities.ResultsActivity
 import java.io.File
+import java.text.ParseException
+import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.collections.HashMap
+
 
 /**
  * A [Service] running in the background, which detects when new photos are taken on the smartphone.
@@ -45,6 +46,7 @@ class BackgroundMatchingService : Service() {
     private lateinit var MATCHING_MODE_PREF_KEY: String
     private var timestamp: Long = 0
     private val notificationChannelId = "SM"
+    private lateinit var broadcastReceiver: BroadcastReceiver
 
     /**
      * Stores the last 10 files dispatched by [contentObserver] in the variable [lastPaths]. This is done to avoid double processing, because [contentObserver] sometimes fires multiple identical events per file.
@@ -80,12 +82,42 @@ class BackgroundMatchingService : Service() {
     override fun onCreate() {
         super.onCreate()
         val notification = createNotification()
+        broadcastReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                when (intent?.action) {
+                    Intent.ACTION_SCREEN_OFF -> {
+                        Log.d("BG", "Screen off")
+                        sleepService()
+                    }
+                    Intent.ACTION_SCREEN_ON -> {
+                        Log.d("BG", "Screen on")
+                        startService()
+                    }
+                }
+            }
+        }
+        val intentFilter = IntentFilter()
+        intentFilter.addAction(Intent.ACTION_SCREEN_OFF)
+        intentFilter.addAction(Intent.ACTION_SCREEN_ON)
+        this@BackgroundMatchingService.registerReceiver(broadcastReceiver, intentFilter)
         startForeground(1, notification)
+    }
+
+    override fun onDestroy() {
+        this@BackgroundMatchingService.unregisterReceiver(broadcastReceiver)
+        super.onDestroy()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         startService()
         return START_NOT_STICKY
+    }
+
+    private fun sleepService() {
+        if (isServiceStarted) return
+        isServiceStarted = false
+        contentResolver.unregisterContentObserver(contentObserver)
+        ServerConnectionModel.stopThreads()
     }
 
     private fun startService() {
@@ -157,8 +189,9 @@ class BackgroundMatchingService : Service() {
 
     private fun startContentObserver() {
         contentObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
-            override fun onChange(selfChange: Boolean, uri: Uri?) {
-                super.onChange(selfChange, uri)
+            @SuppressLint("SimpleDateFormat")
+            override fun onChange(selfChange: Boolean, uri: Uri?, flag: Int) {
+                super.onChange(selfChange, uri, flag)
                 val serverUrl = ServerConnectionModel.serverUrl.value
                 if (serverUrl != null && serverUrl != "" && uri != null) {
                     val path = getPathFromObserverUri(uri)
@@ -174,6 +207,18 @@ class BackgroundMatchingService : Service() {
                             "loaded file" + (System.currentTimeMillis() - timestamp).toString()
                         )
                         timestamp = System.currentTimeMillis()
+
+                        val isValid = isNewCameraPhoto(file)
+                        if (!isValid) {
+                            Log.d("NPS", "not a recent camera photo")
+                            return
+                        }
+                        Log.d(
+                            "NPS_TS",
+                            "validated file : $isValid " + (System.currentTimeMillis() - timestamp).toString()
+                        )
+                        timestamp = System.currentTimeMillis()
+
                         val sampledCameraImage = decodeSampledBitmapFromResource(file, 512, 512)
                         Log.d(
                             "NPS_TS",
@@ -182,7 +227,7 @@ class BackgroundMatchingService : Service() {
                         timestamp = System.currentTimeMillis()
                         rescaleAndSendToServer(image = sampledCameraImage)
                     } else path?.let { Log.d("NPS", "Not printed: $path") }
-                } else {Log.d("NPS", "CO event, didnt meet requirements")}
+                } else {Log.d("NPS", "CO event, didn't meet requirements")}
 
             }
         }
@@ -191,6 +236,23 @@ class BackgroundMatchingService : Service() {
             true,
             contentObserver
         )
+    }
+
+    @SuppressLint("SimpleDateFormat")
+    private fun isNewCameraPhoto(file: File): Boolean {
+        val currentTimestamp = Date().time
+        val exif = ExifInterface(file.absolutePath)
+        val exifDateTimeString = exif.getAttribute(ExifInterface.TAG_DATETIME)
+        val exifDateTime = if (exifDateTimeString != null) {
+            try {
+                // convert imageCaptureDateString to a date
+                SimpleDateFormat("yyyy:MM:dd HH:mm:ss").parse(exifDateTimeString)
+            } catch (e: ParseException) {
+                Log.e("NPS", "exif parse error: ${e.message}")
+                return false
+            }
+        } else return false
+        return exifDateTime.time + 10000 > currentTimestamp
     }
 
     private fun rescaleAndSendToServer(image: Bitmap) {
