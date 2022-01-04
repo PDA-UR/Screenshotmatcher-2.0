@@ -52,4 +52,5 @@
     <string name="settings_algorithm_summary">Ist diese Option aktiviert wird das Matching schneller aber jedoch auch ungenauer sein</string>
     <string name="settings_bgMode_toggle">Hintergrund matching (beta)</string>
     <string name="settings_bgMode_summary">Aktiviert Matching im Hintergrund, sodass Sie die Stock-Kamera-App verwenden können um Screenshots aufzunehmen</string>
+    <string name="KNOWN_SERVERS_KEY">known_servers</string>
 </resources>

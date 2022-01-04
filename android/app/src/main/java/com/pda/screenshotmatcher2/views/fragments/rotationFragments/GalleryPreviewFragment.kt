@@ -379,39 +379,26 @@ class GalleryPreviewFragment : RotationFragment() {
      * @param removeBackground Whether to remove the dark background behind the fragment or not
      */
     override fun removeThisFragment(removeBackground: Boolean) {
-        super.removeThisFragment(removeBackground)
         requireActivity().window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
         if (removeBackground) mFragmentBackground?.visibility = View.INVISIBLE
-
+        super.removeThisFragment(removeBackground)
+        clearGarbage()
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun clearGarbage() {
         galleryViewModel = null
         containerView = null
         mPillNavigationButton1?.setOnClickListener(null)
-        mPillNavigationButton1 = null
         mPillNavigationButton2?.setOnClickListener(null)
-        mPillNavigationButton2 = null
         mImagePreviewPreviousButton?.setOnClickListener(null)
-        mImagePreviewPreviousButton = null
         mImagePreviewNextButton?.setOnClickListener(null)
-        mImagePreviewNextButton = null
         mSaveOneButton?.setOnClickListener(null)
-        mSaveOneButton = null
         mShareButton?.setOnClickListener(null)
-        mShareButton = null
         mDeleteBoth?.setOnClickListener(null)
-        mDeleteBoth = null
         mFragmentBackground?.setOnClickListener(null)
         mFragmentBackground = null
-
-        mSaveOneButtonText = null
-        mShareButtonText = null
-        mScreenshotImageView = null
-
-
     }
+
     /**
      * Removes this fragment and returns the displayed image pair.
      *

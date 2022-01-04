@@ -8,6 +8,8 @@ import android.os.Looper
 import android.os.Message
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
+import androidx.preference.PreferenceManager
+import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.network.discoverServersOnNetwork
 import com.pda.screenshotmatcher2.network.sendHeartbeatRequest
 
@@ -79,7 +81,9 @@ object ServerConnectionModel {
         isDiscovering.postValue(!newConnectionState)
         isHeartbeating.postValue(newConnectionState)
         this.isConnected.postValue(newConnectionState)
-        if (newConnectionState) startHeartbeatThread()
+        if (newConnectionState) {
+            startHeartbeatThread()
+        }
         else {
             serverUrl.postValue("")
             startDiscoverThread()
@@ -178,13 +182,6 @@ object ServerConnectionModel {
         }.start()
     }
 
-    /**
-     * Helper function to update [serverUrlList] with [newServers]
-	 */
-    private fun updateServerUrlList(newServers: List<Pair<String, String>>) {
-        serverUrlList.postValue(newServers)
-    }
-
 
     /**
      * Callback that gets executed when new servers have been discovered via [discoverServersOnNetwork].
@@ -192,12 +189,58 @@ object ServerConnectionModel {
      * Updates [serverUrlList] with the new list of [servers].
 	 */
     private fun onServerURLsGet(servers: List<Pair<String, String>>) {
-        //Log.d("SCM", "onserverurlget, list len: " + servers.size)
-
         if (servers.isNotEmpty()) {
             updateServerUrlList(servers)
+            tryConnectToFirstServer(servers)
         }
     }
+
+    /**
+     * Automatically connects to the first known server in [serverUrlList].
+     *
+     * Called in [onServerURLsGet]
+     *
+     * @param servers The list of available servers
+     */
+    private fun tryConnectToFirstServer(servers: List<Pair<String, String>>) {
+        for (server in servers) {
+            if (isKnownServer(server.second)) {
+                connectToServer(server.first)
+                break
+            }
+        }
+    }
+
+    /**
+     * Checks if a given [hostname] is already known (= has been connected to before)
+     *
+     * @param hostname The hostname of the server
+     * @return True if the server is known, false otherwise
+     */
+    private fun isKnownServer(hostname: String) : Boolean{
+        val knownServers = PreferenceManager.getDefaultSharedPreferences(application).getStringSet(
+            application?.getString(R.string.KNOWN_SERVERS_KEY), setOf())
+        return knownServers?.contains(hostname) ?: false
+    }
+
+    /**
+     * Connects to the server with the given [url].
+     *
+     * @param url The url of the server
+     */
+    private fun connectToServer(url: String) {
+        serverUrl.postValue(url)
+        isConnected.postValue(true)
+        startHeartbeatThread()
+    }
+
+    /**
+     * Helper function to update [serverUrlList] with [newServers]
+     */
+    private fun updateServerUrlList(newServers: List<Pair<String, String>>) {
+        serverUrlList.postValue(newServers)
+    }
+
 
     /**
      * [Runnable] that calls [heartbeat] every 1000ms.

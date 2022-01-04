@@ -38,9 +38,9 @@ Views, which comprise the UI. Implemented as part of the MVVM architecture.
 
 Activities used by the app.
 
-# Package com.pda.screenshotmatcher2.views.activities.interfaces
+# Package com.pda.screenshotmatcher2.views.interfaces
 
-Interfaces implemented by activities.
+Interfaces implemented by views.
 
 # Package com.pda.screenshotmatcher2.views.fragments
 

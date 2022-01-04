@@ -13,6 +13,7 @@ import androidx.fragment.app.FragmentTransaction
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.pda.screenshotmatcher2.R
+import com.pda.screenshotmatcher2.views.interfaces.GarbageView
 
 /**
  * A fragment allowing users to change application settings.
@@ -20,10 +21,11 @@ import com.pda.screenshotmatcher2.R
  * @property mFragmentBackground The dark background behind the fragment, calls [removeThisFragment] on click
  * @property containerView The container view for the fragment
  */
-class SettingsFragment : PreferenceFragmentCompat() {
+class SettingsFragment : GarbageView, PreferenceFragmentCompat() {
 
     private lateinit var mFragmentBackground: FrameLayout
     private lateinit var containerView: CardView
+    private var aboutButton: Preference? = null
 
     /**
      * Called when the fragment is created, calls [setPreferencesFromResource] to set the preferences
@@ -56,8 +58,8 @@ class SettingsFragment : PreferenceFragmentCompat() {
             setOnClickListener{removeThisFragment()}
             visibility = View.VISIBLE
         }
-        val button: Preference? = findPreference(getString(R.string.settings_about_button))
-        button?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+        aboutButton = findPreference(getString(R.string.settings_about_button))
+        aboutButton?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
             val uri: Uri =
                 Uri.parse("https://github.com/PDA-UR/Screenshotmatcher-2.0")
             val intent = Intent(Intent.ACTION_VIEW, uri)
@@ -75,5 +77,11 @@ class SettingsFragment : PreferenceFragmentCompat() {
         activity?.window?.decorView?.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
         activity?.supportFragmentManager?.beginTransaction()?.remove(this)
             ?.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)?.commit()
+        clearGarbage()
+    }
+
+    override fun clearGarbage() {
+        mFragmentBackground.setOnClickListener(null)
+        aboutButton?.onPreferenceClickListener = null
     }
 }
