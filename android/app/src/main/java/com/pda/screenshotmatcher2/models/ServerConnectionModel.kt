@@ -35,6 +35,7 @@ object ServerConnectionModel {
     var isHeartbeating = MutableLiveData<Boolean>(false)
 
     private var application: Application? = null
+    private var isForeground = true
 
     //Handlers for discover/heartbeat thread
     private lateinit var handlerThread: HandlerThread
@@ -99,6 +100,7 @@ object ServerConnectionModel {
     fun start(application: Application, isForeground: Boolean) {
         //Log.d("SCM", "call start, foreground: $isForeground")
         this.application = application
+        this.isForeground = isForeground
         if (!isDiscovering.value!! && !isHeartbeating.value!!) {
             handlerThread = HandlerThread(this.javaClass.simpleName).apply { start() }
             looper = handlerThread.looper
@@ -158,12 +160,12 @@ object ServerConnectionModel {
     /**
      * [Runnable] that discovers all available servers on the network.
      *
-     * Calls [discover] every 1000ms
+     * Calls [discover] in an interval of [getRunnableInterval] ms.
      */
     private val discoverRunnable = object : Runnable {
         override fun run() {
             discover(application!!.applicationContext)
-            mHandler.postDelayed(this, 1000)
+            mHandler.postDelayed(this, this@ServerConnectionModel.getRunnableInterval())
         }
     }
 
@@ -243,14 +245,27 @@ object ServerConnectionModel {
 
 
     /**
-     * [Runnable] that calls [heartbeat] every 1000ms.
+     * [Runnable] that calls [heartbeat] in an interval of [getRunnableInterval] ms.
      */
     private val heartbeatRunnable = object : Runnable {
         override fun run() {
             heartbeat()
-            mHandler.postDelayed(this, 1000)
+            mHandler.postDelayed(this, this@ServerConnectionModel.getRunnableInterval())
         }
     }
+
+    /**
+     * Returns the interval in which [heartbeatRunnable]/[discoverRunnable] should be called.
+     *
+     * @return 1000 if [isForeground] is true, 10000 otherwise
+     */
+    private fun getRunnableInterval (): Long {
+        return if (isForeground)
+            1000
+        else
+            10000
+    }
+
 
     /**
      * Calls [sendHeartbeatRequest] if the application is currently connected to a server;
