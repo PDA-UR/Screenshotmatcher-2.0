@@ -6,13 +6,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.ImageView
-import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.viewModels.GalleryViewModel
-import com.pda.screenshotmatcher2.views.activities.CameraActivity
 import com.pda.screenshotmatcher2.views.fragments.rotationFragments.FIRST_IMAGE_KEY
 import com.pda.screenshotmatcher2.views.fragments.rotationFragments.GalleryFragment
 import com.pda.screenshotmatcher2.views.fragments.rotationFragments.GalleryPreviewFragment
@@ -49,7 +47,7 @@ class GridBaseAdapter(private val context: GalleryFragment) : BaseAdapter() {
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
         val mInflator: LayoutInflater = LayoutInflater.from(context.activity)
         val view: View = mInflator.inflate(R.layout.grid_view_item, parent, false)
-        val vh = ListRowHolder(view)
+        val vh = ViewHolder(view)
         view.tag = vh
 
         view.setOnClickListener {
@@ -61,16 +59,14 @@ class GridBaseAdapter(private val context: GalleryFragment) : BaseAdapter() {
                 putSerializable(SECOND_IMAGE_KEY, secondImageFile)
             }
 
-            val gf = GalleryPreviewFragment().apply { arguments = bundle }
-
             context.requireActivity().supportFragmentManager.beginTransaction().add(
                 R.id.gallery_fragment_body_layout,
-                gf,
+                GalleryPreviewFragment().apply { arguments = bundle },
                 GalleryPreviewFragment::class.java.simpleName
             ).commit()
         }
 
-        Glide.with(context.requireActivity())
+        Glide.with(context)
             .load(imagePairs[position][0])
             .placeholder(R.drawable.fragment_normal_button_small)
             .centerCrop()
@@ -78,7 +74,7 @@ class GridBaseAdapter(private val context: GalleryFragment) : BaseAdapter() {
         vh.firstImage.visibility = View.VISIBLE
         vh.firstImageFile = imagePairs[position][0]
         if (imagePairs[position].size > 1) {
-            Glide.with(context.requireActivity())
+            Glide.with(context)
                 .load(imagePairs[position][1])
                 .placeholder(R.drawable.fragment_normal_button_small)
                 .centerCrop()
@@ -114,7 +110,12 @@ class GridBaseAdapter(private val context: GalleryFragment) : BaseAdapter() {
 
     fun clear () {
         gfvm = null
-
+        // get all views
+        for (i in 0 until this.count) {
+            val vh = this.getView(i, null, null)
+            Glide.with(context).clear(vh)
+            vh.setOnClickListener(null)
+        }
     }
 }
 
@@ -128,7 +129,7 @@ class GridBaseAdapter(private val context: GalleryFragment) : BaseAdapter() {
  * @property firstImage The [ImageView] of the first image
  * @property secondImage The [ImageView] of the second image
  */
-private class ListRowHolder(row: View?) {
+private class ViewHolder(row: View?) {
     var firstImageFile: File? = null
     var secondImageFile: File? = null
     val firstImage: ImageView = row?.findViewById(R.id.grid_view_item_first_image) as ImageView

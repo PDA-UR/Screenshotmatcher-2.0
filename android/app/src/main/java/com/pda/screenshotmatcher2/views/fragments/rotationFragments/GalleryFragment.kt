@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.HapticFeedbackConstants
 import android.view.View
+import android.widget.AdapterView
 import android.widget.FrameLayout
 import android.widget.GridView
 import android.widget.ImageButton
@@ -67,6 +68,7 @@ class GalleryFragment : RotationFragment() {
         mBackButton?.setOnClickListener {
             removeThisFragment()
         }
+
     }
 
     /**
@@ -90,6 +92,8 @@ class GalleryFragment : RotationFragment() {
         return super.removeThisFragmentForRotation()
     }
 
+
+
     /**
      * Removes this fragment.
      *
@@ -102,22 +106,18 @@ class GalleryFragment : RotationFragment() {
             val mFragmentBackground: FrameLayout = activity?.findViewById(R.id.ca_dark_background)!!
             mFragmentBackground.visibility = View.INVISIBLE
         }
-        galleryViewModel = null
-        mBackButton?.setOnClickListener(null)
-
-        mGridView?.onItemClickListener = null
-        mGridView = null
-        mBackButton = null
-
-        mFragmentBackground?.setOnClickListener(null)
-        mFragmentBackground = null
-
-        adapter?.clear()
-        adapter = null
-
-
-
         super.removeThisFragment(removeBackground)
+        clearGarbage()
     }
 
+    override fun clearGarbage() {
+        super.clearGarbage()
+        galleryViewModel = null
+        mBackButton?.setOnClickListener(null)
+        mGridView?.onItemClickListener = null
+        mGridView = null
+        mFragmentBackground?.setOnClickListener(null)
+        adapter?.clear()
+        adapter = null
+    }
 }

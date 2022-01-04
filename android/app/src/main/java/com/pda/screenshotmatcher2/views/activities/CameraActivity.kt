@@ -36,7 +36,8 @@ import com.pda.screenshotmatcher2.viewHelpers.CameraProvider
 import com.pda.screenshotmatcher2.viewModels.CaptureViewModel
 import com.pda.screenshotmatcher2.viewModels.GalleryViewModel
 import com.pda.screenshotmatcher2.viewModels.ServerConnectionViewModel
-import com.pda.screenshotmatcher2.views.activities.interfaces.CameraInstance
+import com.pda.screenshotmatcher2.views.interfaces.GarbageView
+import com.pda.screenshotmatcher2.views.interfaces.CameraInstance
 
 
 /**
@@ -65,7 +66,7 @@ import com.pda.screenshotmatcher2.views.activities.interfaces.CameraInstance
  *
  * @property cameraActivityFragmentHandler Instance of [CameraActivityFragmentHandler], manages fragments
  */
-class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance {
+class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance, GarbageView {
     private var mAccelerometer: Sensor? = null
     private var mSensorManager: SensorManager? = null
     var phoneOrientation: Int = 0
@@ -120,13 +121,22 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
         initViewModels()
     }
 
-    private fun resetActivityListener() {
-        cameraProvider = null
-        mSensorManager = null
-        mAccelerometer = null
-        cameraActivityFragmentHandler = null
+    override fun clearGarbage() {
         cameraProvider?.stop()
         cameraProvider = null
+
+        cameraActivityFragmentHandler = null
+
+
+        mSensorManager?.unregisterListener(this, mAccelerometer)
+        mSensorManager = null
+        mAccelerometer = null
+
+        mCaptureButton.setOnClickListener(null)
+        mSelectDeviceButton.setOnClickListener(null)
+        mSettingsButton.setOnClickListener(null)
+        mGalleryButton.setOnClickListener(null)
+
         resetViewModels()
     }
 
@@ -207,9 +217,8 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
 
     override fun onDestroy() {
         Log.d("CA", "onDestroy")
-        resetActivityListener()
+        clearGarbage()
         super.onDestroy()
-
     }
 
     /**
@@ -236,7 +245,8 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
         Log.d("CA", "onResume")
         val useBackgroundMatchingService: Boolean = sp.getBoolean(BG_MODE_PREF_KEY, false)
         if (useBackgroundMatchingService) BackgroundMatchingService.stopBackgroundService(this)
-
+        cameraProvider?.start()
+        //cameraProvider?.start()
         // due to a bug in Android, the list of sensors returned by the SensorManager can be empty
         // it will stay that way until reboot.
         // make sure we tell the user about it.
@@ -262,9 +272,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
         super.onPause()
         val useBackgroundMatchingService: Boolean = sp.getBoolean(BG_MODE_PREF_KEY, false)
         if (useBackgroundMatchingService && !didStartResultsActivity) BackgroundMatchingService.startBackgroundService(applicationContext)
-
-        //TODO: Enable this when background service is implemented
-
+        cameraProvider?.pause()
     }
 
 
@@ -358,7 +366,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance 
             sendCaptureRequest(
                 greyImg,
                 mServerURL!!,
-                this,
+                applicationContext,
                 matchingOptions,
                 captureCallback = captureCallback
             )

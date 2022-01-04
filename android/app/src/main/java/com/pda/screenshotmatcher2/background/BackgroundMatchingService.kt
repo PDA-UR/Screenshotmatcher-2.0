@@ -22,6 +22,7 @@ import com.pda.screenshotmatcher2.models.ServerConnectionModel
 import com.pda.screenshotmatcher2.network.CaptureCallback
 import com.pda.screenshotmatcher2.network.sendCaptureRequest
 import com.pda.screenshotmatcher2.utils.rescale
+import com.pda.screenshotmatcher2.views.interfaces.GarbageView
 import com.pda.screenshotmatcher2.views.activities.CameraActivity
 import com.pda.screenshotmatcher2.views.activities.ResultsActivity
 import java.io.File
@@ -34,19 +35,19 @@ import java.util.*
  * A [Service] running in the background, which detects when new photos are taken on the smartphone.
  * A [ContentObserver] monitors changes in the phone gallery directory and sends match requests once new photos are detected
  *
- * @property isServiceStarted Indicates whether or not the service is active
+ * @property isActive Indicates whether or not the service is active
  * @property contentObserver [ContentObserver] instance, which monitors the gallery
  * @property sp [SharedPreferences] instance, stores matching options
  * @property notificationChannelId The channel id used to send notification
  */
-class BackgroundMatchingService : Service() {
-    private var isServiceStarted = false
-    private lateinit var contentObserver: ContentObserver
+class BackgroundMatchingService : Service(), GarbageView {
+    private var isActive = false
+    private var contentObserver: ContentObserver? = null
     private lateinit var sp: SharedPreferences
     private lateinit var MATCHING_MODE_PREF_KEY: String
     private var timestamp: Long = 0
     private val notificationChannelId = "SM"
-    private lateinit var broadcastReceiver: BroadcastReceiver
+    private var broadcastReceiver: BroadcastReceiver? = null
 
     /**
      * Stores the last 10 files dispatched by [contentObserver] in the variable [lastPaths]. This is done to avoid double processing, because [contentObserver] sometimes fires multiple identical events per file.
@@ -62,21 +63,22 @@ class BackgroundMatchingService : Service() {
         fun startBackgroundService(context: Context) {
             Intent(context, BackgroundMatchingService::class.java).also {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    Log.d("BG", "Starting the service in >=26 Mode")
                     context.startForegroundService(it)
                     return
                 }
-                Log.d("BG", "Starting the service in < 26 Mode")
                 context.startService(it)
             }
         }
 
         fun stopBackgroundService(context: Context) {
             Intent(context, BackgroundMatchingService::class.java).also {
-                Log.d("CA", "Stopping service")
                 context.stopService(it)
             }
         }
+    }
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        startService()
+        return START_NOT_STICKY
     }
 
     override fun onCreate() {
@@ -96,34 +98,42 @@ class BackgroundMatchingService : Service() {
                 }
             }
         }
-        val intentFilter = IntentFilter()
-        intentFilter.addAction(Intent.ACTION_SCREEN_OFF)
-        intentFilter.addAction(Intent.ACTION_SCREEN_ON)
+        val intentFilter = IntentFilter().apply {
+            addAction(Intent.ACTION_SCREEN_OFF)
+            addAction(Intent.ACTION_SCREEN_ON)
+        }
         this@BackgroundMatchingService.registerReceiver(broadcastReceiver, intentFilter)
+
         startForeground(1, notification)
     }
 
     override fun onDestroy() {
         this@BackgroundMatchingService.unregisterReceiver(broadcastReceiver)
+        this.broadcastReceiver = null
+        clearGarbage()
         super.onDestroy()
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        startService()
-        return START_NOT_STICKY
+    override fun clearGarbage() {
+        isActive = false
+        contentObserver?.let { contentResolver.unregisterContentObserver(it) }
+        contentObserver = null
+
+        stopForeground(true)
+        stopSelf()
     }
 
+
     private fun sleepService() {
-        if (isServiceStarted) return
-        isServiceStarted = false
-        contentResolver.unregisterContentObserver(contentObserver)
+        if (!isActive) return
+        isActive = false
         ServerConnectionModel.stopThreads()
     }
 
     private fun startService() {
         Log.d("NPS", "started fg")
-        if (isServiceStarted) return
-        isServiceStarted = true
+        if (isActive) return
+        isActive = true
         ServerConnectionModel.start(application, false)
         startContentObserver()
     }
@@ -135,13 +145,13 @@ class BackgroundMatchingService : Service() {
 	 */
     fun stopService(context: Context) {
         try {
-            contentResolver.unregisterContentObserver(contentObserver)
+            contentObserver?.let { contentResolver.unregisterContentObserver(it) }
             stopForeground(true)
             stopSelf()
         } catch (e: Exception) {
             Log.d("NPS", "Service stopped without being started: ${e.message}")
         }
-        isServiceStarted = false
+        isActive = false
     }
 
     override fun onBind(intent: Intent?): IBinder? {
@@ -231,11 +241,15 @@ class BackgroundMatchingService : Service() {
 
             }
         }
-        contentResolver.registerContentObserver(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-            true,
-            contentObserver
-        )
+        contentObserver.let {
+            if (it != null) {
+                contentResolver.registerContentObserver(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    true,
+                    it
+                )
+            }
+        }
     }
 
     @SuppressLint("SimpleDateFormat")
@@ -276,7 +290,7 @@ class BackgroundMatchingService : Service() {
             CaptureModel.setServerURL(serverUrl)
 
             Log.d("NPS", serverUrl)
-            val matchingOptions: java.util.HashMap<Any?, Any?> =
+            val matchingOptions: HashMap<Any?, Any?> =
                 getMatchingOptionsFromPref()
             Log.d(
                 "NPS_TS",
@@ -287,7 +301,7 @@ class BackgroundMatchingService : Service() {
             sendCaptureRequest(
                 greyImg,
                 serverUrl,
-                this@BackgroundMatchingService,
+                this@BackgroundMatchingService.applicationContext,
                 matchingOptions,
                 captureCallback = captureCallback
             )
@@ -328,7 +342,7 @@ class BackgroundMatchingService : Service() {
 
             // Decode bitmap with inSampleSize set
             inJustDecodeBounds = false
-
+            //TODO: Twice??
             BitmapFactory.decodeFile(file.path, this)
         }
     }

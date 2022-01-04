@@ -10,7 +10,6 @@ import android.graphics.Point
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.*
 import android.media.ImageReader
-import android.util.Log
 import android.util.Size
 import android.view.Surface
 import android.view.TextureView
@@ -18,7 +17,7 @@ import androidx.core.app.ActivityCompat
 import com.pda.screenshotmatcher2.utils.CompareSizesByArea
 import com.pda.screenshotmatcher2.utils.rotateBitmap
 import com.pda.screenshotmatcher2.logger.StudyLogger
-import com.pda.screenshotmatcher2.views.activities.interfaces.CameraInstance
+import com.pda.screenshotmatcher2.views.interfaces.CameraInstance
 import java.util.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
@@ -43,8 +42,8 @@ import kotlin.collections.ArrayList
  *
  */
 class CameraProvider(cameraInstance: CameraInstance) {
-    private val ci = cameraInstance
-    private var ca: Activity? = ci.getActivity()
+    private var ci: CameraInstance? = cameraInstance
+    private var ca: Activity? = ci?.getActivity()
 
     /**
      * Options for the camera image.
@@ -56,11 +55,12 @@ class CameraProvider(cameraInstance: CameraInstance) {
     }
 
     private lateinit var cameraId: String
-    private lateinit var captureSession: CameraCaptureSession
-    private lateinit var cameraDevice: CameraDevice
-    private lateinit var previewTextureView: TextureView
+    private var captureSession: CameraCaptureSession? = null
+    private var cameraDevice: CameraDevice? = null
+    private var previewTextureView: TextureView? = null
+    private var surfaceTexture: SurfaceTexture? = null
     private lateinit var previewSize: Size
-    private lateinit var imageReader: ImageReader
+    private var imageReader: ImageReader? = null
     private lateinit var previewRequestBuilder: CaptureRequest.Builder
     private lateinit var previewRequest: CaptureRequest
     private var cameraOpenCloseLock: Semaphore = Semaphore(1)
@@ -69,23 +69,22 @@ class CameraProvider(cameraInstance: CameraInstance) {
      * Starts the camera preview on [previewTextureView].
      */
     fun start(){
-        Log.d("CA", "CA-L cameraProvider start")
-        initializeTextureView()
+        if (previewTextureView?.isAvailable != true) initializeTextureView()
     }
 
     /**
      * Initializes [previewTextureView] and sets the [SurfaceTextureListener][TextureView.SurfaceTextureListener].
      */
     private fun initializeTextureView(){
-        previewTextureView = ci.getTextureView()
-        previewTextureView.surfaceTextureListener =
+        previewTextureView = ci?.getTextureView()
+        previewTextureView?.surfaceTextureListener =
             object : TextureView.SurfaceTextureListener {
                 override fun onSurfaceTextureAvailable(
                     texture: SurfaceTexture,
                     width: Int,
                     height: Int
                 ) {
-                    Log.d("CA", "CA-L cameraProvider initializeTextureView onSurfaceTextureAvailable")
+                    surfaceTexture = texture
                     openCamera(width, height)
                 }
 
@@ -94,17 +93,24 @@ class CameraProvider(cameraInstance: CameraInstance) {
                     width: Int,
                     height: Int
                 ) {
+                    surfaceTexture = texture
                 }
 
                 override fun onSurfaceTextureDestroyed(texture: SurfaceTexture): Boolean {
-                    return true
+                    if(cameraDevice != null){
+                        cameraDevice?.close()
+                        cameraDevice = null
+                    }
+                    return false
                 }
 
-                override fun onSurfaceTextureUpdated(texture: SurfaceTexture) {}
+                override fun onSurfaceTextureUpdated(texture: SurfaceTexture) {
+
+                }
             }
-        if (previewTextureView.isAvailable) {
-            Log.d("CA", "CA-L cameraProvider initializeTextureView isAvailable, starting")
-            openCamera(previewTextureView.width, previewTextureView.height)
+        if (previewTextureView?.isAvailable == true) {
+            surfaceTexture = previewTextureView?.surfaceTexture
+            openCamera(previewTextureView!!.width, previewTextureView!!.height)
         }
     }
 
@@ -112,7 +118,6 @@ class CameraProvider(cameraInstance: CameraInstance) {
      * Opens the camera with the provided [width] and [height] if [Manifest.permission.CAMERA] is granted.
 	 */
     fun openCamera(width: Int, height: Int) {
-        Log.d("CA", "CA-L cameraProvider openCamera")
         setUpCameraOutputs(width, height)
         if (ca !== null) {
             val manager =
@@ -122,12 +127,11 @@ class CameraProvider(cameraInstance: CameraInstance) {
                     Manifest.permission.CAMERA
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
-                Log.d("CA", "CA-L cameraProvider openCamera permission not granted")
                 return
             }
             try {
                 cameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)
-                manager.openCamera(cameraId, cameraDeviceStateCallback, null)
+                cameraDeviceStateCallback?.let { manager.openCamera(cameraId, it, null) }
             } catch (e: CameraAccessException) {
                 e.printStackTrace()
             } catch (e: InterruptedException) {
@@ -187,7 +191,7 @@ class CameraProvider(cameraInstance: CameraInstance) {
     /**
      * Callback for handling all state changes of the open camera.
      */
-    private val cameraDeviceStateCallback: CameraDevice.StateCallback = object : CameraDevice.StateCallback() {
+    private var cameraDeviceStateCallback: CameraDevice.StateCallback? = object : CameraDevice.StateCallback() {
         override fun onOpened(cameraDevice: CameraDevice) {
             cameraOpenCloseLock.release()
             this@CameraProvider.cameraDevice = cameraDevice
@@ -211,21 +215,22 @@ class CameraProvider(cameraInstance: CameraInstance) {
      */
     private fun createCameraCaptureSession() {
         try {
-            val texture = previewTextureView.surfaceTexture!!.apply {
+            val texture = surfaceTexture?.apply {
                 setDefaultBufferSize(previewSize.width, previewSize.height)
             }
             val surface = Surface(texture)
-
             //Capturing for preview
             previewRequestBuilder =
-                cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
+                cameraDevice!!.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
             previewRequestBuilder.addTarget(surface)
 
-            cameraDevice.createCaptureSession(
-                listOf(surface, imageReader.surface),
-                cameraCaptureSessionStateCallback,
-                null
-            )
+            cameraCaptureSessionStateCallback?.let {
+                cameraDevice?.createCaptureSession(
+                    listOf(surface, imageReader?.surface),
+                    it,
+                    null
+                )
+            }
         } catch (e: CameraAccessException) {
             e.printStackTrace()
         }
@@ -234,7 +239,7 @@ class CameraProvider(cameraInstance: CameraInstance) {
     /**
      * Callback for handling all state changes of [captureSession].
      */
-    private var cameraCaptureSessionStateCallback: CameraCaptureSession.StateCallback = object : CameraCaptureSession.StateCallback() {
+    private var cameraCaptureSessionStateCallback: CameraCaptureSession.StateCallback? = object : CameraCaptureSession.StateCallback() {
         override fun onConfigured(cameraCaptureSession: CameraCaptureSession) {
             captureSession = cameraCaptureSession
             try {
@@ -244,7 +249,7 @@ class CameraProvider(cameraInstance: CameraInstance) {
                 )
 
                 previewRequest = previewRequestBuilder.build()
-                captureSession.setRepeatingRequest(
+                captureSession?.setRepeatingRequest(
                     previewRequest,
                     null, null
                 )
@@ -259,6 +264,12 @@ class CameraProvider(cameraInstance: CameraInstance) {
             cameraCaptureSession: CameraCaptureSession
         ) {
             throw RuntimeException("Failed to configure CameraCaptureSession")
+        }
+
+        override fun onClosed(session: CameraCaptureSession) {
+            super.onClosed(session)
+            cameraDevice?.close()
+
         }
     }
 
@@ -323,10 +334,10 @@ class CameraProvider(cameraInstance: CameraInstance) {
      * Captures the current frame of the [previewTextureView] and returns it as a [Bitmap].
 	 */
     fun captureImageWithPreviewExtraction(): Bitmap? {
-        var mBitmap: Bitmap? = previewTextureView.bitmap
+        var mBitmap: Bitmap? = previewTextureView?.bitmap
 
-        if(ci.getOrientation() != Surface.ROTATION_0 && mBitmap != null){
-            when(ci.getOrientation()){
+        if(ci?.getOrientation() != Surface.ROTATION_0 && mBitmap != null){
+            when(ci?.getOrientation()){
                 Surface.ROTATION_90 -> mBitmap =
                     rotateBitmap(
                         mBitmap,
@@ -344,8 +355,16 @@ class CameraProvider(cameraInstance: CameraInstance) {
         return mBitmap
     }
 
+    fun pause() {
+        captureSession?.close()
+    }
+
     fun stop() {
-        cameraDevice.close()
+        //pause()
+        //previewTextureView?.surfaceTextureListener = null
+        //surfaceTexture = null
+        //previewTextureView = null
         ca = null
+        ci = null
     }
 }

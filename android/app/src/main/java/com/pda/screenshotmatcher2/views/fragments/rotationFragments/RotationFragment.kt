@@ -8,6 +8,7 @@ import android.widget.FrameLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import com.pda.screenshotmatcher2.R
+import com.pda.screenshotmatcher2.views.interfaces.GarbageView
 import com.pda.screenshotmatcher2.views.activities.CameraActivity
 import java.io.File
 
@@ -21,7 +22,7 @@ import java.io.File
  * @property subclassName The class name of the fragment extending this class
  *
  */
-abstract class RotationFragment : Fragment() {
+abstract class RotationFragment : GarbageView, Fragment() {
 
     var containerView: FrameLayout? = null
     var ca: CameraActivity? = null
@@ -116,6 +117,10 @@ abstract class RotationFragment : Fragment() {
     open fun removeThisFragment(removeBackground: Boolean = true) {
         activity?.supportFragmentManager?.beginTransaction()?.remove(this)
             ?.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)?.commit()
+        clearGarbage()
+    }
+
+    override fun clearGarbage() {
         mView = null
         ca = null
         containerView = null

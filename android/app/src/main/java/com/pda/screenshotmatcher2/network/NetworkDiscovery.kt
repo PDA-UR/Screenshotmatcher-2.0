@@ -29,6 +29,7 @@ const val MAX_SERVERS = 5
  * @return A list of available servers.
  */
 fun discoverServersOnNetwork(context: Context, port: Int = 49050, message: String = "screenshot matcher client LF server", onGet : (servers: List<Pair<String, String>>) -> Unit) : List<Pair<String, String>> {
+    Log.d("NetworkDiscovery", "Discovering servers on network")
     val s = DatagramSocket().also {
         it.broadcast = true
         it.reuseAddress = true

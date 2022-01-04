@@ -1,4 +1,4 @@
-package com.pda.screenshotmatcher2.views.activities.interfaces
+package com.pda.screenshotmatcher2.views.interfaces
 
 import android.app.Activity
 import android.view.TextureView

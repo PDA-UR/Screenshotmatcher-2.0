@@ -2,11 +2,13 @@ package com.pda.screenshotmatcher2.views.fragments.rotationFragments
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.HapticFeedbackConstants
 import android.view.View
 import android.widget.*
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.preference.PreferenceManager
 import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.viewModels.ServerConnectionViewModel
 
@@ -26,7 +28,7 @@ class SelectDeviceFragment : RotationFragment() {
     private lateinit var adapter: ArrayAdapter<String>
     private var mServerList: ArrayList<String> = ArrayList()
     private lateinit var lastSelectedItem: TextView
-    private lateinit var serverConnectionViewModel: ServerConnectionViewModel
+    private var serverConnectionViewModel: ServerConnectionViewModel? = null
 
     /**
      * Called when the fragment is created, calls [initServerList] and [initViews].
@@ -73,7 +75,10 @@ class SelectDeviceFragment : RotationFragment() {
                 lastSelectedItem = view as TextView
                 val itemView: TextView = view
                 itemView.setTextColor(resources.getColor(R.color.connected_green))
-                serverConnectionViewModel.setServerUrl(mServerList[position])
+                // add the selected server url to shared preferences
+                val knownList = PreferenceManager.getDefaultSharedPreferences(requireContext()).getStringSet(context?.getString(R.string.KNOWN_SERVERS_KEY), setOf())
+                PreferenceManager.getDefaultSharedPreferences(context).edit().putStringSet(context?.getString(R.string.KNOWN_SERVERS_KEY), knownList?.plus(mServerList[position])).apply()
+                serverConnectionViewModel?.setServerUrl(mServerList[position])
         }
     }
 
@@ -85,6 +90,14 @@ class SelectDeviceFragment : RotationFragment() {
     override fun removeThisFragment(removeBackground: Boolean) {
         ca?.window?.decorView?.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
         ca?.onCloseSelectDeviceFragment()
+        clearGarbage()
         super.removeThisFragment(removeBackground)
+    }
+
+    override fun clearGarbage() {
+        super.clearGarbage()
+        mListView.onItemClickListener = null
+        serverConnectionViewModel = null
+        ca = null
     }
 }
