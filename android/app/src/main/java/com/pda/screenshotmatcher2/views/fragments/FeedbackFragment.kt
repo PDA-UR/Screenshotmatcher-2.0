@@ -15,6 +15,7 @@ import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.logger.StudyLogger
 import com.pda.screenshotmatcher2.network.sendFeedbackToServer
 import com.pda.screenshotmatcher2.viewModels.CaptureViewModel
+import com.pda.screenshotmatcher2.views.interfaces.GarbageView
 
 /**
  * Fragment that lets the user send feedback to a feedback server.
@@ -29,15 +30,15 @@ import com.pda.screenshotmatcher2.viewModels.CaptureViewModel
  * @property captureViewModel The [CaptureViewModel], used to access the server url and match id of the last match request
  *
  */
-class FeedbackFragment : Fragment() {
+class FeedbackFragment : Fragment(), GarbageView {
     //Views
     private lateinit var layout: LinearLayout
-    private lateinit var containerView: FrameLayout
-    private lateinit var mFragmentBackground: FrameLayout
+    private var containerView: FrameLayout? = null
+    private var mFragmentBackground: FrameLayout? = null
     private lateinit var mSendFeedbackButton: Button
     private lateinit var mTextInputField: EditText
 
-    private lateinit var captureViewModel: CaptureViewModel
+    private var captureViewModel: CaptureViewModel? = null
 
     /**
      * Called when the fragment is created, sets the match result id and the matching server url.
@@ -57,7 +58,7 @@ class FeedbackFragment : Fragment() {
     ): View? {
         // Inflate the layout for this fragment
         containerView = container as FrameLayout
-        containerView.visibility = View.VISIBLE
+        containerView?.visibility = View.VISIBLE
         return inflater.inflate(R.layout.fragment_feedback, container, false)
     }
 
@@ -115,7 +116,7 @@ class FeedbackFragment : Fragment() {
         mFragmentBackground = activity?.findViewById(
             R.id.ca_dark_background
         )!!
-        mFragmentBackground.apply {
+        mFragmentBackground?.apply {
             setOnClickListener {
                 if (isKeyboardActive()){
                     dismissKeyboard()
@@ -135,8 +136,8 @@ class FeedbackFragment : Fragment() {
             sendFeedbackToServer(
                 this,
                 requireActivity().applicationContext,
-                this.captureViewModel.getServerUrl()!!,
-                this.captureViewModel.getMatchID()!!,
+                this.captureViewModel?.getServerUrl()!!,
+                this.captureViewModel?.getMatchID()!!,
                 hasResult = false,
                 hasScreenshot = false,
                 comment = getInputTextFieldText()
@@ -158,11 +159,24 @@ class FeedbackFragment : Fragment() {
      */
     private fun removeThisFragment() {
         requireActivity().window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
-        containerView.visibility = View.INVISIBLE
-        mFragmentBackground.visibility = View.INVISIBLE
+        containerView?.visibility = View.INVISIBLE
+        mFragmentBackground?.visibility = View.INVISIBLE
         activity?.supportFragmentManager
             ?.beginTransaction()
             ?.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)
             ?.remove(this)?.commit()
+    }
+
+
+    override fun clearGarbage() {
+        mFragmentBackground?.setOnClickListener(null)
+        mSendFeedbackButton.setOnClickListener(null)
+        mTextInputField.setOnClickListener(null)
+        layout.setOnClickListener(null)
+
+        captureViewModel = null
+        containerView = null
+        mFragmentBackground = null
+
     }
 }
