@@ -7,7 +7,7 @@ package com.pda.screenshotmatcher2.views.interfaces
  */
 interface GarbageView {
     /**
-     * Clear all listeners and other variables that are not needed anymore.
+     * Set all listeners, ViewModels and shared references to null.
      */
     fun clearGarbage()
 }

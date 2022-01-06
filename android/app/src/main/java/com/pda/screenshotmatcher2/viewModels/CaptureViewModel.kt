@@ -1,12 +1,15 @@
 package com.pda.screenshotmatcher2.viewModels
 
 import android.app.Application
+import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.models.CaptureModel
 import com.pda.screenshotmatcher2.network.requestFullScreenshot
 
@@ -96,7 +99,9 @@ class CaptureViewModel(application: Application) : AndroidViewModel(application)
      * Used in [loadFullScreenshot].
 	 */
     private fun onDownloadFullScreenshot(fullScreenshot: Bitmap?) {
-        this.fullScreenshot.value = CaptureModel.setFullScreenshot(fullScreenshot)
+        if(fullScreenshot != null)
+            this.fullScreenshot.value = CaptureModel.setFullScreenshot(fullScreenshot)
+        else Toast.makeText(getApplication(), (getApplication() as Context).getText(R.string.http_download_full_error_en), Toast.LENGTH_SHORT).show()
     }
 
     /**

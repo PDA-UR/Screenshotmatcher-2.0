@@ -1,7 +1,6 @@
 package com.pda.screenshotmatcher2.views.activities
 
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
@@ -66,11 +65,11 @@ import java.io.File
  * @property isReturningToCameraActivity Whether this activity is returning to the camera activity or not, set to true in [goBackToCameraActivity]
  * @property wasStartedFromCameraActivity Whether this activity was started from the camera activity or not
  *
- * @property Const Constants relevant to this activity
+ * @property Consts Constants relevant to this activity
  */
 class ResultsActivity : AppCompatActivity() {
 
-    companion object Const {
+    companion object Consts {
         const val RESULT_ACTIVITY_REQUEST_CODE = 20
         const val EXTRA_STARTED_FROM_CAMERA_ACTIVITY = "extra_started_from_camera_activity"
     }
@@ -359,7 +358,6 @@ class ResultsActivity : AppCompatActivity() {
                         Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION
                     )
                 }
-                //val shareIntent = Intent.createChooser(sendIntent,"Share")
                 startActivity(shareIntent)
             }
             else -> {

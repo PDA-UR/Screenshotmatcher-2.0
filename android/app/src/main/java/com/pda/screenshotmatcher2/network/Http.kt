@@ -309,6 +309,8 @@ fun requestFullScreenshot(
             }
         },
         { error ->
+            onDownload(null)
+            // TODO: Implement fix → the latest full screenshot can be requested at ANY time
             error.printStackTrace()
         })
     queue!!.add(jsonOR)

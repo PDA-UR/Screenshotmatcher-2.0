@@ -1,8 +1,6 @@
 package com.pda.screenshotmatcher2.views.fragments
 
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
@@ -20,9 +18,7 @@ import com.pda.screenshotmatcher2.logger.StudyLogger
 import com.pda.screenshotmatcher2.views.activities.ResultsActivity
 import com.pda.screenshotmatcher2.network.sendLog
 import com.pda.screenshotmatcher2.viewModels.CaptureViewModel
-
-const val UID_KEY: String = "UID"
-const val URL_KEY: String = "URL"
+import com.pda.screenshotmatcher2.views.interfaces.GarbageView
 
 /**
  * Fragment displaying an error message to the user when a match request results in no matches.
@@ -36,15 +32,15 @@ const val URL_KEY: String = "URL"
  * @property captureViewModel The [CaptureViewModel], used to access the server url and full camera image of the last match request
  * @property resultsOpened Whether the results activity was opened by this fragment or not
  */
-class ErrorFragment : Fragment() {
+class ErrorFragment : Fragment(), GarbageView {
     private lateinit var mBackButton: Button
     private lateinit var mFeedbackButton: Button
     private lateinit var mFullImageButton: Button
-    private lateinit var containerView: FrameLayout
-    private lateinit var mFragmentBackground: FrameLayout
+    private var containerView: FrameLayout? = null
+    private var mFragmentBackground: FrameLayout? = null
     private lateinit var mErrorImageView: ImageView
 
-    private lateinit var captureViewModel: CaptureViewModel
+    private var captureViewModel: CaptureViewModel? = null
 
     private var resultsOpened = false
 
@@ -65,7 +61,7 @@ class ErrorFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         containerView = container as FrameLayout
-        containerView.visibility = View.VISIBLE
+        containerView?.visibility = View.VISIBLE
         return inflater.inflate(R.layout.fragment_error, container, false)
     }
 
@@ -88,11 +84,11 @@ class ErrorFragment : Fragment() {
         mFullImageButton = requireView().findViewById(R.id.ef_full_image_button)
         mFullImageButton.setOnClickListener { openResultsActivity() }
         mFragmentBackground = activity?.findViewById(R.id.ca_dark_background)!!
-        mFragmentBackground.setOnClickListener { removeThisFragment() }
-        mFragmentBackground.visibility = View.VISIBLE
+        mFragmentBackground?.setOnClickListener { removeThisFragment() }
+        mFragmentBackground?.visibility = View.VISIBLE
         mErrorImageView = requireView().findViewById(R.id.errorFragmentImage)
         Glide.with(requireActivity())
-            .load(captureViewModel.getCameraImage())
+            .load(captureViewModel?.getCameraImage())
             .centerCrop()
             .into(mErrorImageView)
     }
@@ -129,8 +125,8 @@ class ErrorFragment : Fragment() {
      */
     private fun removeThisFragment() {
         requireActivity().window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
-        mFragmentBackground.visibility = View.INVISIBLE
-        containerView.visibility = View.INVISIBLE
+        mFragmentBackground?.visibility = View.INVISIBLE
+        containerView?.visibility = View.INVISIBLE
         activity?.supportFragmentManager?.beginTransaction()?.remove(this)
             ?.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)?.commit()
     }
@@ -138,8 +134,19 @@ class ErrorFragment : Fragment() {
     override fun onStop() {
         super.onStop()
         if (!resultsOpened) {
-            sendLog(captureViewModel.getServerUrl()!!, requireContext())
+            sendLog(captureViewModel?.getServerUrl()!!, requireContext())
             StudyLogger.hashMap.clear()
         }
+    }
+
+    override fun clearGarbage() {
+        mBackButton.setOnClickListener(null)
+        mFeedbackButton.setOnClickListener(null)
+        mFullImageButton.setOnClickListener(null)
+        mFragmentBackground?.setOnClickListener(null)
+
+        containerView = null
+        mFragmentBackground = null
+        captureViewModel = null
     }
 }

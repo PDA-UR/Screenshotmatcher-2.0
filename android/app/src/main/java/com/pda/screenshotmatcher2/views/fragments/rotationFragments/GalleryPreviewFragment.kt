@@ -373,6 +373,17 @@ class GalleryPreviewFragment : RotationFragment() {
         mSaveOneButton?.setOnClickListener { saveCurrentPreviewImage() }
     }
 
+
+    /**
+     * Removes this fragment and returns the displayed image pair.
+     *
+     * @return The displayed image pair
+     */
+    override fun removeThisFragmentForRotation(): ArrayList<File?> {
+        super.removeThisFragmentForRotation()
+        return arrayListOf(mCroppedImageFile, mFullImageFile)
+    }
+
     /**
      * Remove this fragment to rotate it.
      *
@@ -399,13 +410,4 @@ class GalleryPreviewFragment : RotationFragment() {
         mFragmentBackground = null
     }
 
-    /**
-     * Removes this fragment and returns the displayed image pair.
-     *
-     * @return The displayed image pair
-     */
-    override fun removeThisFragmentForRotation(): ArrayList<File?> {
-        super.removeThisFragmentForRotation()
-        return arrayListOf(mCroppedImageFile, mFullImageFile)
-    }
 }

@@ -149,6 +149,9 @@ object ServerConnectionModel {
         }
     }
 
+    /**
+     * Stops all runnables
+     */
     fun stopThreads() {
         if (handlerThread.isAlive) {
             isDiscovering.postValue(false)
