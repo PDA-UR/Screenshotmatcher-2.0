@@ -574,7 +574,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
      */
     fun onPermissionDenied() {
         isCapturing = false
-        Toast.makeText(this, "Permission denied from server.", Toast.LENGTH_LONG).show()
+        Toast.makeText(this, getText(R.string.match_request_perm_denied), Toast.LENGTH_LONG).show()
     }
 
     /**
