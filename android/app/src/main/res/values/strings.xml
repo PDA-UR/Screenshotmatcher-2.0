@@ -68,4 +68,14 @@
     <string name="settings_bgMode_summary">Activates matching in the background, so you can use the stock camera app to take screenshots</string>
     <string name="settings_bgMode_key" translatable="false">BG_MODE_KEY</string>
     <string name="KNOWN_SERVERS_KEY">known_servers</string>
+    <string name="match_request_perm_denied">Screenshot match permission denied by server</string>
+    <string name="bgMode_match_notification_channel_name">Match Notification</string>
+    <string name="bgMode_match_notification_title">New Screenshot!</string>
+    <string name="bgMode_match_notification_text">Looks like you took a screenshot</string>
+    <string name="bgMode_fg_notification_channel_name">ScreenshotMatcher background notification channel</string>
+    <string name="bgMode_fg_notification_description">Channel for the background matching indication</string>
+    <string name="bgMode_fg_notification_title">ScreenshotMatcher</string>
+    <string name="bgMode_fg_notification_text">ScreenshotMatcher is active in the background</string>
+    <string name="bgMode_fg_notification_connected">Status: Connected!</string>
+    <string name="bgMode_fg_notification_disconnected">Status: Disconnected!</string>
 </resources>

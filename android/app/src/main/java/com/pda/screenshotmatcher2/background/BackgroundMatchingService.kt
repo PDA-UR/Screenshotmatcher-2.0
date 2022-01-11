@@ -12,9 +12,11 @@ import android.net.Uri
 import android.os.*
 import android.provider.MediaStore
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.lifecycle.Observer
 import androidx.preference.PreferenceManager
 import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.models.CaptureModel
@@ -48,6 +50,20 @@ class BackgroundMatchingService : Service() {
     private val matchResultNotificationChannelId = "SM_MR_NOTIFICATION_CHANNEL"
     private var broadcastReceiver: BroadcastReceiver? = null
     private var isWaitingForMatchingResponse = false
+    private lateinit var foregroundNotificationBuilder: Notification.Builder
+
+    val isConnectedObserver = Observer<Boolean> {
+        if (it != isConnected) {
+            isConnected = it
+            foregroundNotificationBuilder.apply {
+                setContentText(getConnectedStatusString())
+                setSmallIcon(getConnectedStatusIcon())
+            }
+            NotificationManagerCompat.from(this@BackgroundMatchingService).notify(1, foregroundNotificationBuilder.build())
+            Log.d("BackgroundMatchingService", "isConnectedObserver: $it")
+        }
+    }
+    var isConnected: Boolean? = false
 
     private var matchNotificationChannel: NotificationChannel? = null
     private var matchNotificationManager: NotificationManager? = null
@@ -63,6 +79,7 @@ class BackgroundMatchingService : Service() {
                 super.push(e)
             }
         }
+
         fun startBackgroundService(context: Context) {
             Intent(context, BackgroundMatchingService::class.java).also {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -87,18 +104,12 @@ class BackgroundMatchingService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        val notification = createForegroundNotification()
+
         broadcastReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 when (intent?.action) {
-                    Intent.ACTION_SCREEN_OFF -> {
-                        Log.d("BG", "Screen off")
-                        sleepService()
-                    }
-                    Intent.ACTION_SCREEN_ON -> {
-                        Log.d("BG", "Screen on")
-                        startService()
-                    }
+                    Intent.ACTION_SCREEN_OFF -> sleepService()
+                    Intent.ACTION_SCREEN_ON -> startService()
                 }
             }
         }
@@ -107,13 +118,16 @@ class BackgroundMatchingService : Service() {
             addAction(Intent.ACTION_SCREEN_ON)
         }
         this@BackgroundMatchingService.registerReceiver(broadcastReceiver, intentFilter)
-        startForeground(1, notification)
+        initForegroundNotification()
+        startForeground(1, foregroundNotificationBuilder.build())
     }
 
     private fun startService() {
         if (isActive) return
         isActive = true
         ServerConnectionModel.start(application, false)
+
+        ServerConnectionModel.isConnected.observeForever(isConnectedObserver)
         startContentObserver()
     }
 
@@ -123,6 +137,7 @@ class BackgroundMatchingService : Service() {
         contentObserver?.let { contentResolver.unregisterContentObserver(it) }
         contentObserver = null
         ServerConnectionModel.stopThreads()
+        ServerConnectionModel.isConnected.removeObserver(isConnectedObserver)
     }
 
     private fun stopService() {
@@ -139,7 +154,8 @@ class BackgroundMatchingService : Service() {
     }
 
     override fun onBind(intent: Intent?): IBinder? {
-        // Bind other components here if necessary
+        // Bind other components here if necessary,
+        // Method has to be implemented for Android Services
         return null
     }
 
@@ -151,13 +167,22 @@ class BackgroundMatchingService : Service() {
                 val serverUrl = ServerConnectionModel.serverUrl.value
                 if (serverUrl != null && serverUrl != "" && uri != null && !isWaitingForMatchingResponse) {
                     val path = getPathFromObserverUri(uri)
-                    if (path != null && !recentContentObserverPaths.contains(path) && !path.contains(Regex("/_"))) {
+                    if (path != null && !recentContentObserverPaths.contains(path) && !path.contains(
+                            Regex("/_")
+                        )
+                    ) {
                         recentContentObserverPaths.push(path)
                         val candidateFile = File(path)
                         if (!isNewCameraPhoto(candidateFile)) return
-                        rescaleAndSendToServer(image = decodeSampledBitmapFromResource(candidateFile, 512, 512))
-                    } else path?.let { Log.d("NPS", "Not printed: $path") }
-                } else {Log.d("NPS", "CO event, didn't meet requirements")}
+                        rescaleAndSendToServer(
+                            image = decodeSampledBitmapFromResource(
+                                candidateFile,
+                                512,
+                                512
+                            )
+                        )
+                    }
+                }
             }
         }
         contentObserver.let {
@@ -209,20 +234,22 @@ class BackgroundMatchingService : Service() {
                 matchingOptions,
                 captureCallback = captureCallback
             )
-        } else {
-            Log.d("NPS", "invalid serverURL")
         }
     }
 
     private val captureCallback = object : CaptureCallback {
         override fun onPermissionDenied() {
-            Log.d("CA", "Permission denied")
+            Toast.makeText(
+                this@BackgroundMatchingService,
+                getText(R.string.match_request_perm_denied),
+                Toast.LENGTH_LONG
+            ).show()
             isWaitingForMatchingResponse = false
         }
 
-        override fun onMatchResult(matchID: String, img: ByteArray){
+        override fun onMatchResult(matchID: String, img: ByteArray) {
             isWaitingForMatchingResponse = false
-            onMatch(matchID, img, CaptureModel.getCameraImage())
+            onMatch(matchID, img)
         }
 
         override fun onMatchFailure(uid: String) {
@@ -234,22 +261,21 @@ class BackgroundMatchingService : Service() {
         }
     }
 
-    private fun onMatch(matchId: String, ba: ByteArray?, original: Bitmap?) {
+    private fun onMatch(matchId: String, ba: ByteArray?) {
         CaptureModel.setMatchID(matchId)
         if (ba != null) {
             val image = BitmapFactory.decodeByteArray(ba, 0, ba.size)
             CaptureModel.setCroppedScreenshot(image)
-            sendMatchNotification(image, true)
-        } else if (original != null) sendMatchNotification(original, false)
+            sendMatchNotification(image)
+        }
     }
 
-    private fun sendMatchNotification(bmp: Bitmap, didMatch: Boolean) {
+    private fun sendMatchNotification(bmp: Bitmap) {
         if (matchNotificationChannel == null) {
-            Log.d("NPS", "matchNotificationChannel is null")
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 matchNotificationChannel = NotificationChannel(
                     matchResultNotificationChannelId,
-                    "Match Notification Channel",
+                    getString(R.string.bgMode_match_notification_channel_name),
                     NotificationManager.IMPORTANCE_HIGH
                 )
                 matchNotificationManager =
@@ -257,46 +283,48 @@ class BackgroundMatchingService : Service() {
                 matchNotificationManager?.createNotificationChannel(matchNotificationChannel!!)
             }
         }
-        Log.d("NPS", "sending match notification")
-        matchNotificationManager?.notify(2, createMatchNotification(bmp, didMatch))
-
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) matchNotificationManager?.notify(
+            2,
+            createMatchNotification(bmp)
+        )
+        else NotificationManagerCompat.from(this@BackgroundMatchingService)
+            .notify(2, createMatchNotification(bmp))
     }
 
-    // TODO: Remove didMatch
-    private fun createMatchNotification(matchResult: Bitmap, didMatch: Boolean): Notification {
+    private fun createMatchNotification(matchResult: Bitmap): Notification {
         val startIntent = Intent(this, ResultsActivity::class.java)
         startIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         val pendingIntent: PendingIntent =
-            PendingIntent.getActivity(this@BackgroundMatchingService, 2, startIntent, 0)
+            PendingIntent.getActivity(this@BackgroundMatchingService, 1, startIntent, 0)
 
-        return NotificationCompat.Builder(this@BackgroundMatchingService, matchResultNotificationChannelId)
-                .setSmallIcon(R.drawable.ic_baseline_close_48)
-                .setLargeIcon(matchResult)
-                .setContentTitle("New Screenshot")
-                .setAutoCancel(true)
-                .setStyle(
-                    NotificationCompat.BigPictureStyle()
-                        .bigPicture(matchResult)
-                )
-                .setChannelId(matchResultNotificationChannelId)
-                .setContentIntent(pendingIntent)
-                .apply {
-                    if (didMatch) this.setContentText("Looks like you took a screenshot!") else this.setContentText("NO SCREENSHOT")
-                }
+        return NotificationCompat.Builder(
+            this@BackgroundMatchingService,
+            matchResultNotificationChannelId
+        )
+            .setSmallIcon(R.drawable.ic_baseline_photo_camera_24)
+            .setLargeIcon(matchResult)
+            .setContentTitle(getString(R.string.bgMode_match_notification_title))
+            .setAutoCancel(true)
+            .setStyle(
+                NotificationCompat.BigPictureStyle()
+                    .bigPicture(matchResult)
+            )
+            .setChannelId(matchResultNotificationChannelId)
+            .setContentIntent(pendingIntent)
+            .setContentText(getString(R.string.bgMode_match_notification_text))
             .build()
     }
 
-    // TODO: Open app on notification click
-    private fun createForegroundNotification(): Notification {
+    private fun initForegroundNotification() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationManager =
                 getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             val channel = NotificationChannel(
                 foregroundNotificationChannelId,
-                "ScreenshotMatcher",
+                getString(R.string.bgMode_fg_notification_channel_name),
                 NotificationManager.IMPORTANCE_MIN
             ).let {
-                it.description = "Matching screenshots in the background"
+                it.description = getString(R.string.bgMode_fg_notification_description)
                 it.enableLights(true)
                 it.lightColor = Color.RED
                 it.enableVibration(true)
@@ -310,19 +338,27 @@ class BackgroundMatchingService : Service() {
                 PendingIntent.getActivity(this, 0, notificationIntent, 0)
             }
 
-        val builder: Notification.Builder =
+        if(!::foregroundNotificationBuilder.isInitialized){
+            foregroundNotificationBuilder =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) Notification.Builder(
                 this,
                 foregroundNotificationChannelId
-            ) else Notification.Builder(this)
+            ) else Notification.Builder(this) // for pre-O versions
+            foregroundNotificationBuilder
+                .setContentTitle(getString(R.string.bgMode_fg_notification_title))
+                .setContentText(getConnectedStatusString())
+                .setContentIntent(pendingIntent)
+                .setSmallIcon(getConnectedStatusIcon())
+        }
+    }
 
-        return builder
-            .setContentTitle("ScreenshotMatcher")
-            .setContentText("ScreenshotMatcher is active in the background")
-            .setContentIntent(pendingIntent)
-            .setSmallIcon(R.mipmap.ic_launcher)
-            .setPriority(Notification.PRIORITY_HIGH) // android sdk < 26
-            .build()
+    private fun getConnectedStatusIcon(): Int {
+        return if (ServerConnectionModel.isConnected.value!!) R.drawable.ic_icon_notification_connected else R.drawable.ic_icon_notification_disconnected
+    }
+
+    private fun getConnectedStatusString(): String {
+        return if (ServerConnectionModel.isConnected.value!!) getString(R.string.bgMode_fg_notification_connected)
+        else getString(R.string.bgMode_fg_notification_disconnected)
     }
 
     private fun getMatchingOptionsFromPref(): HashMap<Any?, Any?> {
@@ -358,7 +394,6 @@ class BackgroundMatchingService : Service() {
 
             // Decode bitmap with inSampleSize set
             inJustDecodeBounds = false
-            //TODO: Twice??
             BitmapFactory.decodeFile(file.path, this)
         }
     }
@@ -418,7 +453,6 @@ class BackgroundMatchingService : Service() {
                 cursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME)
             while (cursor.moveToNext()) {
                 name = cursor.getString(displayNameColumn)
-                // TODO : Remove?
                 relativePath = "${Environment.getExternalStorageDirectory()}/${
                     cursor.getString(
                         relativePathColumn
