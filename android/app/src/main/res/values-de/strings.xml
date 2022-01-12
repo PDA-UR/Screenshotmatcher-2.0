@@ -16,7 +16,7 @@
     <string name="app_intro_description_4">Falls Sie den Desktop Client gestartet haben wird er in der Liste erscheinen und sie können sich mit ihm verbinden</string>
     <string name="result_activity_deleteImages_en">Bild(er) löschen</string>
     <string name="settings_about_header">Über diese App</string>
-    <string name="settings_about_description">Version 1.2 \nLizenziert unter der MIT Lizenz \nCopyright © 2021 Physical-Digital Affordances \n\n🔗 Hier klicken um mehr zu erfahren</string>
+    <string name="settings_about_description">Version 1.3.0 \nLizenziert unter der MIT Lizenz \nCopyright © 2021 Physical-Digital Affordances \n\n🔗 Hier klicken um mehr zu erfahren</string>
     <string name="app_intro_header_5">Wie: Bild aufnehmen 📸</string>
     <string name="app_intro_description_5">Machen Sie nun ein Foto von einer beliebigen Fläche ihres Monitors, \nScreenshotMatcher wird einen Screenshot davon zurückgeben \n\nMagic 🪄!</string>
     <string name="select_device_button_notConnected_en">nicht verbunden</string>
