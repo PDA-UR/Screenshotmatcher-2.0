@@ -1,7 +1,7 @@
 package com.pda.screenshotmatcher2.viewHelpers
 
 import android.app.Activity
-import android.graphics.Bitmap
+import android.os.Build
 import android.os.Bundle
 import android.view.HapticFeedbackConstants
 import android.view.View
@@ -11,7 +11,8 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentTransaction
 import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.views.activities.CameraActivity
-import com.pda.screenshotmatcher2.views.fragments.*
+import com.pda.screenshotmatcher2.views.fragments.ErrorFragment
+import com.pda.screenshotmatcher2.views.fragments.SettingsFragment
 import com.pda.screenshotmatcher2.views.fragments.rotationFragments.*
 import java.io.File
 
@@ -40,7 +41,9 @@ class CameraActivityFragmentHandler(a: Activity) {
      * Launches a [fragment] in the given [containerID] with a [transition]
      */
     private fun openFragment(fragment: Fragment, containerID: Int, transition: Int? = null) {
-        activity.window.decorView.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            activity.window.decorView.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+        }
         fm
             .beginTransaction()
             .add(containerID, fragment, fragment::class.simpleName)
@@ -83,7 +86,6 @@ class CameraActivityFragmentHandler(a: Activity) {
      * Opens [ErrorFragment][com.pda.screenshotmatcher2.views.fragments.ErrorFragment] in [R.id.fragment_container_view].
      *
      * @param uid The user id of the user
-     * @param extractedImage The image that was taken with the camera
      */
     fun openErrorFragment(uid: String) {
         activity.onOpenErrorFragment(uid)
@@ -133,7 +135,7 @@ class CameraActivityFragmentHandler(a: Activity) {
      * @param secondImage Second image to be shown in the image carousel (= **full screenshot**)
      * @param withTransition Whether a transition animation should be played or not
      */
-    fun openGalleryPreviewFragment(
+    private fun openGalleryPreviewFragment(
         firstImage: File?,
         secondImage: File?,
         withTransition: Boolean = true

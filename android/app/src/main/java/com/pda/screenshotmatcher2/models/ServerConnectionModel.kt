@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package com.pda.screenshotmatcher2.models
 
 import android.app.Application
@@ -28,11 +30,11 @@ import com.pda.screenshotmatcher2.network.sendHeartbeatRequest
 
 object ServerConnectionModel {
     var serverUrlList = MutableLiveData<List<Pair<String, String>>>(emptyList())
-    var serverUrl = MutableLiveData<String>("")
+    var serverUrl = MutableLiveData("")
 
-    var isConnected = MutableLiveData<Boolean>(false)
-    var isDiscovering = MutableLiveData<Boolean>(false)
-    var isHeartbeating = MutableLiveData<Boolean>(false)
+    var isConnected = MutableLiveData(false)
+    var isDiscovering = MutableLiveData(false)
+    var isHeartbeating = MutableLiveData(false)
 
     private var application: Application? = null
     private var isForeground = true
@@ -45,10 +47,10 @@ object ServerConnectionModel {
     /**
      * All potential messages that can be sent to [mHandler]
      */
-    private object HANDLER_MESSAGES {
-        val END_ALL_THREADS: Int = 0
-        val START_DISCOVER: Int = 1
-        val START_HEARTBEAT: Int = 2
+    private object HandlerMessages {
+        const val END_ALL_THREADS: Int = 0
+        const val START_DISCOVER: Int = 1
+        const val START_HEARTBEAT: Int = 2
     }
 
     /**
@@ -107,15 +109,15 @@ object ServerConnectionModel {
             mHandler = object : Handler(looper) {
                 override fun handleMessage(msg: Message) {
                     when (msg.what) {
-                        HANDLER_MESSAGES.END_ALL_THREADS -> {
+                        HandlerMessages.END_ALL_THREADS -> {
                             Log.d("SCM", "end all threads")
                             this.removeCallbacksAndMessages(null)
                         }
-                        HANDLER_MESSAGES.START_DISCOVER -> {
+                        HandlerMessages.START_DISCOVER -> {
                             this.removeCallbacksAndMessages(null)
                             this.post(discoverRunnable)
                         }
-                        HANDLER_MESSAGES.START_HEARTBEAT -> {
+                        HandlerMessages.START_HEARTBEAT -> {
                             this.removeCallbacksAndMessages(null)
                             this.post(heartbeatRunnable)
                         }
@@ -135,7 +137,7 @@ object ServerConnectionModel {
     private fun startHeartbeatThread() {
         if (handlerThread.isAlive) {
             isHeartbeating.postValue(true)
-            mHandler.sendMessage(mHandler.obtainMessage(HANDLER_MESSAGES.START_HEARTBEAT))
+            mHandler.sendMessage(mHandler.obtainMessage(HandlerMessages.START_HEARTBEAT))
         }
     }
 
@@ -145,7 +147,7 @@ object ServerConnectionModel {
     private fun startDiscoverThread() {
         if (handlerThread.isAlive) {
             isDiscovering.postValue(true)
-            mHandler.sendMessage(mHandler.obtainMessage(HANDLER_MESSAGES.START_DISCOVER))
+            mHandler.sendMessage(mHandler.obtainMessage(HandlerMessages.START_DISCOVER))
         }
     }
 
@@ -156,7 +158,7 @@ object ServerConnectionModel {
         if (handlerThread.isAlive) {
             isDiscovering.postValue(false)
             isHeartbeating.postValue(false)
-            mHandler.sendMessage(mHandler.obtainMessage(HANDLER_MESSAGES.END_ALL_THREADS))
+            mHandler.sendMessage(mHandler.obtainMessage(HandlerMessages.END_ALL_THREADS))
         }
     }
 

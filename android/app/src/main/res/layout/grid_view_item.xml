@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="150dp">
     <ImageView
@@ -14,7 +15,9 @@
         android:scaleType="fitXY"
         android:layout_margin="10dp"
         android:layout_gravity="center_horizontal"
-        android:visibility="invisible">
+        android:visibility="invisible"
+        tools:targetApi="p"
+        android:contentDescription="@string/grid_view_item_first_image_description">
     </ImageView>
     <ImageView
         android:id="@+id/grid_view_item_second_image"
@@ -27,6 +30,8 @@
         android:outlineSpotShadowColor="@color/black"
         android:scaleType="fitXY"
         android:layout_gravity="center_horizontal"
-        android:visibility="invisible">
+        android:visibility="invisible"
+        android:contentDescription="@string/grid_view_item_second_image_description"
+        tools:targetApi="p">
     </ImageView>
 </FrameLayout>

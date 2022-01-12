@@ -1,15 +1,10 @@
 package com.pda.screenshotmatcher2.views.activities
 
-import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.HapticFeedbackConstants
-import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import com.github.appintro.AppIntro
@@ -95,15 +90,15 @@ class AppTutorial : AppIntro() {
     }
 
     /**
-     * Updates shared preferences (onboarding complete) and launches [CameraActivity]
+     * Updates shared preferences (on-boarding complete) and launches [CameraActivity]
      */
     private fun savePrefsAndStartCameraActivity() {
-        val FIRST_RUN_KEY = getString(R.string.FIRST_RUN_KEY)
+        val firstRunKey = getString(R.string.FIRST_RUN_KEY)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             window.decorView.performHapticFeedback(HapticFeedbackConstants.GESTURE_END)
         }
         val sp = PreferenceManager.getDefaultSharedPreferences(this)
-        sp.edit().putBoolean(FIRST_RUN_KEY, false).apply()
+        sp.edit().putBoolean(firstRunKey, false).apply()
         val intent = Intent(this, CameraActivity::class.java)
         startActivity(intent)
     }

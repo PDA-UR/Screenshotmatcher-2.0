@@ -2,6 +2,7 @@ package com.pda.screenshotmatcher2.views.fragments
 
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
@@ -74,7 +75,9 @@ class SettingsFragment : GarbageView, PreferenceFragmentCompat() {
     private fun removeThisFragment() {
         containerView.visibility = View.INVISIBLE
         mFragmentBackground.visibility = View.INVISIBLE
-        activity?.window?.decorView?.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            activity?.window?.decorView?.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
+        }
         activity?.supportFragmentManager?.beginTransaction()?.remove(this)
             ?.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)?.commit()
         clearGarbage()

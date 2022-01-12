@@ -1,17 +1,17 @@
 package com.pda.screenshotmatcher2.views.fragments.rotationFragments
 
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.HapticFeedbackConstants
 import android.view.View
-import android.widget.AdapterView
 import android.widget.FrameLayout
 import android.widget.GridView
 import android.widget.ImageButton
 import androidx.lifecycle.ViewModelProvider
 import com.pda.screenshotmatcher2.R
-import com.pda.screenshotmatcher2.viewModels.GalleryViewModel
 import com.pda.screenshotmatcher2.viewHelpers.GridBaseAdapter
+import com.pda.screenshotmatcher2.viewModels.GalleryViewModel
 import java.io.File
 
 /**
@@ -101,7 +101,9 @@ class GalleryFragment : RotationFragment() {
      */
     override fun removeThisFragment(removeBackground: Boolean) {
         containerView?.visibility = View.INVISIBLE
-        ca?.window?.decorView?.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            ca?.window?.decorView?.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
+        }
         if (removeBackground) {
             val mFragmentBackground: FrameLayout = activity?.findViewById(R.id.ca_dark_background)!!
             mFragmentBackground.visibility = View.INVISIBLE

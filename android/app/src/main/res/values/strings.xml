@@ -11,7 +11,7 @@
     <string name="result_activity_shareButtonText2_en">Share full</string>
     <string name="result_activity_saveOneButtonText2_en">Save full</string>
     <string name="result_activity_saved_cropped_en">Saved cropped image</string>
-    <string name="result_activity_saved_full_en">Saved full image</string>
+    <string name="result_activity_saved_full_en">Saved full screenshot</string>
     <string name="result_activity_saved_both_en">Saved both images</string>
     <string name="screenshot_description_en">Created with Screenshot Matcher</string>
     <string name="no_match_en">No match</string>
@@ -70,4 +70,12 @@
     <string name="bgMode_fg_notification_title">ScreenshotMatcher</string>
     <string name="bgMode_fg_notification_connected">Status: Connected!</string>
     <string name="bgMode_fg_notification_disconnected">Status: Disconnected!</string>
+    <string name="capture_button_description">Capture button</string>
+    <string name="gallery_button_description">Open gallery button</string>
+    <string name="settings_button_description">Open settings button</string>
+    <string name="select_device_button_description">Open device selection button</string>
+    <string name="error_fragment_image_description">Preview of the taken camera image</string>
+    <string name="grid_view_item_first_image_description">First image of the image pair</string>
+    <string name="grid_view_item_second_image_description">Second image of the image pair</string>
+    <string name="ff_text_input_hint">Comment…</string>
 </resources>

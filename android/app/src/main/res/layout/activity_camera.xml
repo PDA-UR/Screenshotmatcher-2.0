@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:background="@color/black"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    tools:ignore="Overdraw">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -33,7 +35,8 @@
                     android:id="@+id/select_device_button"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="@drawable/select_device_disconnected" />
+                    android:background="@drawable/select_device_disconnected"
+                    android:contentDescription="@string/select_device_button_description" />
                 <TextView
                     android:id="@+id/camera_activity_select_device_text"
                     android:layout_width="match_parent"
@@ -58,7 +61,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:src="@drawable/ic_baseline_settings_24"
-                    android:background="@drawable/round_button" />
+                    android:background="@drawable/round_button"
+                    android:contentDescription="@string/settings_button_description" />
             </FrameLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -80,7 +84,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@drawable/round_button"
-                android:src="@drawable/ic_baseline_photo_camera_24" />
+                android:src="@drawable/ic_baseline_photo_camera_24"
+                android:contentDescription="@string/capture_button_description" />
         </FrameLayout>
 
 
@@ -105,7 +110,8 @@
                 android:src="@drawable/ic_baseline_image_24"
                 android:background="@drawable/round_button"
                 android:layout_gravity="bottom"
-                android:layout_margin="10dp">
+                android:layout_margin="10dp"
+                android:contentDescription="@string/gallery_button_description">
             </ImageButton>
 
 
@@ -125,12 +131,13 @@
         android:layout_height="550dp"
         android:layout_gravity="center_vertical"
         android:layout_margin="10dp"
-        android:clickable="true"
+        
         android:elevation="15dp"
         android:outlineProvider="bounds"
         android:outlineSpotShadowColor="@color/black"
         android:scaleType="fitXY"
-        android:visibility="invisible" />
+        android:visibility="invisible"
+        tools:targetApi="p" />
 
 
     <FrameLayout
@@ -139,12 +146,13 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         android:layout_margin="10dp"
-        android:clickable="true"
+        
         android:elevation="10dp"
         android:outlineProvider="bounds"
         android:outlineSpotShadowColor="@color/black"
         android:scaleType="fitXY"
-        android:visibility="invisible" />
+        android:visibility="invisible"
+        tools:targetApi="p" />
 
     <androidx.cardview.widget.CardView
         android:id="@+id/settings_fragment_container_view"
@@ -153,10 +161,11 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         android:layout_margin="10dp"
-        android:clickable="true"
+        
         android:elevation="10dp"
         android:outlineProvider="bounds"
         android:outlineSpotShadowColor="@color/black"
         android:scaleType="fitXY"
-        android:visibility="invisible" />
+        android:visibility="invisible"
+        tools:targetApi="p" />
 </FrameLayout>

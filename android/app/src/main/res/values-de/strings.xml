@@ -29,9 +29,8 @@
     <string name="result_activity_saveOneButtonText1_en">Ausschnitt speichern</string>
     <string name="result_activity_shareButtonText2_en">Voll teilen</string>
     <string name="result_activity_saveOneButtonText2_en">Voll teilen</string>
-    <string name="result_activity_saved_cropped_en">Ausschnitt speichern</string>
-    <string name="result_activity_saved_full_en">Volles Bild speichern</string>
-    <string name="result_activity_saved_both_en">Beide Bilder speichern</string>
+    <string name="result_activity_saved_full_en">Der volle Screenshot wurde gespeichert</string>
+    <string name="result_activity_saved_both_en">Beide Bilder wurden gespeichert</string>
     <string name="screenshot_description_en">Mit Screenshot Matcher aufgenommen</string>
     <string name="no_match_en">Kein Treffer</string>
     <string name="send_feedback_button_en">Feedback senden</string>
@@ -40,7 +39,7 @@
     <string name="feedback_en">Feedback</string>
     <string name="ff_comment_en">Kommentar (optional)</string>
     <string name="ff_submit_feedback_en">Absenden</string>
-    <string name="result_activity_only_full_available_en">Nur voller Screenshot verfügbar</string>
+    <string name="result_activity_only_full_available_en">Nur der volle Screenshot ist verfügbar</string>
     <string name="ff_submit_success_en">Feedback abgesendet</string>
     <string name="ff_submit_failed_en">Feedback konnte nicht gesendet werden</string>
     <string name="http_download_full_error_en">Der volle Screenshot konnte nicht geladen werden</string>
@@ -59,4 +58,13 @@
     <string name="bgMode_fg_notification_description">Kanal für den Hintergrung-Matching Status</string>
     <string name="bgMode_fg_notification_connected">Status: Verbunden!</string>
     <string name="bgMode_fg_notification_disconnected">Status: Getrennt!</string>
+    <string name="capture_button_description">Bild aufnehmen Knopf</string>
+    <string name="gallery_button_description">Galerie öffnen Knopf</string>
+    <string name="settings_button_description">Einstellungen öffnen Knopf</string>
+    <string name="select_device_button_description">Geräteauswahl öffnen Knopf</string>
+    <string name="error_fragment_image_description">Vorschau des aufgenommenen Bildes</string>
+    <string name="grid_view_item_first_image_description">Erstes Bild aus dem Bilderpaar</string>
+    <string name="grid_view_item_second_image_description">Zweites Bild aus dem Bilderpaar</string>
+    <string name="ff_text_input_hint">Kommentar…</string>
+    <string name="result_activity_saved_cropped_en">Der zugeschnittene Screenshot wurde gespeichert</string>
 </resources>
