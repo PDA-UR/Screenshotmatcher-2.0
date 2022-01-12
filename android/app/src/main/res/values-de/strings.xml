@@ -3,7 +3,6 @@
     <string name="gallery_en">Galerie</string>
     <string name="preview_fragment_only_one_available_en">Nur ein Bild ist verfügbar</string>
     <string name="permission_request_en">Bitte geben Sie der App die benötigten Rechte</string>
-    <string name="heartbeat_fail_en">Verbindung zum Server wurde getrennt</string>
     <string name="match_request_error_en">Es konnte keine Verbindung zum Server hergestellt werden</string>
     <string name="settings_logging_toggle_en">Logging aktivieren</string>
     <string name="settings_logging_summary">Falls diese Option aktiviert ist wird die App Nutzungsdaten an einen Server schicken, dies dient zur Verbesserrung der App</string>
@@ -15,11 +14,9 @@
     <string name="app_intro_header_4">Wie: Verbinden 🔗</string>
     <string name="app_intro_description_3">Klicken Sie in der App auf den Knopf oben rechts um alle verfügbaren Desktops zu sehen mit denen Sie sich verbinden können</string>
     <string name="app_intro_description_4">Falls Sie den Desktop Client gestartet haben wird er in der Liste erscheinen und sie können sich mit ihm verbinden</string>
-    <string name="app_intro_denied_permission">Um die App zu verwenden werden die angeforderten Rechte benötigt</string>
-    <string name="app_intro_disabled_permission">Um die App zu verwenden werden die angeforderten Rechte benötigt, bitte genehmigen Sie diese in ihren Systemeinstellungen</string>
     <string name="result_activity_deleteImages_en">Bild(er) löschen</string>
     <string name="settings_about_header">Über diese App</string>
-    <string name="settings_about_description">Version 1.2 \nLizensiert unter der MIT Lizenz \nCopyright © 2021 Physical-Digital Affordances \n\n🔗 Hier klicken um mehr zu erfahren</string>
+    <string name="settings_about_description">Version 1.2 \nLizenziert unter der MIT Lizenz \nCopyright © 2021 Physical-Digital Affordances \n\n🔗 Hier klicken um mehr zu erfahren</string>
     <string name="app_intro_header_5">Wie: Bild aufnehmen 📸</string>
     <string name="app_intro_description_5">Machen Sie nun ein Foto von einer beliebigen Fläche ihres Monitors, \nScreenshotMatcher wird einen Screenshot davon zurückgeben \n\nMagic 🪄!</string>
     <string name="select_device_button_notConnected_en">nicht verbunden</string>
@@ -54,4 +51,12 @@
     <string name="settings_bgMode_summary">Aktiviert Matching im Hintergrund, sodass Sie die Stock-Kamera-App verwenden können um Screenshots aufzunehmen</string>
     <string name="KNOWN_SERVERS_KEY">known_servers</string>
     <string name="bgMode_fg_notification_title">ScreenshotMatcher</string>
+    <string name="match_request_perm_denied">Die Erlaubnis, Screenshots zu matchen wurde vom Server nicht erteilt</string>
+    <string name="bgMode_match_notification_channel_name">Match Notification</string>
+    <string name="bgMode_match_notification_title">Neuer Screenshot!</string>
+    <string name="bgMode_match_notification_text">Ein neuer Screenshot wurde aufgenommen</string>
+    <string name="bgMode_fg_notification_channel_name">ScreenshotMatcher Hintergrund-Beanachrichtigung Kanal</string>
+    <string name="bgMode_fg_notification_description">Kanal für den Hintergrung-Matching Status</string>
+    <string name="bgMode_fg_notification_connected">Status: Verbunden!</string>
+    <string name="bgMode_fg_notification_disconnected">Status: Getrennt!</string>
 </resources>

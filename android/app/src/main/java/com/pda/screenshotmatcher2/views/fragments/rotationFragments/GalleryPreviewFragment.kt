@@ -1,11 +1,6 @@
 package com.pda.screenshotmatcher2.views.fragments.rotationFragments
 
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.content.pm.ResolveInfo
-import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.provider.MediaStore
 import android.util.Log
 import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
@@ -17,14 +12,15 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.AppCompatButton
 import androidx.appcompat.widget.AppCompatImageButton
-import androidx.core.app.ShareCompat
-import androidx.core.content.FileProvider
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
-import com.pda.screenshotmatcher2.BuildConfig
 import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.logger.StudyLogger
-import com.pda.screenshotmatcher2.views.activities.CameraActivity
+import com.pda.screenshotmatcher2.utils.MimeType
+import com.pda.screenshotmatcher2.utils.MimeTypes
+import com.pda.screenshotmatcher2.utils.createSharingChooser
+import com.pda.screenshotmatcher2.utils.saveImageFileToGallery
 import com.pda.screenshotmatcher2.viewModels.GalleryViewModel
 import java.io.File
 
@@ -105,8 +101,11 @@ class GalleryPreviewFragment : RotationFragment() {
         super.onViewCreated(view, savedInstanceState)
         initViews()
         setViewListeners()
-        galleryViewModel = ViewModelProvider(requireActivity(), GalleryViewModel.Factory(requireActivity().application))
-        .get(GalleryViewModel::class.java)
+        galleryViewModel = ViewModelProvider(
+            requireActivity(),
+            GalleryViewModel.Factory(requireActivity().application)
+        )
+            .get(GalleryViewModel::class.java)
 
     }
 
@@ -131,7 +130,7 @@ class GalleryPreviewFragment : RotationFragment() {
                 }
                 numberOfAvailableImages++
             }
-         }
+        }
     }
 
     /**
@@ -162,11 +161,16 @@ class GalleryPreviewFragment : RotationFragment() {
         when (mPillNavigationState) {
             -1 -> {
                 //Switch to cropped screenshot
-                mPillNavigationButton2?.setBackgroundColor(requireActivity().getColor(
-                    R.color.invisible
-                ))
-                mPillNavigationButton1?.background  =
-                    resources.getDrawable(R.drawable.pill_navigation_selected_item)
+                mPillNavigationButton2?.setBackgroundColor(
+                    requireActivity().getColor(
+                        R.color.invisible
+                    )
+                )
+                mPillNavigationButton1?.background =
+                    ContextCompat.getDrawable(
+                        requireContext(),
+                        R.drawable.pill_navigation_selected_item
+                    )
                 if (numberOfAvailableImages == 2) {
                     mImagePreviewNextButton?.visibility = View.VISIBLE
                     mImagePreviewPreviousButton?.visibility = View.INVISIBLE
@@ -178,11 +182,16 @@ class GalleryPreviewFragment : RotationFragment() {
             }
             1 -> {
                 //Switch to full screenshot
-                mPillNavigationButton1?.setBackgroundColor(requireActivity().getColor(
-                    R.color.invisible
-                ))
+                mPillNavigationButton1?.setBackgroundColor(
+                    requireActivity().getColor(
+                        R.color.invisible
+                    )
+                )
                 mPillNavigationButton2?.background =
-                    resources.getDrawable(R.drawable.pill_navigation_selected_item)
+                    ContextCompat.getDrawable(
+                        requireContext(),
+                        R.drawable.pill_navigation_selected_item
+                    )
                 if (numberOfAvailableImages == 2) {
                     mImagePreviewPreviousButton?.visibility = View.VISIBLE
                     mImagePreviewNextButton?.visibility = View.INVISIBLE
@@ -222,13 +231,12 @@ class GalleryPreviewFragment : RotationFragment() {
      */
     private fun saveCurrentPreviewImage() {
         when (mPillNavigationState) {
-            -1 -> {
-                if (mCroppedImageFile != null) {
-                    MediaStore.Images.Media.insertImage(
-                        requireContext().contentResolver,
-                        mCroppedImageFile?.absolutePath,
-                        mCroppedImageFile?.name,
-                        getString(R.string.screenshot_description_en)
+            -1 ->
+                mCroppedImageFile?.let {
+                    saveImageFileToGallery(
+                        it,
+                        getString(R.string.screenshot_description_en),
+                        this@GalleryPreviewFragment.requireContext()
                     )
                     Toast.makeText(
                         requireContext(),
@@ -236,14 +244,13 @@ class GalleryPreviewFragment : RotationFragment() {
                         Toast.LENGTH_SHORT
                     ).show()
                 }
-            }
-            1 -> {
-                if (mFullImageFile != null) {
-                    MediaStore.Images.Media.insertImage(
-                        requireContext().contentResolver,
-                        mFullImageFile?.absolutePath,
-                        mFullImageFile?.name,
-                        getString(R.string.screenshot_description_en)
+
+            1 ->
+                mFullImageFile?.let {
+                    saveImageFileToGallery(
+                        it,
+                        getString(R.string.screenshot_description_en),
+                        this@GalleryPreviewFragment.requireContext()
                     )
                     Toast.makeText(
                         requireContext(),
@@ -251,7 +258,7 @@ class GalleryPreviewFragment : RotationFragment() {
                         Toast.LENGTH_SHORT
                     ).show()
                 }
-            }
+
         }
     }
 
@@ -262,11 +269,9 @@ class GalleryPreviewFragment : RotationFragment() {
         val images = ArrayList<File>()
         images.apply {
             mCroppedImageFile?.let {
-                Log.d("GF", "del cropped")
                 this.add(it)
             }
             mFullImageFile?.let {
-                Log.d("GF", "del full")
                 this.add(it)
             }
         }
@@ -278,54 +283,12 @@ class GalleryPreviewFragment : RotationFragment() {
      * Opens the share intent to share the current preview image.
      */
     private fun shareImage() {
-        if (mPillNavigationState == -1 && mCroppedImageFile != null) {
-            //Start sharing
-            val contentUri =
-                FileProvider.getUriForFile(
-                    requireContext(),
-                    BuildConfig.APPLICATION_ID + ".fileprovider",
-                    mCroppedImageFile!!
-                )
-            val sendIntent = ShareCompat.IntentBuilder.from(requireContext() as CameraActivity)
-                .setType("image/png")
-                .setStream(contentUri)
-                .createChooserIntent()
-
-
-            val resInfoList: List<ResolveInfo> = requireContext().packageManager
-                .queryIntentActivities(sendIntent, PackageManager.MATCH_DEFAULT_ONLY)
-
-            for (resolveInfo in resInfoList) {
-                val packageName: String = resolveInfo.activityInfo.packageName
-                requireContext().grantUriPermission(
-                    packageName,
-                    contentUri,
-                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION
-                )
+        when (mPillNavigationState) {
+            -1 -> mCroppedImageFile?.let {
+                createSharingChooser(it, MimeType(MimeTypes.PNG), requireActivity())
             }
-            val shareIntent = Intent.createChooser(sendIntent,null)
-            startActivity(shareIntent)
-
-
-            //val shareIntent = Intent.createChooser(sendIntent,"Share")
-            startActivity(shareIntent)
-
-        } else {
-            if (mFullImageFile != null) {
-                val contentUri =
-                    FileProvider.getUriForFile(
-                        requireContext(),
-                        BuildConfig.APPLICATION_ID + ".fileprovider",
-                        mFullImageFile!!
-                    )
-                val sendIntent = Intent().apply {
-                    this.action = Intent.ACTION_SEND
-                    this.putExtra(Intent.EXTRA_STREAM, contentUri)
-                    this.type = "image/png"
-                    this.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                }
-                val shareIntent = Intent.createChooser(sendIntent,null)
-                startActivity(shareIntent)
+            1 -> mFullImageFile?.let {
+                createSharingChooser(it, MimeType(MimeTypes.PNG), requireActivity())
             }
         }
     }

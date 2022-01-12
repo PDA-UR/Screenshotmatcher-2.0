@@ -28,7 +28,7 @@
             android:layout_weight="3"
             android:layout_gravity="center"
             android:text="@string/feedback_en"
-            android:textSize="50dp"
+            android:textSize="50sp"
             android:layout_marginBottom="20dp" />
 
         <TextView
@@ -36,7 +36,7 @@
             android:layout_height="0dp"
             android:layout_weight="2"
             android:text="@string/ff_comment_en"
-            android:textSize="20dp"
+            android:textSize="20sp"
             android:clickable="true"
             android:focusable="false"
             android:focusableInTouchMode="false" />
@@ -59,7 +59,7 @@
         android:layout_marginTop="10dp"
         android:background="@drawable/fragment_feedback_button_background"
         android:text="@string/ff_submit_feedback_en"
-        android:textSize="30dp"
+        android:textSize="30sp"
         app:layout_constraintBottom_toBottomOf="parent"
         android:focusableInTouchMode="false" />
 

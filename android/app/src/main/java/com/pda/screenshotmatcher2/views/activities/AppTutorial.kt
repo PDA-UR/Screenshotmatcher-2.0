@@ -16,8 +16,6 @@ import com.github.appintro.AppIntro
 import com.github.appintro.AppIntroFragment
 import com.github.appintro.AppIntroPageTransformerType
 import com.pda.screenshotmatcher2.R
-import com.pda.screenshotmatcher2.utils.getPermissions
-import com.pda.screenshotmatcher2.utils.verifyPermissions
 import com.pda.screenshotmatcher2.views.fragments.AnimatedIntroFragment
 
 /**
@@ -91,7 +89,9 @@ class AppTutorial : AppIntro() {
 	 */
     override fun onSlideChanged(oldFragment: Fragment?, newFragment: Fragment?) {
         super.onSlideChanged(oldFragment, newFragment)
-        window.decorView.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.decorView.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+        }
     }
 
     /**
@@ -99,7 +99,9 @@ class AppTutorial : AppIntro() {
      */
     private fun savePrefsAndStartCameraActivity() {
         val FIRST_RUN_KEY = getString(R.string.FIRST_RUN_KEY)
-        window.decorView.performHapticFeedback(HapticFeedbackConstants.GESTURE_END)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.decorView.performHapticFeedback(HapticFeedbackConstants.GESTURE_END)
+        }
         val sp = PreferenceManager.getDefaultSharedPreferences(this)
         sp.edit().putBoolean(FIRST_RUN_KEY, false).apply()
         val intent = Intent(this, CameraActivity::class.java)

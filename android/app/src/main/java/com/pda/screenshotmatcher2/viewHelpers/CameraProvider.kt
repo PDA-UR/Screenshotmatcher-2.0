@@ -10,6 +10,7 @@ import android.graphics.Point
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.*
 import android.media.ImageReader
+import android.util.Log
 import android.util.Size
 import android.view.Surface
 import android.view.TextureView
@@ -127,6 +128,7 @@ class CameraProvider(cameraInstance: CameraInstance) {
                     Manifest.permission.CAMERA
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
+                Log.d("CameraProvider", "Permission not granted")
                 return
             }
             try {

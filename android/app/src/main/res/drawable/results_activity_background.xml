@@ -10,9 +10,6 @@
 
     <group>
 
-        <clip-path
-            android:pathData="M0 0H411V731H0V0Z"
-            />
 
         <group
             android:translateX="0.672"
