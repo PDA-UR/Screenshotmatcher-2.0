@@ -433,7 +433,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
     private fun startResultsActivity(matchID: String, img: ByteArray) {
         didStartResultsActivity = true
         val intent = Intent(this, ResultsActivity::class.java)
-        intent.putExtra(ResultsActivity.EXTRA_STARTED_FROM_CAMERA_ACTIVITY, true)
+        intent.putExtra(ResultsActivity.EXTRA_STARTED_FROM_BG_SERVICE, true)
         startActivityForResult(
             intent,
             ResultsActivity.RESULT_ACTIVITY_REQUEST_CODE

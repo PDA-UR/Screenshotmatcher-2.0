@@ -57,7 +57,7 @@ import java.io.File
  * @property StudyLogger The [StudyLogger] used to log the events of this activity
  *
  * @property isReturningToCameraActivity Whether this activity is returning to the camera activity or not, set to true in [goBackToCameraActivity]
- * @property wasStartedFromCameraActivity Whether this activity was started from the camera activity or not
+ * @property wasStartedFromBgService Whether this activity was started from [BackgroundMatchingService] or not
  *
  * @property Consts Constants relevant to this activity
  */
@@ -65,7 +65,7 @@ class ResultsActivity : AppCompatActivity() {
 
     companion object Consts {
         const val RESULT_ACTIVITY_REQUEST_CODE = 20
-        const val EXTRA_STARTED_FROM_CAMERA_ACTIVITY = "extra_started_from_camera_activity"
+        const val EXTRA_STARTED_FROM_BG_SERVICE = "extra_started_from_bg_service"
     }
 
     //Views
@@ -89,7 +89,7 @@ class ResultsActivity : AppCompatActivity() {
     private var displayFullScreenshotOnly: Boolean = false
     private var hasSharedImage: Boolean = false
     private var isReturningToCameraActivity: Boolean = false
-    private var wasStartedFromCameraActivity: Boolean = false
+    private var wasStartedFromBgService: Boolean = false
 
     private var fullScreenshotDownloaded = false
     private var croppedScreenshotDownloaded = false
@@ -123,7 +123,7 @@ class ResultsActivity : AppCompatActivity() {
             lastDateTime + "_Cropped.png"
         )
 
-        wasStartedFromCameraActivity = intent.getBooleanExtra(EXTRA_STARTED_FROM_CAMERA_ACTIVITY, false)
+        wasStartedFromBgService = intent.extras?.getBoolean(EXTRA_STARTED_FROM_BG_SERVICE, false) ?: false
     }
 
     /**
@@ -476,7 +476,7 @@ class ResultsActivity : AppCompatActivity() {
      * Otherwise sets the result code to [Activity.RESULT_CANCELED].
      */
     private fun goBackToCameraActivity() {
-        if (wasStartedFromCameraActivity) {
+        if (!wasStartedFromBgService) {
             val intent = Intent()
             isReturningToCameraActivity = true
             if (!hasSharedImage) {
@@ -486,16 +486,18 @@ class ResultsActivity : AppCompatActivity() {
                 setResult(Activity.RESULT_OK, intent)
             }
         }
+        Log.d("ResultActivity", "Finishing activity")
         finish()
     }
 
     /**
      * Sends a log using [sendLog] and clears [StudyLogger.hashMap]
      */
-    override fun onStop() {
-        super.onStop()
+    override fun onPause() {
+        super.onPause()
         val doStartBackgroundService  = PreferenceManager.getDefaultSharedPreferences(this).getBoolean(getString(R.string.settings_bgMode_key), false)
-        if (!isReturningToCameraActivity && doStartBackgroundService) BackgroundMatchingService.startBackgroundService(applicationContext)
+        Log.d("ResultActivity", "onPause, wasStartedFromCamera: $wasStartedFromBgService, should start : $doStartBackgroundService")
+        if (wasStartedFromBgService && doStartBackgroundService) BackgroundMatchingService.startBackgroundService(applicationContext)
         captureViewModel.getServerUrl()?.let {
             sendLog(it, this)
         }

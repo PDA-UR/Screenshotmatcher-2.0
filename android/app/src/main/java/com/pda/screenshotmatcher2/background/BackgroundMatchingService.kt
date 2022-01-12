@@ -216,7 +216,7 @@ class BackgroundMatchingService : Service() {
             @SuppressLint("SimpleDateFormat")
             override fun onChange(selfChange: Boolean, uri: Uri?, flag: Int) {
                 Log.d("BackgroundMatchingService", "ContentObserver onChange")
-                super.onChange(selfChange, uri, flag)
+                //super.onChange(selfChange, uri, flag)
                 if (isConnected && uri != null && !isWaitingForMatchingResponse) {
                     Log.d("BackgroundMatchingService", "ContentObserver onChange: uri != null")
                     val path = getPathFromObserverUri(uri)
@@ -384,10 +384,10 @@ class BackgroundMatchingService : Service() {
 
         val startIntent = Intent(this, ResultsActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            putExtra(ResultsActivity.EXTRA_STARTED_FROM_CAMERA_ACTIVITY, true)
+            putExtra(ResultsActivity.EXTRA_STARTED_FROM_BG_SERVICE, true)
         }
         val pendingIntent: PendingIntent =
-            PendingIntent.getActivity(this@BackgroundMatchingService, 1, startIntent, PendingIntent.FLAG_IMMUTABLE)
+            PendingIntent.getActivity(this@BackgroundMatchingService, 1, startIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
 
         matchNotificationBuilder = NotificationCompat.Builder(
             this@BackgroundMatchingService,
