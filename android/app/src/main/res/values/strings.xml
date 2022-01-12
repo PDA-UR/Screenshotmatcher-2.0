@@ -14,7 +14,6 @@
     <string name="result_activity_saved_full_en">Saved full image</string>
     <string name="result_activity_saved_both_en">Saved both images</string>
     <string name="screenshot_description_en">Created with Screenshot Matcher</string>
-    <string name="full_screenshot_title_en" translatable="false">full_screenshot</string>
     <string name="no_match_en">No match</string>
     <string name="send_feedback_button_en">Send Feedback</string>
     <string name="view_full_image_button_en">Full Image</string>
@@ -35,14 +34,10 @@
     <string name="algorithm_accurate_mode_name_server" translatable="false">SURF</string>
     <string name="gallery_en">Gallery</string>
     <string name="preview_fragment_only_one_available_en">Only one image is available</string>
-    <string name="ca_saved_instance_url_key" translatable="false">ca_url_key</string>
-    <string name="ca_saved_instance_image_list_key" translatable="false">ca_image_list_key</string>
     <string name="ca_saved_instance_url_list_key" translatable="false">ca_server_url_list_key</string>
     <string name="ca_saved_instance_host_list_key" translatable="false">ca_host_list_key</string>
     <string name="permission_request_en">Please grant the permissions, otherwise the app won\'t work</string>
-    <string name="heartbeat_fail_en">Disconnected from server</string>
     <string name="match_request_error_en">Failed to make request to server</string>
-    <string name="EXTRACTED_IMAGE_KEY" translatable="false">bmp</string>
     <string name="settings_logging_header_en" translatable="false">Logging</string>
     <string name="settings_logging_toggle_en">Enable logging</string>
     <string name="settings_logging_summary">If this option is enabled the app will send logging data to a remote server, which helps improving the app</string>
@@ -54,14 +49,12 @@
     <string name="app_intro_header_3">How-To: Discover 🔎</string>
     <string name="app_intro_header_4">How-To: Connect 🔗</string>
     <string name="app_intro_description_4">If you started the desktop client your device will appear here and you can tap on it to connect</string>
-    <string name="app_intro_disabled_permission">You need to grant the requested permissions in order to use the app, you can do so in your system settings</string>
     <string name="app_intro_description_2">To use this app you need to download the desktop client \n\nYou can download it using the QR-Code or by clicking the link below: \n\nhttps://github.com/PDA-UR/Screenshotmatcher-2.0/releases</string>
     <string name="app_intro_description_3">In the app click the top right button to show all available desktops you can connect to</string>
-    <string name="app_intro_denied_permission">You need to grant the requested permissions in order to use the app</string>
     <string name="result_activity_deleteImages_en">Delete image(s)</string>
     <string name="settings_about_header">About this app</string>
     <string name="settings_about_button" translatable="false">s_about_button</string>
-    <string name="settings_about_description">Version 1.2 \nLicensed under the MIT License \nCopyright (c) 2021 Physical-Digital Affordances \n\n🔗 Click to find out more</string>
+    <string name="settings_about_description">Version 1.2 \nLicensed under the MIT License \nCopyright © 2021 Physical-Digital Affordances \n\n🔗 Click to find out more</string>
     <string name="app_intro_header_5">How-To: Capture 📸</string>
     <string name="app_intro_description_5">Now take a photo of any area on your computer screen, \nScreenshotMatcher will return a screenshot of it \n\nMagic 🪄!</string>
     <string name="settings_bgMode_toggle">Background matching (beta)</string>
@@ -73,9 +66,8 @@
     <string name="bgMode_match_notification_title">New Screenshot!</string>
     <string name="bgMode_match_notification_text">Looks like you took a screenshot</string>
     <string name="bgMode_fg_notification_channel_name">ScreenshotMatcher background notification channel</string>
-    <string name="bgMode_fg_notification_description">Channel for the background matching indication</string>
+    <string name="bgMode_fg_notification_description">Channel for the background matching status</string>
     <string name="bgMode_fg_notification_title">ScreenshotMatcher</string>
-    <string name="bgMode_fg_notification_text">ScreenshotMatcher is active in the background</string>
     <string name="bgMode_fg_notification_connected">Status: Connected!</string>
     <string name="bgMode_fg_notification_disconnected">Status: Disconnected!</string>
 </resources>

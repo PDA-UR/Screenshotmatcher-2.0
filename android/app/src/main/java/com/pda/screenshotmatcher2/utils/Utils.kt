@@ -2,16 +2,25 @@ package com.pda.screenshotmatcher2.utils
 
 import android.Manifest
 import android.app.Activity
+import android.content.ContentValues
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Base64
 import android.util.Log
 import android.util.Size
 import androidx.core.app.ActivityCompat
+import androidx.core.app.ShareCompat
+import androidx.core.content.ContextCompat.startActivity
+import androidx.core.content.FileProvider
+import com.pda.screenshotmatcher2.BuildConfig
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -20,14 +29,19 @@ import java.util.*
 import kotlin.Exception
 
 /**
- * The permissions used by the application.
+ * Returns all required permissions for the app.
+ *
+ * @return An Array of all the permissions required by the app.
  */
-private val PERMISSIONS = arrayOf(
-    Manifest.permission.READ_EXTERNAL_STORAGE,
-    Manifest.permission.WRITE_EXTERNAL_STORAGE,
-    Manifest.permission.INTERNET,
-    Manifest.permission.CAMERA
-)
+fun getPermissions(): Array<String> {
+    val basePermissions = arrayOf(
+        Manifest.permission.INTERNET,
+        Manifest.permission.CAMERA,
+        Manifest.permission.READ_EXTERNAL_STORAGE,
+    )
+    return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) arrayOf(*basePermissions, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    else basePermissions
+}
 
 /**
  * Returns the current date/time.
@@ -39,44 +53,24 @@ fun getDateString() : String{
     return sdf.format(Date())
 }
 
-fun getPermissions (): Array<String> {
-    val permissions = arrayListOf(
-        Manifest.permission.READ_EXTERNAL_STORAGE,
-        Manifest.permission.INTERNET,
-        Manifest.permission.CAMERA
-    )
-    // if device sdk version is larger than 29
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        //TODO: Re enable
-        //permissions.add(Manifest.permission.MANAGE_EXTERNAL_STORAGE)
-    }
-     else {
-        permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-    }
-    return permissions.toTypedArray()
-}
-
 /**
- * Verifies if [activity] has been granted all permissions of [PERMISSIONS].
+ * Verifies if [activity] has been granted all permissions of [getPermissions].
+ * Automatically requests the missing permissions if necessary.
  *
  * @return true = all permissions granted; false = at least one permission denied
  */
 fun verifyPermissions(activity: Activity): Boolean {
-    for (permission in getPermissions()) {
-        if (activity.checkSelfPermission(
-                permission
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            Log.d("UTILS", "Permission not granted: $permission")
-            ActivityCompat.requestPermissions(
-                activity,
-                PERMISSIONS,
-                1
-            )
-            return false
-        }
+    val rejectedPermissions = getPermissions().filter {
+        ActivityCompat.checkSelfPermission(activity, it) != PackageManager.PERMISSION_GRANTED
     }
-    return true
+
+    if (rejectedPermissions.isEmpty()) return true
+    else ActivityCompat.requestPermissions(
+        activity,
+        rejectedPermissions.toTypedArray(),
+        1
+    )
+    return false
 }
 
 /**
@@ -102,12 +96,15 @@ fun decodeBase64(input: String): ByteArray? {
     }
 }
 
+
+
+
 /**
- * Saves [bitmap] to [filename].
+ * Saves [bitmap] to [file].
  */
-fun saveBitmapToFile(filename: File, bitmap: Bitmap){
+fun saveBitmapToFile(file: File, bitmap: Bitmap){
     try {
-        val out = FileOutputStream(filename)
+        val out = FileOutputStream(file)
         bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
         out.flush()
         out.close()
@@ -150,6 +147,70 @@ fun createDeviceID(context: Context) {
 
     val id = UUID.randomUUID().toString()
     prefs.edit().putString("ID", id).apply()
+}
+
+
+/**
+ * Creates a sharing chooser with the given file.
+ *
+ * @param file The image file to share.
+ */
+
+fun createSharingChooser(file: File, mimeType: MimeType, activity: Activity) {
+    val contentUri =
+        FileProvider.getUriForFile(
+            activity.applicationContext,
+            BuildConfig.APPLICATION_ID + ".fileprovider",
+            file
+        )
+
+    val shareIntent = ShareCompat.IntentBuilder.from(activity)
+        .setType(mimeType.string)
+        .setStream(contentUri)
+        .createChooserIntent()
+
+
+    val resInfoList: List<ResolveInfo> = activity.packageManager
+        .queryIntentActivities(shareIntent, PackageManager.MATCH_DEFAULT_ONLY)
+
+    for (resolveInfo in resInfoList) {
+        val packageName: String = resolveInfo.activityInfo.packageName
+        activity.grantUriPermission(
+            packageName,
+            contentUri,
+            Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION
+        )
+    }
+    startActivity(activity, shareIntent, null)
+}
+
+fun saveImageFileToGallery(file: File, description: String, context: Context){
+    // if version is Q or higher, use the new API
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ) {
+        val values = ContentValues()
+        values.put(MediaStore.MediaColumns.DISPLAY_NAME, file.name)
+        values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis())
+        values.put(MediaStore.Images.Media.MIME_TYPE, MimeType(MimeTypes.PNG).string)
+        values.put(MediaStore.Images.Media.DESCRIPTION, description)
+        values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
+        val uri = context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+        context.contentResolver.openOutputStream(uri!!).use {
+            file.inputStream().use { input ->
+                if (it != null) {
+                    input.copyTo(it)
+                }
+            }
+        }
+    } else {
+        @Suppress("DEPRECATION") // we checked sdk version above
+        MediaStore.Images.Media.insertImage(
+            context.contentResolver,
+            file.absolutePath,
+            file.name,
+            description
+        )
+    }
+
 }
 
 /**

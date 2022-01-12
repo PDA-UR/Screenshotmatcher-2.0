@@ -1,5 +1,6 @@
 package com.pda.screenshotmatcher2.views.activities
 
+import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -20,10 +21,13 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
 import com.pda.screenshotmatcher2.R
+import com.pda.screenshotmatcher2.R.drawable.ic_baseline_image_24_landscape2
 import com.pda.screenshotmatcher2.background.BackgroundMatchingService
 import com.pda.screenshotmatcher2.logger.StudyLogger
 import com.pda.screenshotmatcher2.network.CaptureCallback
@@ -105,7 +109,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
         createDeviceID(this)
         initViews()
         setViewListeners()
-        initActivityReferences()
+        if (verifyPermissions(this)) initActivityReferences()
         savedInstanceState?.let { restoreFromSavedInstance(it) }
     }
 
@@ -117,7 +121,8 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
             CameraActivityFragmentHandler(
                 this
             )
-        if (verifyPermissions(this)) cameraProvider!!.start()
+
+        cameraProvider?.start()
         initViewModels()
     }
 
@@ -245,7 +250,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
         Log.d("CA", "onResume")
         val useBackgroundMatchingService: Boolean = sp.getBoolean(BG_MODE_PREF_KEY, false)
         if (useBackgroundMatchingService) BackgroundMatchingService.stopBackgroundService(this)
-        cameraProvider?.start()
         //cameraProvider?.start()
         // due to a bug in Android, the list of sensors returned by the SensorManager can be empty
         // it will stay that way until reboot.
@@ -265,7 +269,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
     }
 
     /**
-     * TODO: implement background service behavior
      * Unregisters [mSensorManager]
      */
     override fun onPause() {
@@ -287,7 +290,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
             mCaptureButton = findViewById(R.id.capture_button)
             mSelectDeviceButton = findViewById(R.id.select_device_button)
             mSelectDeviceButton.background =
-                resources.getDrawable(R.drawable.select_device_disconnected)
+                ContextCompat.getDrawable(this,  R.drawable.select_device_disconnected)
             mSelectDeviceButtonText = findViewById(R.id.camera_activity_select_device_text)
             mSelectDeviceButtonText.text = getText(R.string.select_device_button_notConnected_en)
             mFragmentDarkBackground = findViewById(R.id.ca_dark_background)
@@ -405,7 +408,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
         when (isConnected) {
             true -> {
                 mSelectDeviceButton.background =
-                    resources.getDrawable(R.drawable.select_device_connected)
+                    ContextCompat.getDrawable(this, R.drawable.select_device_connected)
                 if (phoneOrientation == Surface.ROTATION_0) {
                     mSelectDeviceButtonText.text =
                         serverConnectionViewModel!!.getConnectedServerName()
@@ -413,7 +416,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
             }
             false -> {
                 mSelectDeviceButton.background =
-                    resources.getDrawable(R.drawable.select_device_disconnected)
+                    ContextCompat.getDrawable(this, R.drawable.select_device_disconnected)
                 if (phoneOrientation == Surface.ROTATION_0) {
                     mSelectDeviceButtonText.text =
                         getString(R.string.select_device_button_notConnected_en)
@@ -445,29 +448,29 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
         when (phoneOrientation) {
             Surface.ROTATION_0 -> {
                 mSelectDeviceButton.setImageResource(android.R.color.transparent)
-                mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24))
+                mGalleryButton.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_baseline_image_24))
                 updateConnectionStatus(serverConnectionViewModel!!.getConnectionStatus())
-                mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24))
+                mCaptureButton.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_baseline_photo_camera_24))
 
             }
             Surface.ROTATION_90 -> {
                 mSelectDeviceButtonText.text = ""
-                mSelectDeviceButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_link_24_landscape))
-                mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24_landscape))
-                mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24_landscape))
+                mSelectDeviceButton.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_baseline_link_24_landscape))
+                mGalleryButton.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_baseline_image_24_landscape))
+                mCaptureButton.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_baseline_photo_camera_24_landscape))
             }
             Surface.ROTATION_180 -> {
                 //same as normal portrait
                 mSelectDeviceButton.setImageResource(android.R.color.transparent)
-                mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24))
+                mGalleryButton.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_baseline_image_24))
                 updateConnectionStatus(serverConnectionViewModel!!.getConnectionStatus())
-                mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24))
+                mCaptureButton.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_baseline_photo_camera_24))
             }
             Surface.ROTATION_270 -> {
                 mSelectDeviceButtonText.text = ""
-                mSelectDeviceButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_link_24_landscape))
-                mGalleryButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_image_24_landscape2))
-                mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_photo_camera_24_landscape2))
+                mSelectDeviceButton.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_baseline_link_24_landscape))
+                mGalleryButton.setImageDrawable(ContextCompat.getDrawable(this, ic_baseline_image_24_landscape2))
+                mCaptureButton.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_baseline_photo_camera_24_landscape2))
             }
         }
         cameraActivityFragmentHandler!!.rotateAllRotatableFragments()
@@ -490,16 +493,23 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
         when (requestCode) {
             1 -> {
                 if (grantResults.isNotEmpty()
-                    && grantResults[0] == PackageManager.PERMISSION_GRANTED
+                    && permissions.contains(Manifest.permission.CAMERA)
                 ) {
-                    cameraProvider!!.start()
+                    if (ActivityCompat.checkSelfPermission(
+                            this,
+                            Manifest.permission.CAMERA
+                        ) == PackageManager.PERMISSION_GRANTED
+                    ) {
+                        cameraProvider = CameraProvider(this)
+                        cameraProvider!!.start()
+                    }
                 } else {
                     Toast.makeText(
                         this,
                         getString(R.string.permission_request_en),
                         Toast.LENGTH_LONG
                     ).show()
-                    verifyPermissions(this)
+                    //verifyPermissions(this) auto request disabled for now
                 }
             }
         }
@@ -535,7 +545,9 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
      */
     fun onMatchResult(matchID: String, img: ByteArray) {
         isCapturing = false
-        window.decorView.performHapticFeedback(HapticFeedbackConstants.REJECT)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.decorView.performHapticFeedback(HapticFeedbackConstants.REJECT)
+        }
         captureViewModel!!.setCaptureResultData(
             matchID,
             BitmapFactory.decodeByteArray(img, 0, img.size)
@@ -563,7 +575,9 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
      */
     fun onMatchRequestError() {
         isCapturing = false
-        window.decorView.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.decorView.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+        }
         Toast.makeText(this, getString(R.string.match_request_error_en), Toast.LENGTH_LONG).show()
     }
 
@@ -584,7 +598,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
      */
     fun onOpenSelectDeviceFragment() {
         mSettingsButton.visibility = View.INVISIBLE
-        mCaptureButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_close_48))
+        mCaptureButton.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_baseline_close_48))
         mCaptureButton.setOnClickListener {
             cameraActivityFragmentHandler!!.closeSelectDeviceFragment()
         }

@@ -7,7 +7,7 @@ import android.database.ContentObserver
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
-import android.media.ExifInterface
+import androidx.exifinterface.media.ExifInterface
 import android.net.Uri
 import android.os.*
 import android.provider.MediaStore
@@ -34,52 +34,75 @@ import java.util.*
 
 /**
  * A [Service] running in the background, which detects when new photos are taken on the smartphone.
- * A [ContentObserver] monitors changes in the phone gallery directory and sends match requests once new photos are detected
+ * A [ContentObserver] monitors changes in the phone gallery directory and sends match requests once new photos are detected.
  *
- * @property isActive Indicates whether or not the service is active
- * @property contentObserver [ContentObserver] instance, which monitors the gallery
- * @property sp [SharedPreferences] instance, stores matching options
- * @property foregroundNotificationChannelId The channel id used to send notification
+ * @property MATCHING_MODE_PREF_KEY The key for the preference that determines the matching mode.
+ * @property foregroundNotificationChannelId The id of the foreground notification channel.
+ * @property matchNotificationChannelId The id of the match notification channel.
+ *
+ * @property foregroundNotificationBuilder The notification builder for the foreground notification.
+ * @property matchNotificationBuilder The notification builder for the match notification.
+ *
+ * @property broadcastReceiver [BroadcastReceiver] instance, which receives broadcasts from the system (screen on/off).
+ * @property sp [SharedPreferences] instance, stores the preferences.
+ *
+ *  @property isActive Whether or not the service is active.
+ *  @property isWaitingForMatchingResponse Whether or not the service is waiting for a match response from the server.
+ *  @property isConnected Whether or not the service is connected to the server.
+ *
+ *  @property isConnectedObserver [Observer] instance, which observes [ServerConnectionModel.isConnected] and updates [isConnected] accordingly.
+ *  @property recentContentObserverPaths Stores the last 10 files dispatched by [contentObserver]. This is done to avoid double processing, because [contentObserver] sometimes fires multiple identical events per file.
  */
 class BackgroundMatchingService : Service() {
-    private var isActive = false
-    private var contentObserver: ContentObserver? = null
-    private lateinit var sp: SharedPreferences
+
     private lateinit var MATCHING_MODE_PREF_KEY: String
     private val foregroundNotificationChannelId = "SM_FG_NOTIFICATION_CHANNEL"
-    private val matchResultNotificationChannelId = "SM_MR_NOTIFICATION_CHANNEL"
-    private var broadcastReceiver: BroadcastReceiver? = null
-    private var isWaitingForMatchingResponse = false
-    private lateinit var foregroundNotificationBuilder: Notification.Builder
+    private val matchNotificationChannelId = "SM_MR_NOTIFICATION_CHANNEL"
 
-    val isConnectedObserver = Observer<Boolean> {
-        if (it != isConnected) {
-            isConnected = it
-            foregroundNotificationBuilder.apply {
-                setContentText(getConnectedStatusString())
-                setSmallIcon(getConnectedStatusIcon())
-            }
-            NotificationManagerCompat.from(this@BackgroundMatchingService).notify(1, foregroundNotificationBuilder.build())
-            Log.d("BackgroundMatchingService", "isConnectedObserver: $it")
-        }
-    }
-    var isConnected: Boolean? = false
-
-    private var matchNotificationChannel: NotificationChannel? = null
-    private var matchNotificationManager: NotificationManager? = null
+    private lateinit var foregroundNotificationBuilder: NotificationCompat.Builder
+    private lateinit var matchNotificationBuilder: NotificationCompat.Builder
 
     /**
-     * Stores the last 10 files dispatched by [contentObserver] in the variable [recentContentObserverPaths]. This is done to avoid double processing, because [contentObserver] sometimes fires multiple identical events per file.
+     * Instance of [ContentObserver] which monitors changes in the phone gallery directory and sends match requests once new photos are detected.
+     *
+     * New photos are files which fulfill the following criteria at the time of detection:
+     * - [isWaitingForMatchingResponse] is false
+     * - [isConnected] is true
+     * - [isValidFilePath] returns true
+     * - [isNewCameraPhoto] returns true
+     */
+    private var contentObserver: ContentObserver? = null
+    private var broadcastReceiver: BroadcastReceiver? = null
+    private lateinit var sp: SharedPreferences
+
+    private var isActive = false
+    private var isWaitingForMatchingResponse = false
+    var isConnected: Boolean = false
+
+    private val isConnectedObserver = Observer<Boolean> {
+        if (it != isConnected) {
+            isConnected = it
+            updateForegroundNotification()
+        }
+    }
+
+    private var recentContentObserverPaths: LinkedList<String> = object : LinkedList<String>() {
+        override fun push(e: String?) {
+            if (size > 10) removeAt(10)
+            super.push(e)
+        }
+    }
+
+
+    /**
+     * Companion object for starting/stopping the service.
      */
     companion object {
-        // list to keep track of recently checked files to avoid double processing (content observer fires multiple identical events per file)
-        var recentContentObserverPaths: LinkedList<String> = object : LinkedList<String>() {
-            override fun push(e: String?) {
-                if (size > 10) removeAt(10)
-                super.push(e)
-            }
-        }
-
+        /**
+         * Start the service.
+         *
+         * @param context The context of the calling activity.
+         */
         fun startBackgroundService(context: Context) {
             Intent(context, BackgroundMatchingService::class.java).also {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -90,6 +113,11 @@ class BackgroundMatchingService : Service() {
             }
         }
 
+        /**
+         * Stop the service.
+         *
+         * @param context The context of the calling activity.
+         */
         fun stopBackgroundService(context: Context) {
             Intent(context, BackgroundMatchingService::class.java).also {
                 context.stopService(it)
@@ -102,9 +130,13 @@ class BackgroundMatchingService : Service() {
         return START_STICKY
     }
 
+    /**
+     * Called when the service is created, initializes the service.
+     *
+     * Starts [contentObserver] and [broadcastReceiver].
+     */
     override fun onCreate() {
         super.onCreate()
-
         broadcastReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 when (intent?.action) {
@@ -118,19 +150,26 @@ class BackgroundMatchingService : Service() {
             addAction(Intent.ACTION_SCREEN_ON)
         }
         this@BackgroundMatchingService.registerReceiver(broadcastReceiver, intentFilter)
-        initForegroundNotification()
+        createForegroundNotification()
         startForeground(1, foregroundNotificationBuilder.build())
     }
 
+    /**
+     * Starts the service.
+     */
     private fun startService() {
         if (isActive) return
         isActive = true
         ServerConnectionModel.start(application, false)
-
         ServerConnectionModel.isConnected.observeForever(isConnectedObserver)
         startContentObserver()
     }
 
+    /**
+     * Sleeps the service. Called when the screen is turned off.
+     *
+     * Removes all observers and stops [ServerConnectionModel]
+     */
     private fun sleepService() {
         if (!isActive) return
         isActive = false
@@ -140,6 +179,11 @@ class BackgroundMatchingService : Service() {
         ServerConnectionModel.isConnected.removeObserver(isConnectedObserver)
     }
 
+    /**
+     * Stops the service. Called when the service is destroyed.
+     *
+     * Calls [sleepService] and unregisters [broadcastReceiver] before stopping the service.
+     */
     private fun stopService() {
         sleepService()
         this@BackgroundMatchingService.unregisterReceiver(broadcastReceiver)
@@ -148,6 +192,9 @@ class BackgroundMatchingService : Service() {
         stopSelf()
     }
 
+    /**
+     * On destroy, calls [stopService].
+     */
     override fun onDestroy() {
         stopService()
         super.onDestroy()
@@ -159,32 +206,35 @@ class BackgroundMatchingService : Service() {
         return null
     }
 
+    /**
+     * Initializes [contentObserver] and registers it.
+     */
     private fun startContentObserver() {
         contentObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
             @SuppressLint("SimpleDateFormat")
             override fun onChange(selfChange: Boolean, uri: Uri?, flag: Int) {
+                Log.d("BackgroundMatchingService", "ContentObserver onChange")
                 super.onChange(selfChange, uri, flag)
-                val serverUrl = ServerConnectionModel.serverUrl.value
-                if (serverUrl != null && serverUrl != "" && uri != null && !isWaitingForMatchingResponse) {
+                if (isConnected && uri != null && !isWaitingForMatchingResponse) {
+                    Log.d("BackgroundMatchingService", "ContentObserver onChange: uri != null")
                     val path = getPathFromObserverUri(uri)
-                    if (path != null && !recentContentObserverPaths.contains(path) && !path.contains(
-                            Regex("/_")
-                        )
-                    ) {
-                        recentContentObserverPaths.push(path)
-                        val candidateFile = File(path)
-                        if (!isNewCameraPhoto(candidateFile)) return
-                        rescaleAndSendToServer(
-                            image = decodeSampledBitmapFromResource(
-                                candidateFile,
-                                512,
-                                512
-                            )
+                    if (isValidFilePath(path)) {
+                        Log.d("BackgroundMatchingService", "ContentObserver onChange: isValidFilePath")
+                        val candidateFile = File(path!!) // path != null, checked in isValidFilePath()
+                        if (isNewCameraPhoto(candidateFile))
+                            Log.d("BackgroundMatchingService", "ContentObserver onChange: isNewCameraPhoto")
+                            rescaleAndSendToServer(
+                                image = decodeSampledBitmapFromResource(
+                                    candidateFile,
+                                    512,
+                                    512
+                                )
                         )
                     }
                 }
             }
         }
+
         contentObserver.let {
             if (it != null) {
                 contentResolver.registerContentObserver(
@@ -196,6 +246,26 @@ class BackgroundMatchingService : Service() {
         }
     }
 
+    /**
+     * Checks whether a given [path] is a valid file path.
+     *
+     * @return true if [path] is not in [recentContentObserverPaths] and does not contain "_" at the start of the file name, false otherwise.
+     */
+    private fun isValidFilePath(path: String?): Boolean {
+        Log.d("BackgroundMatchingService", "isValidFilePath: $path")
+        return if (path != null && !recentContentObserverPaths.contains(path) && !path.contains(
+                Regex("/_")
+            )) {
+            recentContentObserverPaths.push(path)
+            true
+        } else false
+    }
+
+    /**
+     * Checks whether a given [file] is a new camera photo.
+     *
+     * @return true if [file] has an [ExifInterface.TAG_DATETIME] tag that is max 10s older than the current time, false otherwise
+     */
     @SuppressLint("SimpleDateFormat")
     private fun isNewCameraPhoto(file: File): Boolean {
         val currentTimestamp = Date().time
@@ -203,16 +273,19 @@ class BackgroundMatchingService : Service() {
         val exifDateTimeString = exif.getAttribute(ExifInterface.TAG_DATETIME)
         val exifDateTime = if (exifDateTimeString != null) {
             try {
-                // convert imageCaptureDateString to a date
                 SimpleDateFormat("yyyy:MM:dd HH:mm:ss").parse(exifDateTimeString)
             } catch (e: ParseException) {
-                Log.e("NPS", "exif parse error: ${e.message}")
                 return false
             }
         } else return false
         return exifDateTime.time + 10000 > currentTimestamp
     }
 
+    /**
+     * Rescales an [image] to 512x512 and calls [sendCaptureRequest] with the scaled image.
+     *
+     * @param image the image to rescale and send to the server
+     */
     private fun rescaleAndSendToServer(image: Bitmap) {
         val greyImg = rescale(
             image,
@@ -237,6 +310,9 @@ class BackgroundMatchingService : Service() {
         }
     }
 
+    /**
+     * [CaptureCallback] object that is used to handle the response from the server. Used in [rescaleAndSendToServer].
+     */
     private val captureCallback = object : CaptureCallback {
         override fun onPermissionDenied() {
             Toast.makeText(
@@ -261,7 +337,15 @@ class BackgroundMatchingService : Service() {
         }
     }
 
+    /**
+     * Called when [CaptureCallback.onMatchResult] of [captureCallback] is called.
+     * Sends a notification to the user with the result of the matching by calling [sendMatchNotification].
+     *
+     * @param matchId the id of the match
+     * @param ba the image of the match as a [ByteArray]
+     */
     private fun onMatch(matchId: String, ba: ByteArray?) {
+        Log.d("BMS", "onMatch: $matchId")
         CaptureModel.setMatchID(matchId)
         if (ba != null) {
             val image = BitmapFactory.decodeByteArray(ba, 0, ba.size)
@@ -270,36 +354,42 @@ class BackgroundMatchingService : Service() {
         }
     }
 
+    /**
+     * Send a match notification to the user with the result of the matching process.
+     *
+     * Calls [createMatchNotification] if no match notification has been sent before,
+     * otherwise calls [updateMatchNotification].
+     *
+     * @param bmp the screenshot image of the match
+     * @see [onMatch]
+     */
     private fun sendMatchNotification(bmp: Bitmap) {
-        if (matchNotificationChannel == null) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                matchNotificationChannel = NotificationChannel(
-                    matchResultNotificationChannelId,
-                    getString(R.string.bgMode_match_notification_channel_name),
-                    NotificationManager.IMPORTANCE_HIGH
-                )
-                matchNotificationManager =
-                    getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                matchNotificationManager?.createNotificationChannel(matchNotificationChannel!!)
-            }
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) matchNotificationManager?.notify(
-            2,
-            createMatchNotification(bmp)
-        )
-        else NotificationManagerCompat.from(this@BackgroundMatchingService)
-            .notify(2, createMatchNotification(bmp))
+        if (!::matchNotificationBuilder.isInitialized) createMatchNotification(bmp)
+        else updateMatchNotification(bmp)
+
+        NotificationManagerCompat.from(this@BackgroundMatchingService)
+            .notify(2, matchNotificationBuilder.build())
     }
 
-    private fun createMatchNotification(matchResult: Bitmap): Notification {
-        val startIntent = Intent(this, ResultsActivity::class.java)
-        startIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        val pendingIntent: PendingIntent =
-            PendingIntent.getActivity(this@BackgroundMatchingService, 1, startIntent, 0)
+    /**
+     * Creates a notification channel for the match notification as well as the notification itself.
+     *
+     * @param matchResult the image of the match
+     * @see [sendMatchNotification]
+     */
+    private fun createMatchNotification(matchResult: Bitmap) {
+        createMatchNotificationChannel()
 
-        return NotificationCompat.Builder(
+        val startIntent = Intent(this, ResultsActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            putExtra(ResultsActivity.EXTRA_STARTED_FROM_CAMERA_ACTIVITY, true)
+        }
+        val pendingIntent: PendingIntent =
+            PendingIntent.getActivity(this@BackgroundMatchingService, 1, startIntent, PendingIntent.FLAG_IMMUTABLE)
+
+        matchNotificationBuilder = NotificationCompat.Builder(
             this@BackgroundMatchingService,
-            matchResultNotificationChannelId
+            matchNotificationChannelId
         )
             .setSmallIcon(R.drawable.ic_baseline_photo_camera_24)
             .setLargeIcon(matchResult)
@@ -309,13 +399,80 @@ class BackgroundMatchingService : Service() {
                 NotificationCompat.BigPictureStyle()
                     .bigPicture(matchResult)
             )
-            .setChannelId(matchResultNotificationChannelId)
+            .setChannelId(matchNotificationChannelId)
             .setContentIntent(pendingIntent)
             .setContentText(getString(R.string.bgMode_match_notification_text))
-            .build()
     }
 
-    private fun initForegroundNotification() {
+    /**
+     * Creates the notification channel for the match notification.
+     *
+     * @see [createMatchNotification]
+     */
+    private fun createMatchNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val matchNotificationChannel = NotificationChannel(
+                matchNotificationChannelId,
+                getString(R.string.bgMode_match_notification_channel_name),
+                NotificationManager.IMPORTANCE_HIGH
+            )
+            val matchNotificationManager =
+                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            matchNotificationManager.createNotificationChannel(matchNotificationChannel)
+        }
+    }
+
+    /**
+     * Updates the match notification with the new image of the match.
+     *
+     * @param matchResult the image of the match
+     * @see [sendMatchNotification]
+     */
+    private fun updateMatchNotification (matchResult: Bitmap) {
+        matchNotificationBuilder
+            .setStyle(
+                NotificationCompat.BigPictureStyle()
+                    .bigPicture(matchResult)
+            )
+    }
+
+    /**
+     * Creates a notification channel for the foreground notification as well as the notification itself.
+     *
+     * @see [onCreate]
+     */
+    private fun createForegroundNotification() {
+        createForegroundNotificationChannel()
+
+        val pendingIntent: PendingIntent =
+            Intent(this, CameraActivity::class.java).let { notificationIntent ->
+                PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE)
+            }
+
+        if(!::foregroundNotificationBuilder.isInitialized){
+            foregroundNotificationBuilder =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) NotificationCompat.Builder(
+                this,
+                foregroundNotificationChannelId
+            ) else {
+                @Suppress("DEPRECATION") // checked for above
+                NotificationCompat.Builder(this) // for pre-O versions
+                }
+
+            foregroundNotificationBuilder
+                .setContentTitle(getString(R.string.bgMode_fg_notification_title))
+                .setContentText(getConnectedStatusString())
+                .setContentIntent(pendingIntent)
+                .setSmallIcon(getConnectedStatusIcon())
+        }
+    }
+
+    /**
+     * Creates the notification channel for the foreground notification.
+     *
+     * @see [createForegroundNotification]
+     */
+    private fun createForegroundNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationManager =
                 getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -332,35 +489,44 @@ class BackgroundMatchingService : Service() {
             }
             notificationManager.createNotificationChannel(channel)
         }
-
-        val pendingIntent: PendingIntent =
-            Intent(this, CameraActivity::class.java).let { notificationIntent ->
-                PendingIntent.getActivity(this, 0, notificationIntent, 0)
-            }
-
-        if(!::foregroundNotificationBuilder.isInitialized){
-            foregroundNotificationBuilder =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) Notification.Builder(
-                this,
-                foregroundNotificationChannelId
-            ) else Notification.Builder(this) // for pre-O versions
-            foregroundNotificationBuilder
-                .setContentTitle(getString(R.string.bgMode_fg_notification_title))
-                .setContentText(getConnectedStatusString())
-                .setContentIntent(pendingIntent)
-                .setSmallIcon(getConnectedStatusIcon())
-        }
     }
 
+    /**
+     * Updates the foreground notification with the new connected status.
+     *
+     * @see [isConnectedObserver]
+     */
+    private fun updateForegroundNotification() {
+        foregroundNotificationBuilder.apply {
+            setContentText(getConnectedStatusString())
+            setSmallIcon(getConnectedStatusIcon())
+        }
+        NotificationManagerCompat.from(this@BackgroundMatchingService).notify(1, foregroundNotificationBuilder.build())
+    }
+
+    /**
+     * Returns the icon representing the corresponding connected status.
+     *
+     * @return the icon of the connected status
+     */
     private fun getConnectedStatusIcon(): Int {
         return if (ServerConnectionModel.isConnected.value!!) R.drawable.ic_icon_notification_connected else R.drawable.ic_icon_notification_disconnected
     }
 
+    /**
+     * Returns the string representing the corresponding connected status.
+     *
+     * @return the string of the connected status
+     */
     private fun getConnectedStatusString(): String {
         return if (ServerConnectionModel.isConnected.value!!) getString(R.string.bgMode_fg_notification_connected)
         else getString(R.string.bgMode_fg_notification_disconnected)
     }
 
+    /**
+     * Returns the matching options for the match request.
+     * @return the matching options for the match request
+     */
     private fun getMatchingOptionsFromPref(): HashMap<Any?, Any?> {
         if (!::sp.isInitialized) {
             sp = PreferenceManager.getDefaultSharedPreferences(this)
@@ -379,6 +545,16 @@ class BackgroundMatchingService : Service() {
         return matchingMode
     }
 
+    /**
+     * Decode a sampled bitmap from a [file] to a [Bitmap].
+     *
+     * @param file the file to decode
+     * @param reqWidth the min required width of the decoded bitmap
+     * @param reqHeight the min required height of the decoded bitmap
+     * @return the decoded bitmap
+     *
+     * @see [Loading Large Bitmaps Efficiently](https://developer.android.com/topic/performance/graphics/load-bitmap)
+     */
     fun decodeSampledBitmapFromResource(
         file: File,
         reqWidth: Int,
@@ -398,6 +574,15 @@ class BackgroundMatchingService : Service() {
         }
     }
 
+    /**
+     * Calculates the inSampleSize for the bitmap decoding.
+     *
+     * @param options the options of the bitmap decoding
+     * @param reqWidth the min required width of the decoded bitmap
+     * @param reqHeight the min required height of the decoded bitmap
+     * @return the inSampleSize for the bitmap decoding
+     * @see [decodeSampledBitmapFromResource]
+     */
     private fun calculateInSampleSize(
         options: BitmapFactory.Options,
         reqWidth: Int,
@@ -423,19 +608,28 @@ class BackgroundMatchingService : Service() {
     }
 
 
-    // depending on the sdk version, different methods have to be used to obtain the file path
+    /**
+     * Returns the file path of a given [uri].
+     *
+     * Calls [queryRelativeDataColumn] if the build version is greater than or equal to [Build.VERSION_CODES.Q],
+     * otherwise calls [queryAbsoluteDataColumn].
+     *
+     * @param uri the uri to get the file path from
+     * @return the file path of the given uri
+     */
     fun getPathFromObserverUri(uri: Uri): String? {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             queryRelativeDataColumn(uri)
         } else {
-            queryDataColumn(uri)
+            queryAbsoluteDataColumn(uri)
         }
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
     fun queryRelativeDataColumn(uri: Uri): String? {
+        Log.d("BMS", "queryRelativeDataColumn: $uri")
         var relativePath: String? = null
-        var name: String? = null
+        var name: String?
         val projection = arrayOf(
             MediaStore.Images.Media.DISPLAY_NAME,
             MediaStore.Images.Media.RELATIVE_PATH
@@ -453,6 +647,7 @@ class BackgroundMatchingService : Service() {
                 cursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME)
             while (cursor.moveToNext()) {
                 name = cursor.getString(displayNameColumn)
+                Log.d("BMS", "queryRelativeDataColumn name: $name")
                 relativePath = "${Environment.getExternalStorageDirectory()}/${
                     cursor.getString(
                         relativePathColumn
@@ -464,7 +659,7 @@ class BackgroundMatchingService : Service() {
     }
 
 
-    private fun queryDataColumn(uri: Uri): String? {
+    private fun queryAbsoluteDataColumn(uri: Uri): String? {
         var returnPath: String? = null
         val projection = arrayOf(
             MediaStore.Images.Media.DATA
