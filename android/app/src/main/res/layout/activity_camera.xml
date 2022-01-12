@@ -122,15 +122,16 @@
         android:id="@+id/ca_dark_background"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+
         android:background="@color/fragmentBackground"
         android:visibility="invisible" />
 
     <FrameLayout
         android:id="@+id/fragment_container_view"
         android:layout_width="match_parent"
-        android:layout_height="550dp"
+        android:layout_height="500dp"
         android:layout_gravity="center_vertical"
-        android:layout_margin="10dp"
+        android:layout_margin="25dp"
         
         android:elevation="15dp"
         android:outlineProvider="bounds"
@@ -143,9 +144,9 @@
     <FrameLayout
         android:id="@+id/feedback_fragment_container_view"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="500dp"
         android:layout_gravity="center_vertical"
-        android:layout_margin="10dp"
+        android:layout_margin="25dp"
         
         android:elevation="10dp"
         android:outlineProvider="bounds"
@@ -158,9 +159,9 @@
         android:id="@+id/settings_fragment_container_view"
         android:layout_width="match_parent"
         app:cardCornerRadius="15dp"
-        android:layout_height="wrap_content"
+        android:layout_height="500dp"
         android:layout_gravity="center_vertical"
-        android:layout_margin="10dp"
+        android:layout_margin="25dp"
         
         android:elevation="10dp"
         android:outlineProvider="bounds"
