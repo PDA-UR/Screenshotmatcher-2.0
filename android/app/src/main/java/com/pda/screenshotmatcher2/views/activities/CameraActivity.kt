@@ -143,7 +143,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
 
         cameraActivityFragmentHandler = null
 
-
         mSensorManager?.unregisterListener(this, mAccelerometer)
         mSensorManager = null
         mAccelerometer = null
