@@ -36,10 +36,10 @@ import kotlin.Exception
 fun getPermissions(): Array<String> {
     val basePermissions = arrayOf(
         Manifest.permission.INTERNET,
-        Manifest.permission.CAMERA,
         Manifest.permission.READ_EXTERNAL_STORAGE,
+        Manifest.permission.CAMERA,
     )
-    return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) arrayOf(*basePermissions, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE, *basePermissions)
     else basePermissions
 }
 
