@@ -1,3 +1,5 @@
+@file:Suppress("unused", "unused", "unused")
+
 package com.pda.screenshotmatcher2.viewModels
 
 import android.app.Application

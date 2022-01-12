@@ -1,3 +1,5 @@
+@file:Suppress("SpellCheckingInspection")
+
 package com.pda.screenshotmatcher2.viewHelpers
 
 import android.os.Bundle
@@ -6,7 +8,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.ImageView
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.pda.screenshotmatcher2.R
@@ -33,9 +34,9 @@ class GridBaseAdapter(private val context: GalleryFragment) : BaseAdapter() {
     ).get(
         GalleryViewModel::class.java
     ).apply {
-        getImages().observe(context.viewLifecycleOwner, Observer { images ->
+        getImages().observe(context.viewLifecycleOwner) { images ->
             imagePairs = images
-        })
+        }
     }
 
     /**
@@ -45,46 +46,49 @@ class GridBaseAdapter(private val context: GalleryFragment) : BaseAdapter() {
 	 * @return Inflated [View] with the layout [R.layout.grid_view_item]
 	 */
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
-        val mInflator: LayoutInflater = LayoutInflater.from(context.activity)
-        val view: View = mInflator.inflate(R.layout.grid_view_item, parent, false)
-        val vh = ViewHolder(view)
-        view.tag = vh
+        if(convertView == null) {
+            val mInflator: LayoutInflater = LayoutInflater.from(context.activity)
+            val view: View = mInflator.inflate(R.layout.grid_view_item, parent, false)
 
-        view.setOnClickListener {
-            val firstImageFile = vh.firstImageFile
-            val secondImageFile = vh.secondImageFile
+            val vh = ViewHolder(view)
+            view.tag = vh
 
-            val bundle = Bundle().apply {
-                putSerializable(FIRST_IMAGE_KEY, firstImageFile)
-                putSerializable(SECOND_IMAGE_KEY, secondImageFile)
+            view.setOnClickListener {
+                val firstImageFile = vh.firstImageFile
+                val secondImageFile = vh.secondImageFile
+
+                val bundle = Bundle().apply {
+                    putSerializable(FIRST_IMAGE_KEY, firstImageFile)
+                    putSerializable(SECOND_IMAGE_KEY, secondImageFile)
+                }
+
+                context.requireActivity().supportFragmentManager.beginTransaction().add(
+                    R.id.gallery_fragment_body_layout,
+                    GalleryPreviewFragment().apply { arguments = bundle },
+                    GalleryPreviewFragment::class.java.simpleName
+                ).commit()
             }
 
-            context.requireActivity().supportFragmentManager.beginTransaction().add(
-                R.id.gallery_fragment_body_layout,
-                GalleryPreviewFragment().apply { arguments = bundle },
-                GalleryPreviewFragment::class.java.simpleName
-            ).commit()
-        }
-
-        Glide.with(context)
-            .load(imagePairs[position][0])
-            .placeholder(R.drawable.fragment_normal_button_small)
-            .centerCrop()
-            .into(vh.firstImage)
-        vh.firstImage.visibility = View.VISIBLE
-        vh.firstImageFile = imagePairs[position][0]
-        if (imagePairs[position].size > 1) {
             Glide.with(context)
-                .load(imagePairs[position][1])
+                .load(imagePairs[position][0])
                 .placeholder(R.drawable.fragment_normal_button_small)
                 .centerCrop()
-                .into(vh.secondImage)
-            vh.secondImage.visibility = View.VISIBLE
-            vh.secondImageFile = imagePairs[position][1]
-            vh.secondImage.rotation = 5F
-            vh.firstImage.rotation = -5F
-        }
-        return view
+                .into(vh.firstImage)
+            vh.firstImage.visibility = View.VISIBLE
+            vh.firstImageFile = imagePairs[position][0]
+            if (imagePairs[position].size > 1) {
+                Glide.with(context)
+                    .load(imagePairs[position][1])
+                    .placeholder(R.drawable.fragment_normal_button_small)
+                    .centerCrop()
+                    .into(vh.secondImage)
+                vh.secondImage.visibility = View.VISIBLE
+                vh.secondImageFile = imagePairs[position][1]
+                vh.secondImage.rotation = 5F
+                vh.firstImage.rotation = -5F
+            }
+            return view
+        } else return convertView
     }
 
     /**

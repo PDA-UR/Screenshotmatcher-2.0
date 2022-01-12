@@ -50,9 +50,9 @@ class CameraProvider(cameraInstance: CameraInstance) {
      * Options for the camera image.
      */
     companion object OPTIONS {
-        val MAX_PREVIEW_WIDTH = 1920
-        val MAX_PREVIEW_HEIGHT = 1080
-        val IMG_TARGET_SIZE = 512
+        const val MAX_PREVIEW_WIDTH = 1920
+        const val MAX_PREVIEW_HEIGHT = 1080
+        const val IMG_TARGET_SIZE = 512
     }
 
     private lateinit var cameraId: String
@@ -169,7 +169,6 @@ class CameraProvider(cameraInstance: CameraInstance) {
                 )
 
                 val displaySize = Point()
-                ca?.windowManager?.defaultDisplay?.getSize(displaySize)
                 var maxPreviewWidth: Int = displaySize.x
                 var maxPreviewHeight: Int = displaySize.y
 

@@ -27,7 +27,7 @@ abstract class RotationFragment : GarbageView, Fragment() {
     var containerView: FrameLayout? = null
     var ca: CameraActivity? = null
     var rotation: Int = 0
-    var mView: View? = null
+    private var mView: View? = null
     private lateinit var subclassName: String
 
     /**

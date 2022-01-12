@@ -1,3 +1,5 @@
+@file:Suppress("PrivatePropertyName", "PrivatePropertyName")
+
 package com.pda.screenshotmatcher2.background
 
 import android.annotation.SuppressLint
@@ -658,7 +660,7 @@ class BackgroundMatchingService : Service() {
         return relativePath
     }
 
-
+    @Suppress("DEPRECATION") // Taken care of in getPathFromObserverUri
     private fun queryAbsoluteDataColumn(uri: Uri): String? {
         var returnPath: String? = null
         val projection = arrayOf(

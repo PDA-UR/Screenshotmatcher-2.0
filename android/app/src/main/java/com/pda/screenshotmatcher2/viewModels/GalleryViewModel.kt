@@ -4,7 +4,6 @@ import android.app.Application
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import androidx.lifecycle.*
 import java.io.File
 

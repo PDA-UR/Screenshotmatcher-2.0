@@ -212,7 +212,7 @@ private fun captureJsonObjectRequest(
                 else -> throw Exception("Unknown response")
             }
         },
-        { error ->
+        {
             cb.onMatchRequestError()
         })
 }
@@ -362,9 +362,9 @@ private fun logMatchResponse(response: JSONObject) {
 fun sendLog(serverURL: String, context: Context) {
     // Only send log if preference is set to true
     // otherwise send the match_id only, so the server can delete the corresponding object for the request
-    val MATCHING_MODE_PREF_KEY = context.getString(R.string.settings_logging_key)
+    val matchinModePrefKey = context.getString(R.string.settings_logging_key)
     val sp = PreferenceManager.getDefaultSharedPreferences(context)
-    val sendLog = sp.getBoolean(MATCHING_MODE_PREF_KEY, false)
+    val sendLog = sp.getBoolean(matchinModePrefKey, false)
 
     val json: JSONObject
     if (sendLog) {
@@ -379,7 +379,7 @@ fun sendLog(serverURL: String, context: Context) {
     val jsonObjectRequest = JsonObjectRequest(Request.Method.POST, serverURL + Routes.LOG_DEST, json,
         {
         },
-        { error ->
+        { _ ->
             Log.e("log", "Error sending Study Log, server offline")
         }
     )

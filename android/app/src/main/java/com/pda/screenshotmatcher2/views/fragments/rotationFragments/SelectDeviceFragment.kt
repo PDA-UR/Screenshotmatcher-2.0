@@ -1,12 +1,10 @@
 package com.pda.screenshotmatcher2.views.fragments.rotationFragments
+import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.util.Log
 import android.view.HapticFeedbackConstants
 import android.view.View
 import android.widget.*
-import androidx.lifecycle.Observer
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
 import com.pda.screenshotmatcher2.R
@@ -44,8 +42,7 @@ class SelectDeviceFragment : RotationFragment() {
      */
     private fun initServerList() {
         serverConnectionViewModel = ViewModelProvider(requireActivity(), ServerConnectionViewModel.Factory(requireActivity().application)).get(ServerConnectionViewModel::class.java).apply {
-            getServerUrlListLiveData().observe(viewLifecycleOwner, Observer {
-                urlList ->
+            getServerUrlListLiveData().observe(viewLifecycleOwner) { urlList ->
                 run {
                     mServerList.clear()
                     urlList.forEach { pair: Pair<String, String> ->
@@ -53,7 +50,7 @@ class SelectDeviceFragment : RotationFragment() {
                     }
                     adapter.notifyDataSetChanged()
                 }
-            })
+            }
         }
     }
 
@@ -70,11 +67,11 @@ class SelectDeviceFragment : RotationFragment() {
         mListView.onItemClickListener = AdapterView.OnItemClickListener { _, view, position, _ ->
             requireActivity().window.decorView.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK)
             if (::lastSelectedItem.isInitialized){
-                lastSelectedItem.setTextColor(resources.getColor(R.color.white))
+                lastSelectedItem.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
             }
                 lastSelectedItem = view as TextView
                 val itemView: TextView = view
-                itemView.setTextColor(resources.getColor(R.color.connected_green))
+                itemView.setTextColor(ContextCompat.getColor(requireContext(), R.color.connected_green))
                 // add the selected server url to shared preferences
                 val knownList = PreferenceManager.getDefaultSharedPreferences(requireContext()).getStringSet(context?.getString(R.string.KNOWN_SERVERS_KEY), setOf())
                 PreferenceManager.getDefaultSharedPreferences(context).edit().putStringSet(context?.getString(R.string.KNOWN_SERVERS_KEY), knownList?.plus(mServerList[position])).apply()
@@ -88,7 +85,9 @@ class SelectDeviceFragment : RotationFragment() {
      * Plays a short vibration & animation to indicate that the fragment is removed.
      */
     override fun removeThisFragment(removeBackground: Boolean) {
-        ca?.window?.decorView?.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            ca?.window?.decorView?.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
+        }
         ca?.onCloseSelectDeviceFragment()
         clearGarbage()
         super.removeThisFragment(removeBackground)

@@ -78,7 +78,8 @@
                     android:elevation="15dp"
                     android:outlineProvider="bounds"
                     android:outlineSpotShadowColor="@color/black"
-                    android:scaleType="fitCenter"/>
+                    android:scaleType="fitCenter"
+                    tools:targetApi="p" />
 
             </FrameLayout>
 

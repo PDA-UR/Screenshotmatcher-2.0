@@ -94,7 +94,8 @@
                     android:elevation="15dp"
                     android:outlineProvider="bounds"
                     android:outlineSpotShadowColor="@color/black"
-                    android:scaleType="fitXY"/>
+                    android:scaleType="fitXY"
+                    tools:targetApi="p" />
 
             </FrameLayout>
 
@@ -111,7 +112,8 @@
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    tools:ignore="NestedWeights">
 
                     <androidx.appcompat.widget.AppCompatImageButton
                         android:id="@+id/ra_shareButton"

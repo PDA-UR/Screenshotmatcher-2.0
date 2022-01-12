@@ -1,3 +1,5 @@
+@file:Suppress("PrivatePropertyName", "PrivatePropertyName")
+
 package com.pda.screenshotmatcher2.views.activities
 
 import android.Manifest
@@ -23,7 +25,6 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
 import com.pda.screenshotmatcher2.R
@@ -40,8 +41,8 @@ import com.pda.screenshotmatcher2.viewHelpers.CameraProvider
 import com.pda.screenshotmatcher2.viewModels.CaptureViewModel
 import com.pda.screenshotmatcher2.viewModels.GalleryViewModel
 import com.pda.screenshotmatcher2.viewModels.ServerConnectionViewModel
-import com.pda.screenshotmatcher2.views.interfaces.GarbageView
 import com.pda.screenshotmatcher2.views.interfaces.CameraInstance
+import com.pda.screenshotmatcher2.views.interfaces.GarbageView
 
 
 /**
@@ -85,7 +86,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
     private lateinit var mGalleryButton: ImageButton
 
     var isCapturing: Boolean = false
-    var didStartResultsActivity: Boolean = false
+    private var didStartResultsActivity: Boolean = false
 
     private lateinit var sp: SharedPreferences
     private lateinit var MATCHING_MODE_PREF_KEY: String
@@ -163,22 +164,22 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
             this,
             GalleryViewModel.Factory(application)
         ).get(GalleryViewModel::class.java).apply {
-            getImages().observe(context, Observer { images ->
+            getImages().observe(context) { images ->
                 Log.d("CA", "images updated, new size: ${images.size}")
-            })
+            }
         }
         serverConnectionViewModel =
             ViewModelProvider(this, ServerConnectionViewModel.Factory(application)).get(
                 ServerConnectionViewModel::class.java
             ).apply {
-                getServerUrlLiveData().observe(context, Observer { url ->
+                getServerUrlLiveData().observe(context) { url ->
                     run {
                         Log.d("CA", "New URL: $url")
                     }
-                })
-                isConnectedToServer.observe(context, Observer { isConnected ->
+                }
+                isConnectedToServer.observe(context) { isConnected ->
                     updateConnectionStatus(isConnected)
-                })
+                }
             }
         captureViewModel = ViewModelProvider(
             this,
@@ -194,9 +195,9 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
      * @param context Application context
      */
     private fun checkForFirstRun(context: Context) {
-        val FIRST_RUN_KEY = getString(R.string.FIRST_RUN_KEY)
+        val firstRunKey = getString(R.string.FIRST_RUN_KEY)
         // debug: val FIRST_RUN_KEY = "d"
-        val isFirstRun: Boolean = sp.getBoolean(FIRST_RUN_KEY, true)
+        val isFirstRun: Boolean = sp.getBoolean(firstRunKey, true)
         if (isFirstRun) {
             // debug: if(true){
             val intent = Intent(context, AppTutorial::class.java)
@@ -365,7 +366,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
                     mBitmap!!,
                     CameraProvider.IMG_TARGET_SIZE
                 )
-            val matchingOptions: java.util.HashMap<Any?, Any?>? = getMatchingOptionsFromPref()
+            val matchingOptions: java.util.HashMap<Any?, Any?> = getMatchingOptionsFromPref()
             sendCaptureRequest(
                 greyImg,
                 mServerURL!!,
@@ -538,7 +539,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
     /**
      * Callback for when the server answers to a match request with a match.
      *
-     * Updates [captureViewModel] with [matchID] and [matchName], then starts the [ResultsActivity]
+     * Updates [captureViewModel] with [matchID], then starts the [ResultsActivity]
      *
      * @param matchID The ID of the match
      * @param img The cropped image of the match
@@ -693,7 +694,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
      * Initiates the shared preferences.
      *
      * Initiates [sp] if it is null.
-     * Retrieves [MATCHING_MODE_PREF_KEY] and [BG_MODE_PREF_KEY] from [R.string.matching_mode_pref_key]
+     * Retrieves [MATCHING_MODE_PREF_KEY] and [BG_MODE_PREF_KEY]
      */
     private fun setupSharedPref() {
         if (!::sp.isInitialized) {
@@ -708,20 +709,14 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
      *
      * @return The matching mode (fast or accurate).
      */
-    private fun getMatchingOptionsFromPref(): HashMap<Any?, Any?>? {
-        val matchingMode: HashMap<Any?, Any?>? = HashMap()
+    private fun getMatchingOptionsFromPref(): HashMap<Any?, Any?> {
+        val matchingMode: HashMap<Any?, Any?> = HashMap()
         val fastMatchingMode: Boolean = sp.getBoolean(MATCHING_MODE_PREF_KEY, true)
 
         if (fastMatchingMode) {
-            matchingMode?.set(
-                getString(R.string.algorithm_key_server),
-                getString(R.string.algorithm_fast_mode_name_server)
-            )
+            matchingMode[getString(R.string.algorithm_key_server)] = getString(R.string.algorithm_fast_mode_name_server)
         } else {
-            matchingMode?.set(
-                getString(R.string.algorithm_key_server),
-                getString(R.string.algorithm_accurate_mode_name_server)
-            )
+            matchingMode[getString(R.string.algorithm_key_server)] = getString(R.string.algorithm_accurate_mode_name_server)
         }
         return matchingMode
     }
