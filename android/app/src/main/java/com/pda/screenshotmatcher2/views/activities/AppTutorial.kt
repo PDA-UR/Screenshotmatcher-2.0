@@ -15,6 +15,9 @@ import com.pda.screenshotmatcher2.views.fragments.AnimatedIntroFragment
 
 /**
  * Carousel intro that introduces new users to the app. Shown when launching the app for the first time.
+ *
+ * TODO: Optimize images, causes out of memory on emulator with low memory.
+ *
  * @see <a href="https://github.com/AppIntro/AppIntro">AppIntro</a> for more information
  */
 class AppTutorial : AppIntro() {
@@ -30,20 +33,20 @@ class AppTutorial : AppIntro() {
             descriptionParallaxFactor = 2.0
         ))
 
-        //addSlide(AnimatedIntroFragment.newInstance(R.layout.fragment_animated_intro))
+        addSlide(AnimatedIntroFragment.newInstance(R.layout.fragment_animated_intro))
 
         addSlide(AppIntroFragment.newInstance(
             title = getString(R.string.app_intro_header_2),
             description = getString(R.string.app_intro_description_2),
             titleColor = Color.BLACK,
             descriptionColor = Color.BLACK,
-            //imageDrawable = R.drawable.ic_download_24px_outlined,
+            imageDrawable = R.drawable.ic_download_24px_outlined,
             backgroundColor = Color.WHITE
         ))
         addSlide(AppIntroFragment.newInstance(
             title = getString(R.string.app_intro_header_3),
             description = getString(R.string.app_intro_description_3),
-            //imageDrawable = R.drawable.intro_picture_3,
+            imageDrawable = R.drawable.intro_picture_3,
             titleColor = Color.BLACK,
             descriptionColor = Color.BLACK,
             backgroundColor = Color.WHITE
@@ -51,7 +54,7 @@ class AppTutorial : AppIntro() {
         addSlide(AppIntroFragment.newInstance(
             title = getString(R.string.app_intro_header_4),
             description = getString(R.string.app_intro_description_4),
-            //imageDrawable = R.drawable.intro_picture_4,
+            imageDrawable = R.drawable.intro_picture_4,
             titleColor = Color.BLACK,
             descriptionColor = Color.BLACK,
             backgroundColor = Color.WHITE
@@ -59,7 +62,7 @@ class AppTutorial : AppIntro() {
         addSlide(AppIntroFragment.newInstance(
             title = getString(R.string.app_intro_header_5),
             description = getString(R.string.app_intro_description_5),
-            //imageDrawable = R.drawable.intro_picture_5,
+            imageDrawable = R.drawable.intro_picture_5,
             titleColor = Color.BLACK,
             descriptionColor = Color.BLACK,
             backgroundColor = Color.WHITE
