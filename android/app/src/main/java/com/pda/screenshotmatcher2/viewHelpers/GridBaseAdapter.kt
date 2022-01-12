@@ -17,6 +17,8 @@ import com.pda.screenshotmatcher2.views.fragments.rotationFragments.GalleryFragm
 import com.pda.screenshotmatcher2.views.fragments.rotationFragments.GalleryPreviewFragment
 import com.pda.screenshotmatcher2.views.fragments.rotationFragments.SECOND_IMAGE_KEY
 import java.io.File
+import java.util.*
+import kotlin.collections.ArrayList
 
 /**
  * A [BaseAdapter] used by [GalleryFragment] to inflate [Views][View] of previously taken screenshot pairs (cropped,full).

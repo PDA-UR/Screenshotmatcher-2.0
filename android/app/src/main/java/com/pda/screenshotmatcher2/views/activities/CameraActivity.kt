@@ -288,6 +288,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
         super.onPause()
         val useBackgroundMatchingService: Boolean = sp.getBoolean(BG_MODE_PREF_KEY, false)
         if (useBackgroundMatchingService && !didStartResultsActivity) BackgroundMatchingService.startBackgroundService(applicationContext)
+        cameraProvider = null
         cameraProvider?.pause()
     }
 
@@ -445,7 +446,6 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
     private fun startResultsActivity(matchID: String, img: ByteArray) {
         didStartResultsActivity = true
         val intent = Intent(this, ResultsActivity::class.java)
-        intent.putExtra(ResultsActivity.EXTRA_STARTED_FROM_BG_SERVICE, true)
         startActivityForResult(
             intent,
             ResultsActivity.RESULT_ACTIVITY_REQUEST_CODE
@@ -693,6 +693,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
             ResultsActivity.RESULT_ACTIVITY_REQUEST_CODE -> {
+                Log.d("CA", "onActivityResult: $resultCode")
                 didStartResultsActivity = false
                 when (resultCode) {
                     Activity.RESULT_OK -> {
