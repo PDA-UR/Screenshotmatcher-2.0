@@ -105,17 +105,27 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
         super.onCreate(savedInstanceState)
         hideStatusAndActionBars()
         setupSharedPref()
-        checkForFirstRun(this)
         setContentView(R.layout.activity_camera)
         createDeviceID(this)
         initViews()
-        setViewListeners()
-        if (verifyPermissions(this)) initActivityReferences()
-        savedInstanceState?.let { restoreFromSavedInstance(it) }
+        if (!checkForFirstRun(this)){
+            setViewListeners()
+            initActivityReferences()
+            savedInstanceState?.let { restoreFromSavedInstance(it) }
+        }
+
     }
 
     private fun initActivityReferences() {
-        cameraProvider = CameraProvider(this)
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED
+            && cameraProvider == null
+        ) {
+            cameraProvider = CameraProvider(this)
+            cameraProvider?.start()
+        } else verifyPermissions(this)
         mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         mAccelerometer = mSensorManager!!.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         cameraActivityFragmentHandler =
@@ -123,7 +133,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
                 this
             )
 
-        cameraProvider?.start()
+
         initViewModels()
     }
 
@@ -194,16 +204,19 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
      *
      * @param context Application context
      */
-    private fun checkForFirstRun(context: Context) {
+    private fun checkForFirstRun(context: Context):Boolean {
         val firstRunKey = getString(R.string.FIRST_RUN_KEY)
         // debug: val FIRST_RUN_KEY = "d"
         val isFirstRun: Boolean = sp.getBoolean(firstRunKey, true)
         if (isFirstRun) {
             // debug: if(true){
             val intent = Intent(context, AppTutorial::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME
             startActivity(intent)
             finish()
+            return true
         }
+        return false
     }
 
     /**
@@ -501,6 +514,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
                             Manifest.permission.CAMERA
                         ) == PackageManager.PERMISSION_GRANTED
                     ) {
+                        Log.d("CA", "Camera permission granted")
                         cameraProvider = CameraProvider(this)
                         cameraProvider!!.start()
                     }
