@@ -111,7 +111,7 @@ class ResultsActivity : AppCompatActivity() {
         setContentView(R.layout.activity_results)
         initViews()
         setViewListeners()
-        initiateCaptureViewModel()
+        initViewModels()
 
         mFullImageFile = File(
             getExternalFilesDir(Environment.DIRECTORY_PICTURES),
@@ -123,7 +123,7 @@ class ResultsActivity : AppCompatActivity() {
             lastDateTime + "_Cropped.png"
         )
 
-        wasStartedFromBgService = intent.extras?.getBoolean(EXTRA_STARTED_FROM_BG_SERVICE, false) ?: false
+        wasStartedFromBgService = intent.extras?.getBoolean(EXTRA_STARTED_FROM_BG_SERVICE, false) ?: false //TODO: Sometimes this is true, why?
     }
 
     /**
@@ -135,7 +135,7 @@ class ResultsActivity : AppCompatActivity() {
      *
      * @see CaptureViewModel
      */
-    private fun initiateCaptureViewModel() {
+    private fun initViewModels() {
         captureViewModel = ViewModelProvider(this, CaptureViewModel.Factory(application)).get(
             CaptureViewModel::class.java
         )
@@ -476,13 +476,15 @@ class ResultsActivity : AppCompatActivity() {
      * Otherwise sets the result code to [Activity.RESULT_CANCELED].
      */
     private fun goBackToCameraActivity() {
+        Log.d("ResultActivity", "was started with bg service: $wasStartedFromBgService")
         if (!wasStartedFromBgService) {
             val intent = Intent()
             isReturningToCameraActivity = true
+            Log.d("ResultActivity", "Returning to camera activity, set result, has shared: $hasSharedImage")
             if (!hasSharedImage) {
                 setResult(Activity.RESULT_CANCELED, intent)
             } else {
-                if (hasSharedImage) saveToAppDir(captureViewModel.getCroppedScreenshot(), captureViewModel.getFullScreenshot())
+                saveToAppDir(captureViewModel.getCroppedScreenshot(), captureViewModel.getFullScreenshot())
                 setResult(Activity.RESULT_OK, intent)
             }
         }
