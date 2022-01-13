@@ -170,15 +170,13 @@ class BackgroundMatchingService : Service() {
     /**
      * Sleeps the service. Called when the screen is turned off.
      *
-     * Removes all observers and stops [ServerConnectionModel]
+     * Stops [contentObserver] and sets [isActive] to false.
      */
     private fun sleepService() {
         if (!isActive) return
         isActive = false
         contentObserver?.let { contentResolver.unregisterContentObserver(it) }
         contentObserver = null
-        ServerConnectionModel.stopThreads()
-        ServerConnectionModel.isConnected.removeObserver(isConnectedObserver)
     }
 
     /**
@@ -188,6 +186,8 @@ class BackgroundMatchingService : Service() {
      */
     private fun stopService() {
         sleepService()
+        ServerConnectionModel.stopThreads()
+        ServerConnectionModel.isConnected.removeObserver(isConnectedObserver)
         this@BackgroundMatchingService.unregisterReceiver(broadcastReceiver)
         this.broadcastReceiver = null
         stopForeground(true)
@@ -463,6 +463,7 @@ class BackgroundMatchingService : Service() {
 
             foregroundNotificationBuilder
                 .setContentTitle(getString(R.string.bgMode_fg_notification_title))
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setContentText(getConnectedStatusString())
                 .setContentIntent(pendingIntent)
                 .setSmallIcon(getConnectedStatusIcon())
