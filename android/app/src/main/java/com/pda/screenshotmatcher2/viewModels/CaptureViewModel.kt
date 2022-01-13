@@ -61,7 +61,7 @@ class CaptureViewModel(application: Application) : AndroidViewModel(application)
         clear()
         this.serverURL.value = CaptureModel.setServerURL(serverURL)
         this.cameraImage.value = CaptureModel.setCameraImage(cameraImage)
-        Log.d("CM", serverURL)
+        //Log.d("CM", serverURL)
     }
 
     /**
@@ -82,7 +82,7 @@ class CaptureViewModel(application: Application) : AndroidViewModel(application)
      *
      */
     fun loadFullScreenshot() {
-        Log.d("CVM", "calling load")
+        //Log.d("CVM", "calling load")
         if (CaptureModel.getMatchID() != null && CaptureModel.getServerURL() != null) {
             Thread {
                 requestFullScreenshot(

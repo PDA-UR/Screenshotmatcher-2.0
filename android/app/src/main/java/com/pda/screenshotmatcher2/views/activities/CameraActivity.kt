@@ -116,6 +116,9 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
 
     }
 
+    /**
+     * Initializes all listeners and observers relevant to the activity
+     */
     private fun initActivityReferences() {
         if (ActivityCompat.checkSelfPermission(
                 this,
@@ -133,10 +136,13 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
                 this
             )
 
-
         initViewModels()
     }
 
+    /**
+     * Manual garbage collection of listeners and other resources, which could lead to memory leaks
+     *
+     */
     override fun clearGarbage() {
         cameraProvider?.stop()
         cameraProvider = null
@@ -174,7 +180,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
             GalleryViewModel.Factory(application)
         ).get(GalleryViewModel::class.java).apply {
             getImages().observe(context) { images ->
-                Log.d("CA", "images updated, new size: ${images.size}")
+                //Log.d("CA", "images updated, new size: ${images.size}")
             }
         }
         serverConnectionViewModel =
@@ -183,7 +189,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
             ).apply {
                 getServerUrlLiveData().observe(context) { url ->
                     run {
-                        Log.d("CA", "New URL: $url")
+                        //Log.d("CA", "New URL: $url")
                     }
                 }
                 isConnectedToServer.observe(context) { isConnected ->
@@ -234,7 +240,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
     }
 
     override fun onDestroy() {
-        Log.d("CA", "onDestroy")
+        //Log.d("CA", "onDestroy")
         clearGarbage()
         super.onDestroy()
     }
@@ -260,7 +266,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
      */
     override fun onResume() {
         super.onResume()
-        Log.d("CA", "onResume")
+        //Log.d("CA", "onResume")
         val useBackgroundMatchingService: Boolean = sp.getBoolean(BG_MODE_PREF_KEY, false)
         if (useBackgroundMatchingService) BackgroundMatchingService.stopBackgroundService(this)
         //cameraProvider?.start()
@@ -368,7 +374,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
 
         val mBitmap = cameraProvider!!.captureImageWithPreviewExtraction()
         val mServerURL = serverConnectionViewModel?.getServerUrl()
-        Log.d("CA", "Setting model url: $mServerURL")
+        //Log.d("CA", "Setting model url: $mServerURL")
         captureViewModel?.setCaptureRequestData(mServerURL!!, mBitmap!!)
         if (mServerURL != "") {
             StudyLogger.hashMap["tc_image_captured"] =
@@ -394,7 +400,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
 
     private val captureCallback = object : CaptureCallback {
         override fun onPermissionDenied() {
-            Log.d("CA", "Permission denied")
+            //Log.d("CA", "Permission denied")
             this@CameraActivity.onPermissionDenied()
         }
 
@@ -513,7 +519,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
                             Manifest.permission.CAMERA
                         ) == PackageManager.PERMISSION_GRANTED
                     ) {
-                        Log.d("CA", "Camera permission granted")
+                        //Log.d("CA", "Camera permission granted")
                         cameraProvider = CameraProvider(this)
                         cameraProvider!!.start()
                     }
@@ -693,7 +699,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
             ResultsActivity.RESULT_ACTIVITY_REQUEST_CODE -> {
-                Log.d("CA", "onActivityResult: $resultCode")
+                //Log.d("CA", "onActivityResult: $resultCode")
                 didStartResultsActivity = false
                 when (resultCode) {
                     Activity.RESULT_OK -> {

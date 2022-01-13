@@ -91,7 +91,7 @@ fun decodeBase64(input: String): ByteArray? {
     return if (input.isNotEmpty()) {
         Base64.decode(input, Base64.DEFAULT)
     } else {
-        Log.e("HTTP", "Empty base64 string")
+        //Log.e("HTTP", "Empty base64 string")
         null
     }
 }

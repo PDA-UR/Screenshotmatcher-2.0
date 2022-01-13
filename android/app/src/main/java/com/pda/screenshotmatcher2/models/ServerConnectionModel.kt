@@ -110,7 +110,7 @@ object ServerConnectionModel {
                 override fun handleMessage(msg: Message) {
                     when (msg.what) {
                         HandlerMessages.END_ALL_THREADS -> {
-                            Log.d("SCM", "end all threads")
+                            //Log.d("SCM", "end all threads")
                             this.removeCallbacksAndMessages(null)
                         }
                         HandlerMessages.START_DISCOVER -> {

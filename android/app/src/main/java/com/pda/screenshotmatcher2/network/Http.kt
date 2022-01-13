@@ -245,7 +245,7 @@ private fun requestPermission(
     val jsonObjectRequest =
         JsonObjectRequest(Request.Method.POST, serverURL + Routes.PERMISSION_DEST, json,
             { response ->
-                Log.d("HTTP", "got response for permission")
+                //Log.d("HTTP", "got response for permission")
                 if (response.get("response") == "permission_granted") {
                     if (response.has("permission_token")) {
                         cb.onPermissionGranted(matchID, response.get("permission_token").toString())
@@ -327,7 +327,7 @@ fun sendHeartbeatRequest(serverURL: String?, context: Context, onFail: () -> Uni
     if ((serverURL == null || serverURL.isEmpty())) {
         onFail()
     }
-    Log.d("HTTP", "sending heartbeat")
+    //Log.d("HTTP", "sending heartbeat")
     val request = StringRequest(Request.Method.GET, serverURL + Routes.HEARTBEAT_DEST,
         {
         },
@@ -349,7 +349,7 @@ private fun logMatchResponse(response: JSONObject) {
     try {
         StudyLogger.hashMap["match_id"] = response.get("uid").toString()
     } catch (e: Exception) {
-        Log.e("HTTP", e.toString())
+        //Log.e("HTTP", e.toString())
     }
 }
 
@@ -380,7 +380,7 @@ fun sendLog(serverURL: String, context: Context) {
         {
         },
         { _ ->
-            Log.e("log", "Error sending Study Log, server offline")
+            //Log.e("log", "Error sending Study Log, server offline")
         }
     )
     // Add the request to the RequestQueue.
