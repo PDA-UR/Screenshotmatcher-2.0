@@ -19,7 +19,8 @@
         android:scaleType="fitXY"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        tools:targetApi="p">
 
         <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/gallery_fragment_back_button"

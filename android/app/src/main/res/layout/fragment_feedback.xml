@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="400dp"
     tools:context=".views.fragments.FeedbackFragment"
     android:background="@drawable/fragment_background"
     android:orientation="vertical"
@@ -29,7 +29,8 @@
             android:layout_gravity="center"
             android:text="@string/feedback_en"
             android:textSize="50sp"
-            android:layout_marginBottom="20dp" />
+            android:layout_marginBottom="20dp"
+            tools:ignore="NestedWeights" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -37,8 +38,6 @@
             android:layout_weight="2"
             android:text="@string/ff_comment_en"
             android:textSize="20sp"
-            android:clickable="true"
-            android:focusable="false"
             android:focusableInTouchMode="false" />
 
         <EditText
@@ -47,7 +46,8 @@
             android:background="@drawable/ff_text_input_background"
             android:layout_height="0dp"
             android:layout_weight="6"
-            android:inputType="text"
+            android:hint="@string/ff_text_input_hint"
+            android:inputType="textMultiLine"
             android:importantForAutofill="no" />
 
     </LinearLayout>

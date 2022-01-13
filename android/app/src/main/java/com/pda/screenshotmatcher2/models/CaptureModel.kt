@@ -2,6 +2,17 @@ package com.pda.screenshotmatcher2.models
 
 import android.graphics.Bitmap
 
+/**
+ * Data model that stores all relevant information about the last capture process.
+ *
+ * Accessed through [CaptureModel][com.pda.screenshotmatcher2.models.CaptureModel].
+ *
+ * @property matchID The ID of the matching process, as returned by the server.
+ * @property serverURL The server url, where the [cameraImage] has been sent to.
+ * @property cameraImage The photo taken by the camera, sent to the server for matching.
+ * @property fullScreenshot The full screenshot returned by the server as a result of the matching process. This is null until the user requests the full screenshot in the [ResultsActivity][com.pda.screenshotmatcher2.views.activities.ResultsActivity].
+ * @property croppedScreenshot The cropped screenshot returned by the server as a result of the matching process.
+ */
 object CaptureModel {
     private var matchID: String? = null
     private var serverURL: String? = null
@@ -56,6 +67,10 @@ object CaptureModel {
         return this.fullScreenshot
     }
 
+
+    /**
+     * Resets all properties to null. Called at the start of a new capture process.
+     */
     fun clear() {
         this.matchID = null
         this.serverURL = null

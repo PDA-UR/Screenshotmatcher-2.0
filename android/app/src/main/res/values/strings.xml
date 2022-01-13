@@ -11,10 +11,9 @@
     <string name="result_activity_shareButtonText2_en">Share full</string>
     <string name="result_activity_saveOneButtonText2_en">Save full</string>
     <string name="result_activity_saved_cropped_en">Saved cropped image</string>
-    <string name="result_activity_saved_full_en">Saved full image</string>
+    <string name="result_activity_saved_full_en">Saved full screenshot</string>
     <string name="result_activity_saved_both_en">Saved both images</string>
     <string name="screenshot_description_en">Created with Screenshot Matcher</string>
-    <string name="full_screenshot_title_en" translatable="false">full_screenshot</string>
     <string name="no_match_en">No match</string>
     <string name="send_feedback_button_en">Send Feedback</string>
     <string name="view_full_image_button_en">Full Image</string>
@@ -26,9 +25,9 @@
     <string name="ff_submit_success_en">Feedback sent</string>
     <string name="ff_submit_failed_en">Failed to send feedback</string>
     <string name="http_download_full_error_en">Downloading full screenshot from server failed</string>
-    <string name="settings_algorithm_header_en">Matching mode</string>
+    <string name="settings_algorithm_header_en">Matching</string>
     <string name="settings_algorithm_toggle">Fast mode</string>
-    <string name="settings_algorithm_summary">If this option is enabled matching will be faster but less accurate</string>
+    <string name="settings_algorithm_summary">If this option is enabled, matching will be faster but less accurate</string>
     <string name="settings_algorithm_key" translatable="false">ALG_MODE_KEY</string>
     <string name="algorithm_key_server" translatable="false">algorithm</string>
     <string name="algorithm_fast_mode_name_server" translatable="false">ORB</string>
@@ -50,16 +49,33 @@
     <string name="app_intro_header_3">How-To: Discover 🔎</string>
     <string name="app_intro_header_4">How-To: Connect 🔗</string>
     <string name="app_intro_description_4">If you started the desktop client your device will appear here and you can tap on it to connect</string>
-    <string name="app_intro_disabled_permission">You need to grant the requested permissions in order to use the app, you can do so in your system settings</string>
     <string name="app_intro_description_2">To use this app you need to download the desktop client \n\nYou can download it using the QR-Code or by clicking the link below: \n\nhttps://github.com/PDA-UR/Screenshotmatcher-2.0/releases</string>
     <string name="app_intro_description_3">In the app click the top right button to show all available desktops you can connect to</string>
-    <string name="app_intro_denied_permission">You need to grant the requested permissions in order to use the app</string>
     <string name="result_activity_deleteImages_en">Delete image(s)</string>
     <string name="settings_about_header">About this app</string>
     <string name="settings_about_button" translatable="false">s_about_button</string>
-    <string name="settings_about_description">Version 1.2 \nLicensed under the MIT License \nCopyright © 2021 Physical-Digital Affordances \n\n🔗 Click to find out more</string>
+    <string name="settings_about_description">Version 1.3.0 \nLicensed under the MIT License \nCopyright © 2021 Physical-Digital Affordances \n\n🔗 Click to find out more</string>
     <string name="app_intro_header_5">How-To: Capture 📸</string>
     <string name="app_intro_description_5">Now take a photo of any area on your computer screen, \nScreenshotMatcher will return a screenshot of it \n\nMagic 🪄!</string>
-    <string name="shareButtonText">share</string>
-    <string name="saveOneButtonText">save</string>
+    <string name="settings_bgMode_toggle">Background matching (beta)</string>
+    <string name="settings_bgMode_summary">Activates matching in the background, so you can use the stock camera app to take screenshots</string>
+    <string name="settings_bgMode_key" translatable="false">BG_MODE_KEY</string>
+    <string name="KNOWN_SERVERS_KEY">known_servers</string>
+    <string name="match_request_perm_denied">Screenshot match permission denied by server</string>
+    <string name="bgMode_match_notification_channel_name">Match Notification</string>
+    <string name="bgMode_match_notification_title">New Screenshot!</string>
+    <string name="bgMode_match_notification_text">Looks like you took a screenshot</string>
+    <string name="bgMode_fg_notification_channel_name">ScreenshotMatcher background notification channel</string>
+    <string name="bgMode_fg_notification_description">Channel for the background matching status</string>
+    <string name="bgMode_fg_notification_title">ScreenshotMatcher</string>
+    <string name="bgMode_fg_notification_connected">Status: Connected!</string>
+    <string name="bgMode_fg_notification_disconnected">Status: Disconnected!</string>
+    <string name="capture_button_description">Capture button</string>
+    <string name="gallery_button_description">Open gallery button</string>
+    <string name="settings_button_description">Open settings button</string>
+    <string name="select_device_button_description">Open device selection button</string>
+    <string name="error_fragment_image_description">Preview of the taken camera image</string>
+    <string name="grid_view_item_first_image_description">First image of the image pair</string>
+    <string name="grid_view_item_second_image_description">Second image of the image pair</string>
+    <string name="ff_text_input_hint">Comment…</string>
 </resources>

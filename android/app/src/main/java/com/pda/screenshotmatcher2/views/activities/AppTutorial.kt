@@ -1,13 +1,10 @@
 package com.pda.screenshotmatcher2.views.activities
 
-import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.view.HapticFeedbackConstants
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import com.github.appintro.AppIntro
@@ -16,7 +13,18 @@ import com.github.appintro.AppIntroPageTransformerType
 import com.pda.screenshotmatcher2.R
 import com.pda.screenshotmatcher2.views.fragments.AnimatedIntroFragment
 
+/**
+ * Carousel intro that introduces new users to the app. Shown when launching the app for the first time.
+ *
+ * TODO: Optimize images, causes out of memory on emulator with low memory.
+ *
+ * @see <a href="https://github.com/AppIntro/AppIntro">AppIntro</a> for more information
+ */
 class AppTutorial : AppIntro() {
+
+    /**
+     * Sets display options ([setTransformer]), adds all slides to the carousel ([addSlide]) and requests specified app permissions upon reaching the last slide ([askForPermissions])
+	 */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setTransformer(AppIntroPageTransformerType.Parallax(
@@ -59,15 +67,7 @@ class AppTutorial : AppIntro() {
             descriptionColor = Color.BLACK,
             backgroundColor = Color.WHITE
         ))
-       askForPermissions(
-            permissions = arrayOf(
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                Manifest.permission.INTERNET,
-                Manifest.permission.CAMERA
-            ),
-            slideNumber = 5,
-            required = true)
+
         setBackArrowColor(Color.BLACK)
         setNextArrowColor(Color.BLACK)
         showStatusBar(false)
@@ -76,40 +76,32 @@ class AppTutorial : AppIntro() {
         isWizardMode = true
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (this.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
-            this.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-            savePerfAndStartCamera()
-        }
+    override fun onDonePressed(currentFragment: Fragment?) {
+        super.onDonePressed(currentFragment)
+        savePrefsAndStartCameraActivity()
     }
-
-    override fun onUserDeniedPermission(permissionName: String) {
-        // User pressed "Deny"
-        Toast.makeText(this, getString(R.string.app_intro_denied_permission), Toast.LENGTH_SHORT).show()
-    }
-    override fun onUserDisabledPermission(permissionName: String) {
-        // User pressed "Deny" + "Don't ask again" on the permission dialog
-        Toast.makeText(this, getString(R.string.app_intro_disabled_permission), Toast.LENGTH_SHORT).show()
-    }
+    /**
+     * Callback that's being called when a new slide is displayed
+	 * @param oldFragment The previously displayed slide
+	 * @param newFragment The new slide
+	 */
     override fun onSlideChanged(oldFragment: Fragment?, newFragment: Fragment?) {
         super.onSlideChanged(oldFragment, newFragment)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             window.decorView.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
         }
     }
-    private fun savePerfAndStartCamera() {
-        // debug: val FIRST_RUN_KEY = "r"
-        val FIRST_RUN_KEY = getString(R.string.FIRST_RUN_KEY)
+
+    /**
+     * Updates shared preferences (on-boarding complete) and launches [CameraActivity]
+     */
+    private fun savePrefsAndStartCameraActivity() {
+        val firstRunKey = getString(R.string.FIRST_RUN_KEY)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             window.decorView.performHapticFeedback(HapticFeedbackConstants.GESTURE_END)
         }
         val sp = PreferenceManager.getDefaultSharedPreferences(this)
-        sp.edit().putBoolean(FIRST_RUN_KEY, false).apply()
+        sp.edit().putBoolean(firstRunKey, false).apply()
         val intent = Intent(this, CameraActivity::class.java)
         startActivity(intent)
     }

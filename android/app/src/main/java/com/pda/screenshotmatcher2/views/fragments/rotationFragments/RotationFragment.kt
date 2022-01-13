@@ -8,31 +8,48 @@ import android.widget.FrameLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import com.pda.screenshotmatcher2.R
+import com.pda.screenshotmatcher2.views.interfaces.GarbageView
 import com.pda.screenshotmatcher2.views.activities.CameraActivity
-import com.pda.screenshotmatcher2.views.fragments.removeForRotation
 import java.io.File
 
-abstract class RotationFragment : Fragment() {
+/**
+ * An abstract class, inherited by fragments that need to be rotated without an extra layout.
+ *
+ * @property containerView The container of the fragment
+ * @property ca The activity that contains this fragment. TODO: Remove [CameraActivity] cast to make this class usable for all activities
+ * @property rotation The rotation of the fragment
+ * @property mView The view of the fragment
+ * @property subclassName The class name of the fragment extending this class
+ *
+ */
+abstract class RotationFragment : GarbageView, Fragment() {
 
-    lateinit var containerView: FrameLayout
-    lateinit var ca: CameraActivity
+    var containerView: FrameLayout? = null
+    var ca: CameraActivity? = null
     var rotation: Int = 0
-    private lateinit var mView: View
+    private var mView: View? = null
     private lateinit var subclassName: String
 
+    /**
+     * Initializes the fragment.
+     *
+     * Sets the [rotation] of the fragment and [subclassName].
+     *
+     * @return [mView] with the right rotation
+     */
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        if (this::mView.isInitialized) return mView
+        if (mView !== null) return mView
 
         ca = activity as? CameraActivity
             ?: throw IllegalArgumentException("No CameraActivity provided")
         subclassName = this.javaClass.simpleName
 
         containerView = container as FrameLayout
-        containerView.visibility = View.VISIBLE
+        containerView?.visibility = View.VISIBLE
 
         when(subclassName){
             SelectDeviceFragment::class.simpleName -> {
@@ -43,14 +60,21 @@ abstract class RotationFragment : Fragment() {
             }
         }
 
-        rotation = ca.phoneOrientation
+        rotation = ca!!.phoneOrientation
 
         return when(rotation) {
             0, 2 -> mView
-            else -> rotateView(rotation * 90, mView)
+            else -> rotateView(rotation * 90, mView!!)
         }
     }
 
+    /**
+     * Rotates a view [v] by [rotationDeg] degrees and returns it.
+     *
+     * @param rotationDeg The rotation in degrees
+     * @param v The view to rotate
+     * @return Rotated version of [v]
+     */
     private fun rotateView(rotationDeg: Int, v: View): View {
         val mRotatedView: View = v
         val container = containerView as ViewGroup
@@ -63,7 +87,7 @@ abstract class RotationFragment : Fragment() {
             translationY = ((h - w) / 2).toFloat()
         }
 
-        mView.layoutParams.apply {
+        mView!!.layoutParams.apply {
             height = w
             width = h
         }
@@ -72,17 +96,34 @@ abstract class RotationFragment : Fragment() {
         return mRotatedView
     }
 
+    /**
+     * Removes this fragment from the container to be able to rotate it.
+     *
+     * Does not play any animation.
+     */
     open fun removeThisFragmentForRotation(): ArrayList<File?>? {
-        removeForRotation = true
         activity?.supportFragmentManager?.beginTransaction()?.remove(this)
             ?.commit()
         return null
     }
 
+    /**
+     * Remove this fragment from the container to close it.
+     *
+     * Plays an animation.
+     *
+     * @param removeBackground Whether to remove the dark background of the fragment or not
+     */
     open fun removeThisFragment(removeBackground: Boolean = true) {
-        removeForRotation = !removeBackground
         activity?.supportFragmentManager?.beginTransaction()?.remove(this)
             ?.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)?.commit()
+        clearGarbage()
+    }
+
+    override fun clearGarbage() {
+        mView = null
+        ca = null
+        containerView = null
     }
 
 }
