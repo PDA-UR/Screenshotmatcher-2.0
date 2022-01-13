@@ -45,7 +45,7 @@ class GalleryFragment : RotationFragment() {
             .get(GalleryViewModel::class.java)
             .apply {
                 getImages().observe(viewLifecycleOwner) {
-                    Log.d("GF", "Refreshing")
+                    //Log.d("GF", "Refreshing")
                     if (adapter !== null) adapter!!.notifyDataSetChanged()
                 }
             }

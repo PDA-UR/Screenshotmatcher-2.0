@@ -128,7 +128,7 @@ class CameraProvider(cameraInstance: CameraInstance) {
                     Manifest.permission.CAMERA
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
-                Log.d("CameraProvider", "Permission not granted")
+                //Log.d("CameraProvider", "Permission not granted")
                 return
             }
             try {

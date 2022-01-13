@@ -141,7 +141,7 @@ class ResultsActivity : AppCompatActivity() {
         )
         if (captureViewModel.getCroppedScreenshot() == null) {
             // no cropped image available
-            Log.d("RA", "cropped = null")
+            //Log.d("RA", "cropped = null")
             displayFullScreenshotOnly = true
             activateFullScreenshotOnlyMode()
         } else {
@@ -404,14 +404,14 @@ class ResultsActivity : AppCompatActivity() {
      */
     private fun saveToAppDir(croppedScreenshot: Bitmap?, fullScreenshot: Bitmap?) {
         if (croppedScreenshot != null) {
-            Log.d("ResultActivity", "Saving cropped screenshot")
+            //Log.d("ResultActivity", "Saving cropped screenshot")
             saveBitmapToFile(
                 mCroppedImageFile,
                 croppedScreenshot
             )
         }
         if (fullScreenshot != null) {
-            Log.d("ResultActivity", "Saving full screenshot")
+            //Log.d("ResultActivity", "Saving full screenshot")
             saveBitmapToFile(
                 mFullImageFile,
                 fullScreenshot
@@ -476,11 +476,11 @@ class ResultsActivity : AppCompatActivity() {
      * Otherwise sets the result code to [Activity.RESULT_CANCELED].
      */
     private fun goBackToCameraActivity() {
-        Log.d("ResultActivity", "was started with bg service: $wasStartedFromBgService")
+        //Log.d("ResultActivity", "was started with bg service: $wasStartedFromBgService")
         if (!wasStartedFromBgService) {
             val intent = Intent()
             isReturningToCameraActivity = true
-            Log.d("ResultActivity", "Returning to camera activity, set result, has shared: $hasSharedImage")
+            //Log.d("ResultActivity", "Returning to camera activity, set result, has shared: $hasSharedImage")
             if (!hasSharedImage) {
                 setResult(Activity.RESULT_CANCELED, intent)
             } else {
@@ -488,7 +488,7 @@ class ResultsActivity : AppCompatActivity() {
                 setResult(Activity.RESULT_OK, intent)
             }
         }
-        Log.d("ResultActivity", "Finishing activity")
+        //Log.d("ResultActivity", "Finishing activity")
         finish()
     }
 
@@ -498,7 +498,7 @@ class ResultsActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         val doStartBackgroundService  = PreferenceManager.getDefaultSharedPreferences(this).getBoolean(getString(R.string.settings_bgMode_key), false)
-        Log.d("ResultActivity", "onPause, wasStartedFromCamera: $wasStartedFromBgService, should start : $doStartBackgroundService")
+        //Log.d("ResultActivity", "onPause, wasStartedFromCamera: $wasStartedFromBgService, should start : $doStartBackgroundService")
         if (wasStartedFromBgService && doStartBackgroundService) BackgroundMatchingService.startBackgroundService(applicationContext)
         captureViewModel.getServerUrl()?.let {
             sendLog(it, this)
@@ -507,7 +507,6 @@ class ResultsActivity : AppCompatActivity() {
     }
 
     override fun onResume() {
-
         BackgroundMatchingService.stopBackgroundService(this)
         super.onResume()
     }

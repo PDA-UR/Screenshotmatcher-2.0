@@ -48,7 +48,7 @@ class ServerConnectionViewModel(application: Application) : AndroidViewModel(app
 	 */
     fun getConnectedServerName(): String {
         serverUrlList.value?.forEach {
-            Log.d("SCVM","Comparing ${it.first}/${it.second} with url ${serverUrl.value}")
+            //Log.d("SCVM","Comparing ${it.first}/${it.second} with url ${serverUrl.value}")
             if (it.first == serverUrl.value) {
                 return it.second
             }

@@ -24,7 +24,6 @@
         android:layout_margin="10dp"
         android:padding="5dp"
         app:cardCornerRadius="15dp"
-        app:layout_constraintBottom_toTopOf="@+id/ra_retakeImageButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintBottom_toTopOf="@+id/ra_retakeImageButton"
