@@ -215,16 +215,11 @@ class BackgroundMatchingService : Service() {
         contentObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
             @SuppressLint("SimpleDateFormat")
             override fun onChange(selfChange: Boolean, uri: Uri?, flag: Int) {
-                //Log.d("BackgroundMatchingService", "ContentObserver onChange")
-                //super.onChange(selfChange, uri, flag)
                 if (isConnected && uri != null && !isWaitingForMatchingResponse) {
-                    //Log.d("BackgroundMatchingService", "ContentObserver onChange: uri != null")
                     val path = getPathFromObserverUri(uri)
                     if (isValidFilePath(path)) {
-                        //Log.d("BackgroundMatchingService", "ContentObserver onChange: isValidFilePath")
                         val candidateFile = File(path!!) // path != null, checked in isValidFilePath()
                         if (isNewCameraPhoto(candidateFile))
-                            //Log.d("BackgroundMatchingService", "ContentObserver onChange: isNewCameraPhoto")
                             rescaleAndSendToServer(
                                 image = decodeSampledBitmapFromResource(
                                     candidateFile,
@@ -254,7 +249,6 @@ class BackgroundMatchingService : Service() {
      * @return true if [path] is not in [recentContentObserverPaths] and does not contain "_" at the start of the file name, false otherwise.
      */
     private fun isValidFilePath(path: String?): Boolean {
-        //Log.d("BackgroundMatchingService", "isValidFilePath: $path")
         return if (path != null && !recentContentObserverPaths.contains(path) && !path.contains(
                 Regex("/_")
             )) {
@@ -347,7 +341,6 @@ class BackgroundMatchingService : Service() {
      * @param ba the image of the match as a [ByteArray]
      */
     private fun onMatch(matchId: String, ba: ByteArray?) {
-        //Log.d("BMS", "onMatch: $matchId")
         CaptureModel.setMatchID(matchId)
         if (ba != null) {
             val image = BitmapFactory.decodeByteArray(ba, 0, ba.size)
@@ -630,7 +623,6 @@ class BackgroundMatchingService : Service() {
 
     @RequiresApi(Build.VERSION_CODES.Q)
     fun queryRelativeDataColumn(uri: Uri): String? {
-        //Log.d("BMS", "queryRelativeDataColumn: $uri")
         var relativePath: String? = null
         var name: String?
         val projection = arrayOf(
@@ -650,7 +642,6 @@ class BackgroundMatchingService : Service() {
                 cursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME)
             while (cursor.moveToNext()) {
                 name = cursor.getString(displayNameColumn)
-                //Log.d("BMS", "queryRelativeDataColumn name: $name")
                 relativePath = "${Environment.getExternalStorageDirectory()}/${
                     cursor.getString(
                         relativePathColumn
