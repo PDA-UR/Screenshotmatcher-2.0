@@ -4,10 +4,19 @@ import android.app.Application
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import androidx.lifecycle.*
 import java.io.File
 
+/**
+ * [ViewModel] that provides two way data bindings for images stored in the internal gallery.
+ *
+ * @see [MVVM Architecture](https://developer.android.com/jetpack/guide) For more information about how this software architectural pattern works.
+ *
+ * @constructor An instance of the current [Application]
+ *
+ * @property imageDirectory Directory of the internal gallery
+ * @property images Data binding for the images stored in the internal gallery
+ */
 class GalleryViewModel(application: Application) : AndroidViewModel(application) {
     private val imageDirectory: File =
         application.getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
@@ -18,15 +27,24 @@ class GalleryViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    /**
+     * Getter that returns [images] as [MutableLiveData]
+	 * @return
+	 */
     fun getImages(): LiveData<ArrayList<ArrayList<File>>> {
         return images
     }
 
+    /**
+     * Calls [loadImages] to refresh [images]
+     */
     fun reloadImages() {
-        // Log.d("VM", "Loading images")
         loadImages(images)
     }
 
+    /**
+     * Updates [images] to be the same as the images in the external file directory
+	 */
     private fun loadImages(images: MutableLiveData<ArrayList<ArrayList<File>>>) {
         val files: Array<File> = imageDirectory.listFiles() ?: emptyArray()
         Handler(Looper.getMainLooper()).post {
@@ -51,7 +69,12 @@ class GalleryViewModel(application: Application) : AndroidViewModel(application)
             images.setValue(imageArray)
         }
     }
-    // Check if provided images are in live date, delete pair if so
+
+    /**
+     * Deletes an image pair from [images] and the external file directory.
+     *
+	 * @param imagesToDelete The image pair to remove
+	 */
     fun deleteImagePair(imagesToDelete: ArrayList<File>) {
         val newList: ArrayList<ArrayList<File>> = if(images.value != null) images.value!! else ArrayList()
         for (imagePair in newList) {
@@ -70,6 +93,10 @@ class GalleryViewModel(application: Application) : AndroidViewModel(application)
         }
         images.value = newList
     }
+
+    /**
+     * Helper function to check whether a [file] is in an [item]
+	 */
     private fun fileBelongsToImageArrayItem(file: File, item: ArrayList<File>): Boolean {
         //Item has already 2 entries
         val filename: String = file.name.split("_".toRegex()).first()
@@ -82,6 +109,11 @@ class GalleryViewModel(application: Application) : AndroidViewModel(application)
         return filename == itemName
     }
 
+    /**
+     * Factory to initiate this [GalleryViewModel]
+     *
+     * @constructor An instance of the current [Application]
+     */
     internal class Factory (private val application: Application) : ViewModelProvider.Factory {
 
         override fun <T : ViewModel?> create(modelClass: Class<T>): T {

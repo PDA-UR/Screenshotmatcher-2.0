@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".views.fragments.rotationFragments.SelectDeviceFragment">
+    tools:context=".views.fragments.rotationFragments.SelectDeviceFragment"
+    tools:ignore="Overdraw">
 
     <FrameLayout
         android:layout_width="match_parent"
