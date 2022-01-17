@@ -92,6 +92,5 @@ python-server/src/config.ini
 python-server/src/.python-version
 .python-version
 
-/android/build/
 android/app/build/outputs/apk/debug/app-debug.apk
 *.apk
