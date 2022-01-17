@@ -98,14 +98,14 @@ The photographed region is then extracted from the screen's content and the resu
 This way, high quality screenshots can be captured by photographing a screen region with the phone.
 
 <p align="center">
-  <img src="documentation/resources/app_overview_detail.png" width=452 height=256>
+  <img src="docs/resources/app_overview_detail.png" width=452 height=256>
 </p>
 
 If the photographed region could be found within the screen's content, the result image can be shared with other applications by clicking *Share cropped*, or saved to the phone's gallery by clicking *Save cropped*.
 In case the extraction failed or you dislike the result, a screenshot of the whole screen can be requested by switching from *Cropped* to *Full* with the top button.
 
 <p align="center">
-  <img src="documentation/resources/app_result.png" width=430 height=402>
+  <img src="docs/resources/app_result.png" width=430 height=402>
 </p>
 
 ## Settings and Security
