@@ -119,3 +119,7 @@ In networks with multiple users, it is recommended to restrict requests from unk
 This way, only trusted devices can capture your screen's content.
 
 **Note**: Windows and Mac access the tray menu via right click. Linux devices have to left click the tray icon. This is a current limitation of the PySimpleGUIWx library used and will hopefully be fixed in the future.
+
+# Documentation
+
+The Android app documentation can be found [here](https://pda-ur.github.io/Screenshotmatcher-2.0/)
