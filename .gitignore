@@ -80,9 +80,9 @@ lint/tmp/
 
 python-server/src/pid.txt
 python-server/pid.txt
+android/app/build
 android/app/release/app-release.apk
 android/app/release/output-metadata.json
-android/app/build/outputs/apk/debug/output-metadata.json
 log-server/study_log.csv
 log-server/value_errors.txt
 python-server/src/blacklist.txt
@@ -92,5 +92,4 @@ python-server/src/config.ini
 python-server/src/.python-version
 .python-version
 
-android/app/build/outputs/apk/debug/app-debug.apk
 *.apk
