@@ -73,14 +73,17 @@ class SettingsFragment : GarbageView, PreferenceFragmentCompat() {
      * Removes this fragment
      */
     private fun removeThisFragment() {
+        activity?.supportFragmentManager?.beginTransaction()?.remove(this)?.commit()
+    }
+
+    override fun onDestroy() {
         containerView.visibility = View.INVISIBLE
         mFragmentBackground.visibility = View.INVISIBLE
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             activity?.window?.decorView?.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
         }
-        activity?.supportFragmentManager?.beginTransaction()?.remove(this)
-            ?.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)?.commit()
         clearGarbage()
+        super.onDestroy()
     }
 
     override fun clearGarbage() {
