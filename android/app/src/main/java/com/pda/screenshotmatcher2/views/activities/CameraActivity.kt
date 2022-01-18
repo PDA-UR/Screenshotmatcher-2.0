@@ -294,8 +294,8 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
         super.onPause()
         val useBackgroundMatchingService: Boolean = sp.getBoolean(BG_MODE_PREF_KEY, false)
         if (useBackgroundMatchingService && !didStartResultsActivity) BackgroundMatchingService.startBackgroundService(applicationContext)
-        cameraProvider = null
         cameraProvider?.pause()
+        cameraProvider = null
     }
 
 
