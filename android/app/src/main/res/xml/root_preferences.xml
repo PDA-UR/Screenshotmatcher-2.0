@@ -1,0 +1,43 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto" app:iconSpaceReserved="false"
+
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory app:title="@string/settings_algorithm_header_en" app:iconSpaceReserved="false"
+        >
+        <SwitchPreferenceCompat
+            app:title="@string/settings_algorithm_toggle"
+            android:summary="@string/settings_algorithm_summary"
+            android:key="@string/settings_algorithm_key"
+            android:defaultValue="true"
+            app:iconSpaceReserved="false"
+            />
+        <SwitchPreferenceCompat
+            app:title="@string/settings_bgMode_toggle"
+            android:summary="@string/settings_bgMode_summary"
+            android:key="@string/settings_bgMode_key"
+            android:defaultValue="false"
+            app:iconSpaceReserved="false"
+            />
+    </PreferenceCategory>
+    <PreferenceCategory app:title="@string/settings_logging_header_en" app:iconSpaceReserved="false"
+        >
+        <SwitchPreferenceCompat
+            app:title="@string/settings_logging_toggle_en"
+            android:summary="@string/settings_logging_summary"
+            android:key="@string/settings_logging_key"
+            android:defaultValue="false"
+            app:iconSpaceReserved="false"
+            />
+    </PreferenceCategory>
+    <PreferenceCategory app:title="@string/settings_about_header"
+        app:iconSpaceReserved="false"
+        >
+        <Preference
+            android:key="@string/settings_about_button"
+            android:summary="@string/settings_about_description"
+            app:iconSpaceReserved="false"
+
+            /></PreferenceCategory>
+
+
+</PreferenceScreen>

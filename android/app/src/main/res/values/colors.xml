@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <color name="disconnected_red">#FF6969</color>
+    <color name="connected_green">#8CFF64</color>
+    <color name="feedback_green">#B2FF97</color>
+
+    <color name="invisible">#00000000</color>
+    <color name="fragmentBackground">#80000000</color>
+    <color name="arrow_grey">#50000000</color>
+</resources>
