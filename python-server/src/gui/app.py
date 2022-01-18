@@ -57,19 +57,19 @@ class MainWindow(sg.Window):
                         group_id=KEY_UNKNOWN_DEVICE,
                         key="UKD_ASK",
                         size=(12,1),
-                        default= (Config.UNKNOWN_DEVICE_HANDLING == 0)),
+                        default= (Config.UNKNOWN_CLIENT_HANDLING == 0)),
                     sg.Radio(
                         "Allow all",
                         group_id=KEY_UNKNOWN_DEVICE,
                         key="UKD_ALLOW",
                         size=(12,1),
-                        default= (Config.UNKNOWN_DEVICE_HANDLING == 1)),
+                        default= (Config.UNKNOWN_CLIENT_HANDLING == 1)),
                     sg.Radio(
                         "Block all",
                         group_id=KEY_UNKNOWN_DEVICE,
                         key="UKD_BLOCK",
                         size=(12,1),
-                        default= (Config.UNKNOWN_DEVICE_HANDLING == 2)),
+                        default= (Config.UNKNOWN_CLIENT_HANDLING == 2)),
                 ]],
                 title="Requests from unknown devices",
                 tooltip="How to handle requests sent by phone applications unknown to this computer.")],
@@ -187,11 +187,11 @@ class App():
                 self.open_about()
             elif event == "Ok":
                 if values["UKD_ALLOW"]:
-                    Config.UNKNOWN_DEVICE_HANDLING = 1
+                    Config.UNKNOWN_CLIENT_HANDLING = 1
                 elif values["UKD_BLOCK"]:
-                    Config.UNKNOWN_DEVICE_HANDLING = 2
+                    Config.UNKNOWN_CLIENT_HANDLING = 2
                 else:   # Default: Ask
-                    Config.UNKNOWN_DEVICE_HANDLING = 0
+                    Config.UNKNOWN_CLIENT_HANDLING = 0
 
                 Config.FULL_SCREENSHOTS_ENABLED = values[KEY_ALLOW_FULLSCREEN]
                 common.utility.update_user_config()

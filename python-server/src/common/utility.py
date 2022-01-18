@@ -46,10 +46,10 @@ def read_user_config():
     Config.ID = _id
  
     # Unknown devices
-    if config.has_option("main", "unknown_device_handling"):
-        Config.UNKNOWN_DEVICE_HANDLING = config.getint("main", "unknown_device_handling")
+    if config.has_option("main", "unknown_client_handling"):
+        Config.UNKNOWN_CLIENT_HANDLING = config.getint("main", "unknown_client_handling")
     else:
-        config.set("main", "unknown_device_handling", "0")
+        config.set("main", "unknown_client_handling", "0")
     
     # Full screenshots
     if config.has_option("main", "FULL_SCREENSHOTS_ENABLED"):
@@ -71,7 +71,7 @@ def set_user_config_option(option, value):
 def update_user_config():
     config = ConfigParser()
     config.read("config.ini")
-    config.set("main", "unknown_device_handling", str(Config.UNKNOWN_DEVICE_HANDLING))
+    config.set("main", "unknown_client_handling", str(Config.UNKNOWN_CLIENT_HANDLING))
     config.set("main", "FULL_SCREENSHOTS_ENABLED", str(Config.FULL_SCREENSHOTS_ENABLED))
     with open("config.ini", "w") as f:
         config.write(f)

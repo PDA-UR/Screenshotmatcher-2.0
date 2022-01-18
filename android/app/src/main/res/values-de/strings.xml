@@ -43,6 +43,7 @@
     <string name="ff_submit_success_en">Feedback abgesendet</string>
     <string name="ff_submit_failed_en">Feedback konnte nicht gesendet werden</string>
     <string name="http_download_full_error_en">Der volle Screenshot konnte nicht geladen werden</string>
+    <string name="http_download_full_not_allowed_en">Herunterladen von vollen Screenshots blockiert durch den Host</string>
     <string name="settings_algorithm_header_en">Matching</string>
     <string name="settings_algorithm_toggle">Schneller Modus</string>
     <string name="settings_algorithm_summary">Ist diese Option aktiviert wird das Matching schneller aber jedoch auch ungenauer sein</string>

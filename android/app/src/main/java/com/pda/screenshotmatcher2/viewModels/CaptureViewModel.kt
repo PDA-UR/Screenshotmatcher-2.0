@@ -100,9 +100,11 @@ class CaptureViewModel(application: Application) : AndroidViewModel(application)
      *
      * Used in [loadFullScreenshot].
 	 */
-    private fun onDownloadFullScreenshot(fullScreenshot: Bitmap?) {
+    private fun onDownloadFullScreenshot(fullScreenshot: Bitmap?, error: String?) {
         if(fullScreenshot != null)
             this.fullScreenshot.value = CaptureModel.setFullScreenshot(fullScreenshot)
+        else if(error == "disabled_by_host_error")
+            Toast.makeText(getApplication(), (getApplication() as Context).getText(R.string.http_download_full_not_allowed_en), Toast.LENGTH_SHORT).show()
         else Toast.makeText(getApplication(), (getApplication() as Context).getText(R.string.http_download_full_error_en), Toast.LENGTH_SHORT).show()
     }
 

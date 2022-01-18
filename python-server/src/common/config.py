@@ -10,6 +10,6 @@ class Config():
     CURRENT_ALGORITHM = DEFAULT_ALGORITHM
     ID = ""
     FULL_SCREENSHOTS_ENABLED = True
-    UNKNOWN_DEVICE_HANDLING = 0 # 0: ask, 1: allow all, 2: block all
+    UNKNOWN_CLIENT_HANDLING = 0 # 0: ask, 1: allow all, 2: block all
 
     HOMEPAGE = "https://github.com/PDA-UR/Screenshotmatcher-2.0"

@@ -3,7 +3,6 @@ package com.pda.screenshotmatcher2.network
 import android.content.Context
 import android.graphics.Bitmap
 import android.util.Base64
-import android.util.Log
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
@@ -23,6 +22,7 @@ import com.pda.screenshotmatcher2.utils.base64ToBitmap
 import com.pda.screenshotmatcher2.utils.decodeBase64
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
+import kotlin.reflect.KFunction2
 
 /**
  * The request queue used to send requests to the server.
@@ -105,11 +105,11 @@ fun sendCaptureRequest(
         json.put(key.toString(), value.toString())
     }
     // add the device name
-    json.put("device_name", getDeviceName())
+    json.put("client_name", getDeviceName())
 
     // add device ID for verification
     val id = getDeviceID(context)
-    json.put("device_id", id)
+    json.put("client_id", id)
 
     // add the image
     json.put("b64", b64Image)
@@ -236,10 +236,10 @@ private fun requestPermission(
     Toast.makeText(context, "Requesting permission...", Toast.LENGTH_LONG).show()
     val json = JSONObject()
     json.put(
-        "device_id",
+        "client_id",
         getDeviceID(context)
     )
-    json.put("device_name", getDeviceName())
+    json.put("client_name", getDeviceName())
     json.put("match_id", matchID)
 
     val jsonObjectRequest =
@@ -291,25 +291,26 @@ fun requestFullScreenshot(
     matchID: String,
     serverURL: String,
     context: Context,
-    onDownload: (bitmap: Bitmap?) -> Unit
+    onDownload: KFunction2<Bitmap?, String?, Unit>
 ) {
     if (queue === null) queue = Volley.newRequestQueue(context)
     val json = JSONObject()
+    json.put("client_id", getDeviceID(context))
     json.put("match_id", matchID)
     val jsonOR = JsonObjectRequest(
         Request.Method.POST, serverURL + Routes.SCREENSHOT_DEST, json,
         { response ->
             if (response.has("error")) {
                 if (response.getString("error") == "disabled_by_host_error") {
-                    onDownload(null)
+                    onDownload(null, "disabled_by_host_error")
                 }
             } else {
                 val b64String: String = response.get("result").toString()
-                onDownload(base64ToBitmap(b64String))
+                onDownload(base64ToBitmap(b64String), null)
             }
         },
         { error ->
-            onDownload(null)
+            onDownload(null, "unknown_error")
             // TODO: Implement fix → the latest full screenshot can be requested at ANY time
             error.printStackTrace()
         })
@@ -374,6 +375,7 @@ fun sendLog(serverURL: String, context: Context) {
         map["match_id"] = StudyLogger.hashMap["match_id"]
         map["logging_disabled"] = true
         json = JSONObject(map)
+        json.put("client_id", getDeviceID(context))
     }
 
     val jsonObjectRequest = JsonObjectRequest(Request.Method.POST, serverURL + Routes.LOG_DEST, json,

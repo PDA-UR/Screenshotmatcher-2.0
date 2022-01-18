@@ -9,38 +9,38 @@ user_response = ""
 permission_tokens = []
 TOKEN_TIMEOUT_S = 60
 
-def is_device_allowed(current_setting, device_id, device_name, token):
+def is_client_allowed(current_setting, client_id, client_name, token):
     if current_setting == 1:    # allow all
         return 1
     if current_setting == 2:    # block all
         return -1
-    if is_device_in_list(device_id, "whitelist.txt"):
+    if is_client_in_list(client_id, "whitelist.txt"):
         return 1
-    if is_device_in_list(device_id, "blacklist.txt"):
+    if is_client_in_list(client_id, "blacklist.txt"):
         return -1
     if token in permission_tokens:
         permission_tokens.remove(token)
         return 1
     return 0   # client needs to request permission
 
-def is_device_in_list(device_id, filename):
+def is_client_in_list(client_id, filename):
     if not os.path.isfile(filename):
         return False
 
     with open(filename, "r") as f:
         for line in f.readlines():
-            if line[:-1] == device_id:  # remove \n for comparison
+            if line[:-1] == client_id:  # remove \n for comparison
                 return True
         return False
 
-def add_device_to_list(device_id, filename):
+def add_client_to_list(client_id, filename):
     if not os.path.isfile(filename):
         with open(filename, "w+") as f:
             f.write("# File must end with an empty line")
             f.write("\n")
     
     with open(filename, "a+") as f:
-        f.write(device_id)
+        f.write(client_id)
         f.write("\n")
 
 def set_user_response(val):
@@ -65,7 +65,7 @@ def set_token_timeout(token):
     except ValueError:
         pass
 
-def request_permission_for_device(device_id, device_name, queue):
+def request_permission_for_client(client_id, client_name, queue):
     global prompt_open
     if prompt_open: # prevent multiple popups
         return ""
@@ -73,7 +73,7 @@ def request_permission_for_device(device_id, device_name, queue):
 
     # put a command into the queue. will be called by App
     queue.put_nowait(
-        ("permission_request", (device_name, device_id))
+        ("permission_request", (client_name, client_id))
     )
 
     # wait for a response.
@@ -94,15 +94,15 @@ def request_permission_for_device(device_id, device_name, queue):
 
     # white-/blacklist if necessary
     if user_input == "allow":
-        add_device_to_list(device_id, "whitelist.txt")
+        add_client_to_list(client_id, "whitelist.txt")
     elif user_input == "block":
-        add_device_to_list(device_id, "blacklist.txt")
+        add_client_to_list(client_id, "blacklist.txt")
 
     prompt_open = False
     return user_input
 
 def on_permission_response(user_input):
     if user_input == "allow":
-        add_device_to_list(device_id, "whitelist.txt")
+        add_client_to_list(client_id, "whitelist.txt")
     elif user_input == "block":
-        add_device_to_list(device_id, "blacklist.txt")
+        add_client_to_list(client_id, "blacklist.txt")
