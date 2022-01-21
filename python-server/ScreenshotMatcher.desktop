@@ -1,6 +1,0 @@
-[Desktop Entry]
-Comment=
-Terminal=false
-Name=ScreenshotMatcher
-Exec=src/main.py
-Type=Application
