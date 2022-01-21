@@ -126,7 +126,7 @@ object ServerConnectionModel {
             }
             when (isConnected.value) {
                 true -> startHeartbeatThread()
-                false -> startDiscoverThread()
+                else -> startDiscoverThread()
             }
         }
     }

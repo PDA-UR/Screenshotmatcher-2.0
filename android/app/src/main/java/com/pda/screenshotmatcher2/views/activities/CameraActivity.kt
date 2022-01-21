@@ -443,7 +443,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
     /**
      * Starts [ResultsActivity].
      */
-    private fun startResultsActivity(matchID: String, img: ByteArray) {
+    private fun startResultsActivity() {
         didStartResultsActivity = true
         val intent = Intent(this, ResultsActivity::class.java)
         startActivityForResult(
@@ -566,7 +566,7 @@ class CameraActivity : AppCompatActivity(), SensorEventListener, CameraInstance,
             matchID,
             BitmapFactory.decodeByteArray(img, 0, img.size)
         )
-        startResultsActivity(matchID, img)
+        startResultsActivity()
     }
 
     /**
